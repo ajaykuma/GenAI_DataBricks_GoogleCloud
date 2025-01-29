@@ -1,0 +1,222 @@
+#Setup ELK (single node) and setup Pycharm
+
+-------------------------------------------------------
+#instantiate a DocumentArray with Elasticsearch storage as:
+from docarray import DocumentArray
+da = DocumentArray(storage='elasticsearch', config={'n_dim': 128})
+
+Note**dimension of an embedding for a Document must be provided at creation time
+Note** we can also  specify configurations such as 'es_config': {'ca_certs': '/Users/hanxiao/http_ca.crt'} in config.
+
+#Setup:
+#Python3.7 setup
+sudo wget https://www.python.org/ftp/python/3.7.11/Python-3.7.11.tgz
+sudo tar xzf Python-3.7.11.tgz 
+cd Python-3.7.11/
+sudo ./configure --enable-optimizations
+sudo make altinstall
+sudo rm /usr/src/Python-3.7.11.tgz
+python3.7
+vi .bashrc
+alias python=pythonpath
+python -m pip install --user virtualenv
+python -m venv testenv
+source testenv/bin/activate
+#or setup project with virtual env in pycharm
+
+#Getting packages
+python -m pip install pydantic
+pip install "docarray[full]"
+pip install urllib3==1.26.6
+pip install transformers
+pip install elasticsearch7==7.10.0 or without specifying version
+ls testenv/lib/python3.7/site-packages/
+
+in main machine:
+pip install -U jina (and follow instructions as provided in other file)
+pip install Torch --no-cache-dir (to avoid memory error issue)
+pip install pydantic
+pip install "docarray[full]
+pip install urllib3==1.26.6
+
+#For Pycharm in Centos:
+#Download pycharm community edition and unpack it
+sudo tar -xvf Downloads/pycharm-community-2023.2.tar.gz 
+change directory to pycharm
+cd pycharm-community-2023.2
+bin/pycharm.sh
+--if errors with display
+---
+echo $DISPLAY
+sudo yum install -y xterm
+xterm &
+sudo yum install -y xorg-x11-xauth
+sudo vi /etc/ssh/sshd_config
+--add following
+AllowTcpForwarding yes
+ForwardX11 yes
+X11Forwarding yes
+<reboot>
+----
+#Codes
+
+#connect to ES and create test index
+#test0.py
+----------
+import elasticsearch
+docarray.__version__
+from docarray import DocumentArray, Document
+from elasticsearch import Elasticsearch
+
+
+da = DocumentArray(
+    storage='elasticsearch',
+    config={'hosts': 'http://os1:9200','index_name': 'new_stuff','n_dim': 128},
+)
+da.summary()
+----------
+#test1.py
+----------
+import docarray
+import elasticsearch
+from docarray import DocumentArray, Document
+from elasticsearch import Elasticsearch
+
+
+da2 = DocumentArray(
+    storage='elasticsearch',
+    config={'hosts': 'http://os1:9200','index_name': 'old_stuff','n_dim': 128},)
+
+with da2:
+    da2.extend([Document() for _ in range(1000)])
+
+da2.summary()
+--------------
+summary shows:
+----sample output----
+╭─────────────── Documents Summary ───────────────╮
+│                                                 │
+│   Type                   DocumentArrayElastic   │
+│   Length                 1000                   │
+│   Homogenous Documents   True                   │
+│   Common Attributes      ('id',)                │
+│   Multimodal dataclass   False                  │
+│                                                 │
+╰─────────────────────────────────────────────────╯
+╭───────────────────── Attributes Summary ─────────────────────╮
+│                                                              │
+│   Attribute   Data type   #Unique values   Has empty value   │
+│  ──────────────────────────────────────────────────────────  │
+│   id          ('str',)    1000             False             │
+│                                                              │
+╰──────────────────────────────────────────────────────────────╯
+╭───── DocumentArrayElastic Config ─────╮
+│                                       │
+│   n_dim             128               │
+│   distance          cosine            │
+│   hosts             http://os1:9200   │
+│   index_name        old_stuff         │
+│   list_like         True              │
+│   es_config         {}                │
+│   index_text        False             │
+│   tag_indices       []                │
+│   batch_size        64                │
+│   ef_construction   None              │
+│   m                 None              │
+│   columns           {}                │
+│   root_id           True              │
+│                                       │
+╰───────────────────────────────────────╯
+
+Process finished with exit code 0
+
+-----sample output ends-----
+
+Checking data from DEV TOOLS in ES
+
+GET _cat/indices/old_stuff?v
+
+GET old_stuff
+
+GET _cat/shards/old_stuff?v
+
+GET old_stuff/_search
+{
+    "query": {
+        "match_all": {}
+    }
+}
+
+GET old_stuff/_count
+{
+    "query": {
+        "match_all": {}
+    }
+}
+
+POST /_sql?format=txt
+{
+  
+  "query": "select * from old_stuff"
+,
+"fetch_size": 1}
+
+POST /_sql?format=txt
+{
+  
+  "query": "select text from old_stuff"
+,
+"fetch_size": 5}
+
+------------------
+#test2.py
+import docarray
+import elasticsearch
+import numpy
+from docarray import DocumentArray, Document
+from elasticsearch import Elasticsearch
+d1 = Document(text='hello')
+d2 = Document(blob=b'\f1')
+d3 = Document(tensor=numpy.array([1, 2, 3]))
+d4 = Document(
+    uri='https://docarray.jina.ai',
+    mime_type='text/plain',
+    granularity=1,
+    adjacency=3,
+    tags={'foo': 'bar'},
+)
+d5 = Document(
+    uri='https://docarray.jina.ai',
+    mime_type='text/plain',
+    granularity=1,
+    adjacency=3
+)
+
+d6 = Document(
+    dict(
+        uri='https://docarray.jina.ai',
+        mime_type='text/plain',
+        granularity=1,
+        adjacency=3,
+    )
+)
+
+d7 = Document(
+    {
+      'uri': 'https://docarray.jina.ai',
+        'mime_type': 'text/plain',
+        'granularity': 1,
+        'adjacency': 3,
+    }
+)
+
+da2 = DocumentArray([d1,d2,d3,d4,d5,d6,d7],
+    storage='elasticsearch',
+    config={'hosts': 'http://os1:9200','index_name': 'new_stuff','n_dim': 128},
+    )
+
+# with da2:
+#     da2.extend([Document() for _ in range(1000)])
+
+da2.summary()
+--------

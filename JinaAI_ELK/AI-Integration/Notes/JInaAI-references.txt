@@ -1,0 +1,15 @@
+https://docs.jina.ai/
+https://github.com/jina-ai/jina
+https://cloud.jina.ai/executor/2gyoad6q/
+https://docarray.jina.ai/advanced/document-store/elasticsearch/
+https://nlp.stanford.edu/projects/glove/
+https://towardsdatascience.com/light-on-math-ml-intuitive-guide-to-understanding-glove-embeddings-b13b4f19c010
+https://towardsdatascience.com/multimodal-deep-learning-ce7d1d994f4
+https://www.pinecone.io/learn/chunking-strategies/
+https://jina.ai/news/docarray-v2-update/
+https://towardsdatascience.com/dropout-in-neural-networks-47a162d621d9
+https://becominghuman.ai/sequential-vs-functional-model-in-keras-20684f766057
+https://machinelearningmastery.com/difference-between-a-batch-and-an-epoch/
+
+--working
+https://colab.research.google.com/github/jina-ai/jina/blob/master/docs/Using_Jina_on_Colab.ipynb

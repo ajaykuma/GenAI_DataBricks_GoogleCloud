@@ -1,0 +1,98 @@
+
+
+
+--from code
+from jina import Flow
+f = Flow().add(name='myVeryFirstExecutor').add(name='secondIsBest')
+
+--from Flow.yml
+----
+jtype: Flow
+executors:
+  - name: myVeryFirstExecutor
+  - name: secondIsBest
+
+
+--sample-flow----
+from jina import Executor, requests, Flow
+from docarray import DocList, BaseDoc
+from docarray.documents import TextDoc
+
+
+class PrintDocuments(Executor):
+    @requests
+    def foo(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        for doc in docs:
+            print(f' PrintExecutor: received document with text: "{doc.text}"')
+        return docs
+
+
+class ProcessDocuments(Executor):
+    @requests(on='/change_in_place')
+    def in_place(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        # This Executor only works on `docs` and doesn't consider any other arguments
+        for doc in docs:
+            print(f'ProcessDocuments: received document with text "{doc.text}"')
+            doc.text = 'I changed the executor in place'
+
+    @requests(on='/return_different_docarray')
+    def ret_docs(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        # This executor only works on `docs` and doesn't consider any other arguments
+        ret = DocList[TextDoc]()
+        for doc in docs:
+            print(f'ProcessDocuments: received document with text: "{doc.text}"')
+            ret.append(TextDoc(text='I returned a different Document'))
+        return ret
+
+
+f = Flow().add(uses=ProcessDocuments).add(uses=PrintDocuments)
+
+with f:
+    f.post(on='/change_in_place', inputs=DocList[TextDoc]([TextDoc(text='request1')]), return_type=DocList[TextDoc])
+    f.post(
+        on='/return_different_docarray', inputs=DocList[TextDoc]([TextDoc(text='request2')]), return_type=DocList[TextDoc]))
+    )
+
+--------
+to run flow
+jina flow --uses flow.yml
+
+----------------defining topology-----------------
+from jina import Executor, requests, Flow
+from docarray import DocList
+from docarray.documents import TextDoc
+
+
+class FooExecutor(Executor):
+    @requests
+    async def foo(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        docs.append(TextDoc(text=f'foo was here and got {len(docs)} document'))
+
+
+class BarExecutor(Executor):
+    @requests
+    async def bar(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        docs.append(TextDoc(text=f'bar was here and got {len(docs)} document'))
+
+
+class BazExecutor(Executor):
+    @requests
+    async def baz(self, docs: DocList[TextDoc], **kwargs) -> DocList[TextDoc]:
+        docs.append(TextDoc(text=f'baz was here and got {len(docs)} document'))
+
+
+f = (
+    Flow()
+    .add(uses=FooExecutor, name='fooExecutor')
+    .add(uses=BarExecutor, name='barExecutor', needs='fooExecutor')
+    .add(uses=BazExecutor, name='bazExecutor', needs='fooExecutor')
+    .add(needs=['barExecutor', 'bazExecutor'])
+)
+
+with f:
+    print(f.post('/', return_type=DocList[TextDoc]).text)
+
+
+
+
+-------------------

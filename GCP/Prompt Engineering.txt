@@ -1,0 +1,570 @@
+"Username"
+"Password"
+--------------
+student-04-54081b5c0273@qwiklabs.net
+K9wJPWrbdgwY
+qwiklabs-gcp-04-e3c0dae26f90
+us-east4
+
+
+jupyter lab
+Install Vertex AI SDK and other required packages
+%pip install --upgrade --user --quiet google-cloud-aiplatform
+
+Restart runtime
+To use the newly installed packages in this Jupyter runtime, you must restart the runtime. You can do this by running the cell below, which will restart the current kernel.
+
+import IPython
+app = IPython.Application.instance()
+app.kernel.do_shutdown(True)
+
+{'status': 'ok', 'restart': True}
+
+Authenticate your notebook environment (Colab only)
+Authenticate your environment on Google Colab.
+
+Set Google Cloud project information and initialize Vertex AI SDK
+To get started using Vertex AI, you must have an existing Google Cloud project and enable the Vertex AI API.
+
+Learn more about setting up a project and a development environment.
+
+PROJECT_ID = "qwiklabs-gcp-04-e3c0dae26f90"  # @param {type:"string"}
+LOCATION = "us-east4"  # @param {type:"string"}
+import vertexai
+vertexai.init(project=PROJECT_ID, location=LOCATION)
+
+from vertexai.generative_models import GenerationConfig, GenerativeModel
+import time
+
+Load model
+model = GenerativeModel("gemini-1.5-flash")
+
+import time
+
+def call_gemini(prompt, generation_config=GenerationConfig(temperature=1.0)):
+    wait_time = 1
+    while True:
+        try:
+            response = model.generate_content(prompt, generation_config=generation_config).text
+            return response
+            break  # Exit the loop if successful
+        except Exception as e:  # Replace with the actual exception type
+            time.sleep(wait_time)
+            wait_time *= 2  # Double the wait time
+
+def send_message_gemini(model, prompt):    
+    wait_time = 1
+    while True:
+        try:
+            response = model.send_message(prompt).text
+            return response
+            break  # Exit the loop if successful
+        except Exception as e:  # Replace with the actual exception type
+            time.sleep(wait_time)
+            wait_time *= 2  # Double the wait time
+
+Prompt engineering best practices
+Prompt engineering is all about how to design your prompts so that the response is what you were indeed hoping to see.
+
+The idea of using "unfancy" prompts is to minimize the noise in your prompt to reduce the possibility of the LLM misinterpreting the intent of the prompt. Below are a few guidelines on how to engineer "unfancy" prompts.
+
+In this section, you'll cover the following best practices when engineering prompts:
+
+Be concise
+Be specific, and well-defined
+Ask one task at a time
+Improve response quality by including examples
+Turn generative tasks to classification tasks to improve safety
+
+Be concise
+🛑 Not recommended. The prompt below is unnecessarily verbose.
+prompt = "What do you think could be a good name for a flower shop that specializes in selling bouquets of dried flowers more than fresh flowers?"
+print(call_gemini(prompt))
+
+Response:
+Here are some names for a flower shop specializing in dried flowers, playing on different themes:
+
+**Whimsical & Romantic:**
+
+* Bloom & Dust
+* Dried Dreams
+* The Everlasting Bouquet
+* Petal & Paper
+* Wildflower & Willow
+* The Dried Garden
+* Sun-Kissed Blooms
+* The Timeless Bloom
+
+**Modern & Minimalist:**
+
+* The Bloomery
+* The Dried Bouquet
+* The Petal Press
+* Bloom & Co.
+* Dried & Co. 
+* The Botanical Studio
+* The Bloom Bar
+
+**Unique & Creative:**
+
+* The Paper Flower Shop
+* The Botanical Alchemist
+* The Dried Flower Apothecary
+* The Bloom Archive
+* The Pressed Petal Gallery
+
+**Location-Specific:**
+
+* [Your City] Dried Flowers
+* The [Neighborhood] Bloomery
+* [Your Street] Blooms
+
+**Tips for Choosing a Name:**
+
+* **Keep it short and memorable.**
+* **Reflect your brand personality.**
+* **Make sure it's easy to pronounce and spell.**
+* **Check for availability online and as a business name.**
+
+**Consider adding a tagline to your name, such as:**
+
+* Dried flowers with lasting beauty.
+* Nature's timeless treasures.
+* Bringing the outdoors in.
+* The perfect gift for any occasion.
+
+Ultimately, the best name for your flower shop is one that you love and that reflects your unique brand. Good luck!
+
+Recommended. The prompt below is to the point and concise.
+prompt = "Suggest a name for a flower shop that sells bouquets of dried flowers"
+print(call_gemini(prompt))
+
+Response:
+## Catchy & Evocative:
+
+* **Everlasting Blooms**
+* **Dried & Divine**
+* **Withered Whispers**
+* **Paper Petal Co.**
+* **Sun-Kissed Blooms**
+* **Timeless Florals**
+* **Forever Wild**
+
+## Chic & Modern:
+
+* **Bloom & Co.**
+* **Dried & Co.**
+* **Botanica**
+* **Flora & Fauna**
+* **The Petal Press**
+* **The Dried Bouquet**
+* **Wild Bloom Co.**
+
+## Unique & Playful:
+
+* **The Dusty Bouquet**
+* **The Flower Whisperer**
+* **The Dried Flower Library**
+* **Boho Blooms**
+* **The Paper Garden**
+* **Bloom & Beyond**
+* **The Bloom Room**
+
+## Consider incorporating:
+
+* **Your location:**  "The [City Name] Dried Flower Shop"
+* **Your name:** " [Your Name]'s Dried Flowers" 
+* **A specific flower:** "The Poppy Press"
+
+**Tips for choosing the best name:**
+
+* **Keep it short and memorable.**
+* **Make sure it's easy to spell and pronounce.**
+* **Consider your target audience.**
+* **Check for availability of the name and domain.**
+* **Choose a name that reflects your brand's personality and style.**
+
+Be specific, and well-defined
+Suppose that you want to brainstorm creative ways to describe Earth.
+🛑 The prompt below might be a bit too generic (which is certainly OK if you'd like to ask a generic question!)
+prompt = "Tell me about Earth"
+print(call_gemini(prompt))
+
+Response:
+## Earth: Our Home Planet 
+
+Earth is the third planet from the Sun and the only known planet to harbor life. It's a dynamic and complex world, constantly changing and evolving. Here's a glimpse into its fascinating features:
+
+**Physical Characteristics:**
+
+* **Size and Shape:** Earth is an oblate spheroid, meaning it's slightly flattened at the poles and bulging at the equator. It has a diameter of about 12,742 kilometers (7,926 miles).
+* **Composition:** Earth's surface is primarily composed of solid rock, with a core made of iron and nickel. Its atmosphere is composed of nitrogen (78%), oxygen (21%), and other trace gases.
+* **Rotation and Revolution:** Earth rotates on its axis once every 24 hours, creating day and night. It revolves around the Sun in an elliptical orbit, completing one revolution every 365.25 days, which defines a year.
+
+**Geography and Geology:**
+
+* **Continents and Oceans:** Earth's surface is divided into seven continents (Asia, Africa, North America, South America, Antarctica, Europe, and Australia) and five major oceans (Pacific, Atlantic, Indian, Southern, and Arctic).
+* **Plate Tectonics:** The Earth's crust is divided into tectonic plates that move slowly over time. This movement causes earthquakes, volcanic eruptions, and the formation of mountains and valleys.
+* **Weather and Climate:** Earth's atmosphere is responsible for weather patterns, which vary dramatically across the globe. Climate, a long-term average of weather, is influenced by factors like latitude, altitude, and ocean currents.
+
+**Life on Earth:**
+
+* **Biosphere:** Earth is the only planet known to support life. It's teeming with a vast array of organisms, from microscopic bacteria to giant whales.
+* **Ecosystems:** Different regions of Earth support diverse ecosystems, each with unique plant and animal life. These ecosystems are interconnected and rely on each other for survival.
+* **Humanity:** Humans are a relatively recent species on Earth, but they have had a significant impact on the planet. Our activities have caused climate change, pollution, and habitat loss.
+
+**Beyond the Basics:**
+
+* **Moon:** Earth's only natural satellite, the Moon, has a profound influence on our planet, causing tides and stabilizing our axis.
+* **Magnetic Field:** Earth has a protective magnetic field that deflects harmful radiation from the Sun.
+* **Natural Resources:** Earth is rich in natural resources like water, minerals, and fossil fuels, which are crucial for human civilization.
+
+**Threats and Challenges:**
+
+* **Climate Change:** Human activities are causing global temperatures to rise, leading to extreme weather events, sea-level rise, and other environmental problems.
+* **Pollution:** Air, water, and soil pollution threaten human health and the environment.
+* **Deforestation:** Clearing forests for agriculture, logging, and development contributes to climate change and biodiversity loss.
+
+Understanding Earth is crucial for our survival and well-being. By learning about its complex systems and the threats we face, we can work to protect and preserve our planet for future generations. 
+
+✅ Recommended. The prompt below is specific and well-defined.
+prompt = "Generate a list of ways that makes Earth unique compared to other planets"
+print(call_gemini(prompt))
+
+Response:
+## What makes Earth unique in our solar system:
+
+**1. Presence of Liquid Water:**  Earth is the only planet in our solar system with liquid water on its surface in abundance. This is crucial for life as we know it, allowing for chemical reactions and the formation of complex molecules.
+
+**2. Active Plate Tectonics:**  Earth's crust is divided into tectonic plates that constantly move and interact, resulting in earthquakes, volcanoes, and mountain formation. This dynamic process recycles the planet's surface, creating a diverse and constantly evolving environment.
+
+**3. A Breathable Atmosphere:** Earth's atmosphere, mainly composed of nitrogen and oxygen, is essential for sustaining life. Oxygen is crucial for respiration in most living organisms, while the atmosphere protects us from harmful solar radiation.
+
+**4. A Strong Magnetic Field:**  Earth's magnetic field shields us from the solar wind, a stream of charged particles from the sun that can be harmful to life. The field also creates auroras, beautiful displays of light in the sky.
+
+**5. Diverse Lifeforms:**  Earth is teeming with life, from microscopic bacteria to giant whales. This incredible biodiversity is a result of billions of years of evolution, driven by various factors like climate, geography, and the interaction between different species.
+
+**6. Moderate Temperatures:**  Earth's distance from the sun allows for a relatively stable temperature range, with a comfortable climate for most life forms. This is due to a combination of factors including the atmosphere, the greenhouse effect, and the planet's axial tilt.
+
+**7. Abundant Natural Resources:**  Earth possesses a diverse range of minerals, energy sources, and other natural resources that have played a crucial role in human civilization.
+
+**8. Moon's Influence:**  Earth's large moon stabilizes its axial tilt, contributing to the stable climate that has been crucial for life's evolution. The moon also causes tides, a vital factor in marine ecosystems.
+
+**9. Evidence of Past Water on Mars:** While Mars is no longer known to have liquid water on its surface, evidence suggests it may have had flowing water in the past. This adds to the debate about the potential for life elsewhere in the solar system.
+
+**10. Ongoing Scientific Discovery:** With advancements in technology, we are constantly learning more about Earth and its unique characteristics. This ongoing exploration continues to reveal fascinating facts and expand our understanding of the planet we call home.
+
+It's important to note that this list only covers some of the key factors that contribute to Earth's uniqueness. While we're constantly learning about our planet, it's crucial to appreciate the diverse and complex factors that make Earth the incredible and habitable place it is.
+
+Ask one task at a time
+🛑 Not recommended. The prompt below has two parts to the question that could be asked separately.
+prompt = "What's the best method of boiling water and why is the sky blue?"
+print(call_gemini(prompt))
+
+Response:
+Let's tackle these two questions:
+
+**Boiling Water:**
+
+The best method for boiling water depends on your needs and resources, but here are some popular options:
+
+* **Stovetop:** This is the most common method. Simply fill a pot with water, place it on the stovetop, and turn on the burner to high heat. Keep an eye on the water and turn off the burner once it reaches a rolling boil.
+* **Electric Kettle:**  Electric kettles are efficient and fast. Fill the kettle with water, turn it on, and it will automatically shut off when the water boils.
+* **Microwave:** While not ideal for large quantities, you can boil water in a microwave-safe container.  Be careful as the water can superheat and potentially erupt when disturbed.
+* **Camping Stove:**  If you're outdoors, you can use a camping stove with a pot to boil water over a fuel source like propane or butane.
+
+**Why the Sky is Blue:**
+
+The sky is blue due to a phenomenon called **Rayleigh scattering**. Here's the breakdown:
+
+* **Sunlight:** Sunlight is made up of all colors of the rainbow.
+* **Atmosphere:**  Our atmosphere contains tiny particles of air, like nitrogen and oxygen.
+* **Scattering:** When sunlight enters the atmosphere, these particles scatter the light in all directions.
+* **Wavelengths:**  Blue light has a shorter wavelength than other colors, meaning it scatters more easily. 
+* **Our View:** This scattered blue light reaches our eyes from all directions, making the sky appear blue.
+
+**Important Note:**  As the sun sets, the light travels through more atmosphere. This means more blue light is scattered away, leaving behind the longer wavelengths like red and orange, which is why sunsets appear reddish-orange. 
+
+✅ Recommended. The prompts below asks one task a time.
+prompt = "What's the best method of boiling water?"
+print(call_gemini(prompt))
+
+Response:
+The "best" method of boiling water really depends on what you consider most important:
+
+**For speed and efficiency:**
+
+* **Electric kettle:** This is the fastest and most efficient way to boil water for a small amount. It's energy-efficient and heats water quickly.
+* **Microwave:**  This can be a good option for small amounts of water, but it can be less efficient and doesn't always heat evenly.
+
+**For flexibility and control:**
+
+* **Stovetop:** This allows you to use different sized pots and adjust the heat for different purposes. You have more control over the boiling process.
+
+**Other factors to consider:**
+
+* **Amount of water:** For large quantities, a stovetop pot or electric kettle with a large capacity is best.
+* **Purpose:** If you need boiling water for tea or instant coffee, a kettle is ideal. For cooking pasta or vegetables, a stovetop pot is more versatile.
+* **Energy consumption:** Electric kettles are generally the most energy-efficient option.
+
+**Here are some additional tips for boiling water:**
+
+* **Use a pot with a lid:** This will help the water boil faster.
+* **Don't overfill the pot:** This can cause the water to boil over.
+* **Watch the water carefully:** Once it starts to boil, it will quickly come to a rolling boil.
+* **Turn off the heat once the water is boiling:** This will prevent it from boiling dry.
+
+Ultimately, the best method for you will depend on your individual needs and preferences. 
+
+prompt = "Why is the sky blue?"
+print(call_gemini(prompt))
+
+Response:
+The sky appears blue due to a phenomenon called **Rayleigh scattering**. Here's how it works:
+
+* **Sunlight is made up of all colors of the rainbow.**  This is called the visible light spectrum.
+* **The Earth's atmosphere is made up of tiny particles, like nitrogen and oxygen molecules.** These molecules are much smaller than the wavelengths of visible light.
+* **When sunlight enters the atmosphere, it hits these particles and gets scattered in all directions.** This scattering is more pronounced for shorter wavelengths of light, like blue and violet. 
+* **Blue light is scattered more effectively than other colors.**  This is because blue light has a shorter wavelength and is more easily deflected by the tiny particles in the air.
+* **As a result, we see more blue light scattered throughout the sky.** This is why the sky appears blue most of the time.
+
+**Here are some additional points to consider:**
+
+* **The sky can appear other colors at different times of day.** For example, at sunrise and sunset, the sunlight has to travel through more of the atmosphere.  This means that more of the blue light is scattered away, leaving behind the longer wavelengths of red and orange.
+* **Clouds are white because they are much larger than the wavelengths of visible light.** This means that they scatter all colors of light equally, resulting in a white appearance.
+* **The sky can appear gray or cloudy when there is a lot of dust or water vapor in the air.** This is because these larger particles scatter all colors of light equally, reducing the amount of blue light that reaches our eyes.
+
+So, the next time you look up at the blue sky, remember that you're witnessing the amazing power of light scattering! 
+
+Watch out for hallucinations
+Although LLMs have been trained on a large amount of data, they can generate text containing statements not grounded in truth or reality; these responses from the LLM are often referred to as "hallucinations" due to their limited memorization capabilities. Note that simply prompting the LLM to provide a citation isn't a fix to this problem, as there are instances of LLMs providing false or inaccurate citations. Dealing with hallucinations is a fundamental challenge of LLMs and an ongoing research area, so it is important to be cognizant that LLMs may seem to give you confident, correct-sounding statements that are in fact incorrect.
+
+Note that if you intend to use LLMs for the creative use cases, hallucinating could actually be quite useful.
+
+Try the prompt like the one below repeatedly. We set the temperature to 1.0 so that it takes more risks in its choices. It's possible that it may provide an inaccurate, but confident answer.
+
+generation_config = GenerationConfig(temperature=1.0)
+prompt = "What day is it today?"
+print(call_gemini(prompt, generation_config))
+
+Response:
+I do not have access to real-time information, including the current date. To know what day it is, I recommend checking a calendar or your device's clock. 
+
+Since LLMs do not have access to real-time information without further integrations, you may have noticed it hallucinates what day it is today in some of the outputs.
+
+Using system instructions to guardrail the model from irrelevant responses
+How can we attempt to reduce the chances of irrelevant responses and hallucinations?
+One way is to provide the LLM with system instructions.
+Let's see how system instructions works and how you can use them to reduce hallucinations or irrelevant questions for a travel chatbot.
+Suppose we ask a simple question about one of Italy's most famous tourist spots.
+
+model_travel = GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=[
+        "Hello! You are an AI chatbot for a travel web site.",
+        "Your mission is to provide helpful queries for travelers.",
+        "Remember that before you answer a question, you must check to see if it complies with your mission.",
+        "If not, you can say, Sorry I can't answer that question.",
+    ],
+)
+
+chat = model_travel.start_chat()
+
+prompt = "What is the best place for sightseeing in Milan, Italy?"
+
+print(send_message_gemini(chat, prompt))
+
+Response:
+Milan is a city rich with history, culture, and stunning architecture! To help you find the best sightseeing spots for you, I need some more information.  
+
+What are you most interested in seeing? 
+
+* **Art and History:**  Do you want to see world-renowned art at the Duomo or Leonardo da Vinci's "The Last Supper"?
+* **Fashion and Shopping:** Are you interested in exploring luxury boutiques and designer showrooms?
+* **Food and Culture:**  Would you like to experience Milan's vibrant culinary scene, perhaps with a traditional aperitivo?
+
+Tell me what you're looking for, and I can give you some specific recommendations! 
+
+Now let us pretend to be a user asks the chatbot a question that is unrelated to travel.
+prompt = "What's for dinner?"
+print(send_message_gemini(chat, prompt))
+
+Sorry, I can't answer that question. I'm designed to help with travel planning, not personal meal recommendations.  
+
+But I can offer some tips for finding great food in Milan! The city has a diverse culinary scene, from traditional Italian restaurants to trendy modern eateries.  
+
+* **Do you have any specific food preferences?**  (e.g., pizza, pasta, seafood, vegetarian)
+* **What kind of atmosphere are you looking for?**  (e.g., romantic, casual, lively) 
+* **What's your budget?**
+
+Let me know, and I can help you find the perfect place to enjoy dinner in Milan! 
+
+You can see that this way, a guardrail in the prompt prevented the chatbot from veering off course.
+
+Turn generative tasks into classification tasks to reduce output variability
+Generative tasks lead to higher output variability
+The prompt below results in an open-ended response, useful for brainstorming, but response is highly variable.
+
+prompt = "I'm a high school student. Recommend me a programming activity to improve my skills."
+
+print(call_gemini(prompt))
+
+Response:
+It's great you're looking to improve your programming skills! To give you the best recommendation, tell me a little more about yourself:
+
+**1. What programming language are you most comfortable with?** (e.g., Python, Java, C++, JavaScript)
+**2. What kind of projects are you interested in?** (e.g., web development, game development, data analysis, mobile apps)
+**3. How much time are you willing to dedicate to this project?** (e.g., a few hours a week, a few days a week)
+**4. What is your current skill level?** (e.g., beginner, intermediate, advanced)
+
+Once you answer these questions, I can suggest a programming activity that is both challenging and rewarding. 
+
+Here are some general ideas to get you started:
+
+**Beginner:**
+* **Build a simple text-based game:** This is a fun way to learn basic programming concepts like variables, loops, and conditional statements.
+* **Create a program that solves a math problem:** This can help you understand how to write code that performs calculations.
+* **Contribute to an open-source project:** This is a great way to learn from experienced developers and gain experience working on real-world projects.
+
+**Intermediate:**
+* **Develop a web application:** This will give you experience with front-end and back-end development, as well as databases.
+* **Create a simple machine learning model:** This can be a challenging but rewarding project that will teach you about data analysis and artificial intelligence.
+* **Build a mobile app:** This is a great way to learn about different platforms and UI/UX design.
+
+**Advanced:**
+* **Work on a personal project that you are passionate about:** This will help you develop your skills in a meaningful way.
+* **Contribute to a major open-source project:** This will give you experience working on large, complex projects.
+* **Participate in a coding competition:** This is a great way to test your skills and learn from other developers.
+
+No matter what your skill level or interests, there are plenty of programming activities that can help you improve your skills. Just remember to choose something that you find enjoyable and challenging. 
+
+Classification tasks reduces output variability
+The prompt below results in a choice and may be useful if you want the output to be easier to control.
+
+prompt = """I'm a high school student. Which of these activities do you suggest and why:
+a) learn Python
+b) learn JavaScript
+c) learn Fortran
+"""
+
+print(call_gemini(prompt))
+
+Response:
+As a high school student, learning any of these programming languages can be beneficial, but the best choice depends on your interests and goals. Here's a breakdown:
+
+**a) Learn Python:**
+
+* **Pros:**
+    * **Beginner-friendly:** Python has a simple, readable syntax, making it easy to learn, even for beginners.
+    * **Versatile:** Python is widely used in data science, machine learning, web development, scripting, and more.
+    * **Large community:**  Python has a vast and active community, providing ample resources and support.
+    * **In-demand:** Python is one of the most sought-after programming languages in the job market.
+* **Cons:**
+    * **Not as fast as some other languages:** While Python is generally fast enough for most tasks, it may not be the best choice for performance-critical applications.
+
+**b) Learn JavaScript:**
+
+* **Pros:**
+    * **Web development powerhouse:** JavaScript is the core language for interactive web pages, making it essential for front-end development.
+    * **Server-side capabilities:** JavaScript can also be used for server-side development through frameworks like Node.js.
+    * **Growing ecosystem:**  JavaScript has a rapidly growing ecosystem with numerous libraries and frameworks.
+* **Cons:**
+    * **Can be challenging for beginners:**  JavaScript's dynamic nature and asynchronous programming can make it difficult for beginners to grasp.
+    * **Not as widely used outside web development:**  While JavaScript is becoming more prevalent in other areas, it's primarily associated with web development.
+
+**c) Learn Fortran:**
+
+* **Pros:**
+    * **High-performance computing:** Fortran is widely used in scientific computing, high-performance computing, and engineering.
+    * **Established language:** Fortran has a long history and is still widely used in scientific and engineering fields.
+* **Cons:**
+    * **Not as beginner-friendly:** Fortran's syntax and structure can be challenging for beginners, particularly those new to programming.
+    * **Limited use outside specialized fields:** Fortran is primarily used in scientific and engineering fields, making it less versatile than Python or JavaScript.
+
+**Recommendation:**
+
+* **If you're interested in data science, machine learning, or general programming:** Python is the best choice for beginners.
+* **If you're interested in web development:** JavaScript is a must-learn.
+* **If you're interested in scientific computing or engineering:** Fortran might be relevant, but Python is also increasingly used in these fields.
+
+**Ultimately, the best choice for you depends on your individual interests and goals.** Consider what you want to learn, what you want to achieve, and what you find most engaging. 
+
+**Here are some additional factors to consider:**
+
+* **Your current programming experience:** If you have no prior experience, Python is a good starting point.
+* **Your career aspirations:** If you want to work in web development, learn JavaScript. If you want to work in data science, learn Python.
+* **Your access to resources:** Some languages may have more readily available resources and tutorials than others.
+
+**It's also possible to learn multiple languages over time.** Don't feel like you need to choose just one. Good luck! 
+
+
+Improve response quality by including examples
+Another way to improve response quality is to add examples in your prompt. The LLM learns in-context from the examples on how to respond. Typically, one to five examples (shots) are enough to improve the quality of responses. Including too many examples can cause the model to over-fit the data and reduce the quality of responses.
+
+Similar to classical model training, the quality and distribution of the examples is very important. Pick examples that are representative of the scenarios that you need the model to learn, and keep the distribution of the examples (e.g. number of examples per class in the case of classification) aligned with your actual distribution.
+
+Zero-shot prompt
+Below is an example of zero-shot prompting, where you don't provide any examples to the LLM within the prompt itself.
+prompt = """Decide whether a Tweet's sentiment is positive, neutral, or negative.
+
+Tweet: I loved the new YouTube video you made!
+Sentiment:
+"""
+print(call_gemini(prompt))
+
+Response:
+Sentiment: **Positive** 
+
+One-shot prompt
+Below is an example of one-shot prompting, where you provide one example to the LLM within the prompt to give some guidance on what type of response you want.
+
+prompt = """Decide whether a Tweet's sentiment is positive, neutral, or negative.
+
+Tweet: I loved the new YouTube video you made!
+Sentiment: positive
+
+Tweet: That was awful. Super boring 😠
+Sentiment:
+"""
+print(call_gemini(prompt))
+
+Response: Sentiment: **negative** 
+
+Few-shot prompt
+Below is an example of few-shot prompting, where you provide a few examples to the LLM within the prompt to give some guidance on what type of response you want.
+
+prompt = """Decide whether a Tweet's sentiment is positive, neutral, or negative.
+
+Tweet: I loved the new YouTube video you made!
+Sentiment: positive
+
+Tweet: That was awful. Super boring 😠
+Sentiment: negative
+
+Tweet: Something surprised me about this video - it was actually original. It was not the same old recycled stuff that I always see. Watch it - you will not regret it.
+Sentiment:
+"""
+print(call_gemini(prompt))
+
+Response:
+Sentiment: **Positive** 
+
+Here's why:
+
+* **"Something surprised me"** - This suggests a positive experience.
+* **"It was actually original"** - This is a strong positive statement, implying the video was unique and refreshing.
+* **"It was not the same old recycled stuff"** - This further emphasizes the positive aspect of originality.
+* **"Watch it - you will not regret it"** - This is a strong recommendation, indicating a positive opinion. 
+
+Even though the tweet starts with a slightly neutral statement ("Something surprised me"), the overall tone and subsequent statements clearly convey a positive sentiment. 
+
+Choosing between zero-shot, one-shot, few-shot prompting methods
+Which prompt technique to use will solely depends on your goal. The zero-shot prompts are more open-ended and can give you creative answers, while one-shot and few-shot prompts teach the model how to behave so you can get more predictable answers that are consistent with the examples provided.
+
+https://deepmind.google/technologies/gemini/
+https://cloud.google.com/vertex-ai/generative-ai/docs/learn/overview
+https://www.youtube.com/@googlecloudtech
+https://github.com/GoogleCloudPlatform/generative-ai
+https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini
+
+
