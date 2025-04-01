@@ -1,8 +1,0 @@
-jtype: MyExecutor31
-py_modules:
-  - executor.py
-metas:
-  name: MyExecutor31
-  description: 
-  url: 
-  keywords: []

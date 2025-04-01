@@ -1,8 +1,0 @@
-jtype: SentenceEncoder
-py_modules:
-  - executor.py
-metas:
-  name: SentenceEncoder
-  description: 
-  url: 
-  keywords: []
