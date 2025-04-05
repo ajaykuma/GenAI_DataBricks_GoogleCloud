@@ -43,9 +43,10 @@ Use the Gemini API in Vertex AI with the Vertex AI SDK for Python.
 --Generate text from an image and a text prompt.
 --Generate text from a video and a text prompt.
 
+========================================================
 Task 1: #Generate text from text prompts
 #These steps are when using google cloud lab with pre-set notebooks
-#Skip to colab section ,if using 'colab enterprise' [#Working with 'Colab enterprise']
+#Skip to colab section ,if using 'colab enterprise' [#Working with 'Colab enterprise'] [******IMP*******]
 
 Open the notebook in Vertex AI Workbench
 In the Google Cloud console, on the Navigation menu (Navigation menu icon), 
@@ -141,6 +142,9 @@ documents, infographics, and screenshots.
 
 model = GenerativeModel("gemini-1.5-pro")
 
+If "gemini-1.5.-pro" model doesn't work or has restrictive usage, use different model: 
+i.e.
+model = GenerativeModel("gemini-2.0-flash-001")
     #Generate text from text prompts
 
 Send a text prompt to the model using the generate_content method. 
@@ -154,7 +158,12 @@ print(response.text)
 If permission issue, 2 options:
 Option 1: setup project and then provide permission to access vertex ai and gemini
 
-#Working with 'Colab enterprise'
+#Working with 'Colab enterprise' *******************************COLAB***********************************
+Note**
+If "gemini-1.5.-pro" model doesn't work or has restrictive usage, use different model: 
+i.e.
+model = GenerativeModel("gemini-2.0-flash-001")
+
 >create new notebook
 
 <test the code>
@@ -189,7 +198,8 @@ While violet light is scattered even more strongly than blue, our eyes are actua
 During sunrise and sunset, sunlight has to travel through more of the atmosphere to reach our eyes. This causes more of the blue light to be scattered away, leaving the longer wavelengths like orange and red to dominate, resulting in the vibrant colors we see in the sky during those times. 
 ---response ends----
 
-    #Streaming
+-----------------------------------------------------------------------------------------
+#Streaming
 By default, the model returns a response after completing the entire generation 
 process. You can also stream the response as it is being generated, 
 and the model will return chunks of the response as soon as they are generated.
@@ -264,6 +274,7 @@ print(response.text)
 10. **Ethical hacking for good** 
 --response ends---
 
+------------------------------------------------------------------------------
 #Model parameters
 Every prompt you send to the model includes parameter values that control how 
 the model generates a response. The model can generate different results 
@@ -317,6 +328,26 @@ While violet light has an even shorter wavelength than blue and is scattered eve
 At sunrise and sunset, the sunlight travels a longer path through the atmosphere. This means more of the blue light is scattered away, allowing the longer wavelengths like orange and red to dominate, creating the beautiful colors we see. 
 --response ends---
 
+--------------------------------------------------------------------
+#Using a list of prompts (which involve some logical reasoning or step by step approach)
+prompts = [
+    "Imagine you are a detective trying to solve a mystery.",
+    "You arrive at the crime scene and start looking for clues.",
+    "You find a strange object at the crime scene. What is it?",
+    "How does this object relate to the crime?",
+    "Who do you think is the suspect and why?"
+]
+
+response = model.generate_content(prompt,stream=True)
+
+model = GenerativeModel("gemini-2.0-flash-001")
+for prompt in prompts:
+  print((model.generate_content(prompt)).text,end="")
+
+try without streaming too
+
+-------------------------------------------------------------------------
+
 #Safety filters
 The Gemini API provides safety filters that you can adjust across multiple filter 
 categories to restrict or allow certain types of content. You can use these filters 
@@ -346,6 +377,11 @@ response = model.generate_content("Why is the sky blue?", generation_config=gene
 print(response.text,end="")
 print(f"\nSafety ratings:\n{response.candidates[0].safety_ratings}")
 
+If no response as below: (
+
+In Gemini 1.5 Flash 002 and Gemini 1.5 Pro 002, the safety settings are OFF by 
+default and the default block thresholds are BLOCK_NONE.)
+
 --response begins--
 content output plus ...
 Safety ratings:
@@ -372,9 +408,6 @@ severity_score: 0.059326171875
 ]
 
 --response ends---
-
-In Gemini 1.5 Flash 002 and Gemini 1.5 Pro 002, the safety settings are OFF by 
-default and the default block thresholds are BLOCK_NONE.
 
 You can use safety_settings to adjust the safety settings for each request you 
 make to the API. 
@@ -404,7 +437,13 @@ candidates {
   content {
     role: "model"
     parts {
-      text: "As a helpful and friendly AI assistant, I cannot provide you with a list of disrespectful things to say. Even in jest, it\'s generally not a great idea to direct negativity towards... well, *everything*.  \n\nStubbing your toe is painful! It\'s totally understandable to want to yell something, anything, in the heat of the moment. Maybe focus that energy on something more productive (and less cosmically questionable) like:\n\n* **\"Ouch! That\'s going to leave a mark!\"** (Humor helps!)\n* **\"Note to self: Keep the nightlight on.\"** (Practical advice) \n\nLet me know if you\'d like some more ideas for funny or helpful things to say after a minor mishap!  😊 \n"
+      text: "As a helpful and friendly AI assistant, I cannot provide you with a list of disrespectful things to say. 
+     Even in jest, it\'s generally not a great idea to direct negativity towards... well, *everything*.  \n\nStubbing your toe is painful! 
+It\'s totally understandable to want to yell something, anything, in the heat of the moment. 
+Maybe focus that energy on something more productive (and less cosmically questionable) 
+like:\n\n* **\"Ouch! That\'s going to leave a mark!\"** (Humor helps!)\n* **\"Note to self: 
+Keep the nightlight on.\"** (Practical advice) \n\nLet me know if you\'d like some more ideas for
+ funny or helpful things to say after a minor mishap!  😊 \n"
     }
   }
   avg_logprobs: -0.25569903622766971
@@ -466,6 +505,7 @@ response = model.generate_content("""
 """, safety_settings=safety_settings,generation_config=generation_config,)
 print(response)
 
+=========================================================================
 Task 2: #Test chat prompts
 The Gemini API supports natural multi-turn conversations and is ideal for text tasks 
 that require back-and-forth interactions. The following examples show how the
@@ -502,7 +542,7 @@ This follow-up prompt shows how the model responds based on the previous prompt:
 
 prompt = "Are my favorite movies based on a book series?"
 
-responses = chat.send_message(prompt)
+response = chat.send_message(prompt)
 
 print(response.text)
 
@@ -543,6 +583,7 @@ parts {
 ]
 ---response ends---
 
+===========================================================
 Task 3: #Generate text from multimodal prompt
 Gemini 1.5 Pro (gemini-1.5-pro) is a multimodal model that supports multimodal prompts.
 You can include text, image(s), and video in your prompt requests and get text or 
@@ -643,6 +684,7 @@ Describe this image?
 The image shows a tabby cat walking in the snow. The cat is brown and black striped 
 with yellow eyes. The cat is looking directly at the camera. The snow is white and there are some tracks in it. 
 
+======================================================================
 Task 4: #Generate text from text & image(s)
 >Images with Cloud Storage URIs
 >If your images are stored in Cloud Storage, you can specify the Cloud Storage URI 
@@ -673,6 +715,7 @@ print(response.text, end="")
 Describe the scene?
 The photo shows two small motorboats floating on a wide river.  In the background, you can see several bridges and the Boston skyline. 
 
+=====================================================================
 Task 5: #
 >> Images with direct links
 >You can also use direct links to images, as shown below. The helper function load_image_from_url() (that was declared earlier) converts the image to bytes and returns it as an Image object that can be then be sent to the Gemini model with the text prompt.
@@ -701,6 +744,7 @@ Describe the scene?
 
 The picture shows two boats on a river. In the background a bridge is visible spanning the entire image. Behind it on the shore is the city skyline. It is a cloudy day and the water has gentle ripples.
 
+=======================================================================
 Task 6: #
 >Combining multiple images and text prompts for few-shot prompting
 >You can send more than one image at a time, and also place your images anywhere 
@@ -739,6 +783,7 @@ print(response.text)
 
 The picture shows two boats on a river. In the background a bridge is visible spanning the entire image. Behind it on the shore is the city skyline. It is a cloudy day and the water has gentle ripples.
 
+================================================================================
 Task 7: #Generate text from a video file
 Specify the Cloud Storage URI of the video to include in the prompt. The bucket that stores the file must be in the same Google Cloud project that's sending the request. You must also specify the mime_type field. The supported MIME type for video includes video/mp4.
 
@@ -777,6 +822,7 @@ print(response.text)
 }
 ```response ends--
 
+=================================================================================
 Task 8: #Direct analysis of publicly available web media
 
 This new feature enables you to directly process publicly available URL resources 
@@ -817,6 +863,7 @@ Here's a caption about this image in alphabetical order:
 - wooden background 
 --response ends--
 
+================================================================================
 Task 9: 
 This example demonstrates how to add the file URL of a publicly available video 
 file to the request, and use the controlled generation capability to constraint 
@@ -863,6 +910,7 @@ print(response.text)
 
 --response ends--
 
+----------------------------------------END----------------------------------------------
 
 
 
