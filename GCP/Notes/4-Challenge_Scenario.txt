@@ -1,23 +1,31 @@
-Challenge Scenario
+#Challenge Scenario
 You're a member of an educational content startup specializing in engaging learners with the natural world. You've formed a partnership with Cymbal Direct, an online retailer launching a new line of outdoor gear and apparel designed to encourage young people to explore and connect with nature.
 
-Cymbal Direct wants to create a marketing campaign for its new product line that leverages the power of generative AI. Your task is to help them develop a set of tools within Google Cloud's Vertex AI platform that will streamline the generation of the following:
+Cymbal Direct wants to create a marketing campaign for its new product line that leverages the power 
+of generative AI. Your task is to help them develop a set of tools within Google Cloud's Vertex AI 
+platform that will streamline the generation of the following:
 
-Evocative Product Descriptions: using image analysis to inspire short, descriptive text that captures the essence of their products and the feeling of being in nature.
-Catchy Taglines: focused on highlighting product features, the target audience, and the desired emotional response.
+Evocative Product Descriptions: using image analysis to inspire short, descriptive text that captures 
+the essence of their products and the feeling of being in nature.
+Catchy Taglines: focused on highlighting product features, the target audience, and the desired 
+emotional response.
 
 Task 1. Build a Gemini image analysis tool
-In this section, you will create a template for analyzing images of Cymbal Direct products using the Gemini 1.5 Pro model in Vertex AI Studio. The goal is to generate descriptive text options inspired by the image, from simple details to more evocative, mood-setting phrases.
+In this section, you will create a template for analyzing images of Cymbal Direct products using the
+ Gemini 1.5 Pro model in Vertex AI Studio. The goal is to generate descriptive text options inspired 
+ by the image, from simple details to more evocative, mood-setting phrases.
 
 Tasks:
-Before you begin, download the image provided for this task. The following image is a product from Cymbal Direct. Right-click and select Save image as to save the image to your local machine.
+Before you begin, download the image provided for this task. The following image is a product from Cymbal 
+Direct. Right-click and select Save image as to save the image to your local machine.
 
-Use Vertex AI Studio's Freeform interface with the gemini-1.5-pro model to analyze Cymbal Direct's product image (provided) and generate multiple descriptive text options inspired by the image.
+Use Vertex AI Studio's Freeform interface with the gemini-1.5-pro model to analyze Cymbal Direct's 
+product image (provided) and generate multiple descriptive text options inspired by the image.
 
 Experiment with different prompts to generate the following:
-
 Short, descriptive text inspired by the image.
 
+Prompts:
    give the best description of this image in 10 words [Blue backpack and map on a colorful, flowered mountain trail.]
    give the best description of this image in 10 words without mentioning of any human object
    Describe the image in 20 words without mentioning of any human object and focus on colors and flowers
@@ -25,9 +33,12 @@ Short, descriptive text inspired by the image.
    Describe the image in 30 words excluding any humanly object and with focus for tourists
 
 Catchy phrases suitable for advertisements.
+Prompts:
    give a description of the image in 10 words for young travellers
    speak about the picture in 20-30 words to attract nature lovers
+
 A poetic description for a nature-focused campaign.
+Prompts:
    help me in describing this scene in image to my girl friend in a short poetic manner
    Give me a short poem of 20 words based on flowers in image for nature lovers
    Give me a short poem of 40 words based on flowers in image for nature lovers and newly married couples
@@ -36,19 +47,23 @@ Evaluate and Iterate: adjust your prompt and parameters as needed to refine the 
 
 Name your prompt Cymbal Product Analysis.
 
-Save Prompt: Once you're happy with the results, click Save, and select the us-central1 region.
-
 ------------
 Task 2. Build a Gemini tagline generator
-In this task, you will create a freeform prompt for generating diverse tagline possibilities using the Gemini 1.5 Pro model in Vertex AI Studio. The goal is to develop a prompt that allows for customization of the tagline style, based on product attributes, target audience, and emotional resonance.
+In this task, you will create a freeform prompt for generating diverse tagline possibilities using the 
+Gemini 1.5 Pro model in Vertex AI Studio. The goal is to develop a prompt that allows for customization 
+of the tagline style, based on product attributes, target audience, and emotional resonance.
 
 Tasks:
-Create a new Freeform prompt with the gemini-1.5-pro model to create a customizable tagline generator for Cymbal Direct's new product line.
+Create a new Freeform prompt with the gemini-1.5-pro model to create a customizable tagline generator 
+for Cymbal Direct's new product line.
 
 In the System instructions box, enter the following:
-Cymbal Direct is partnering with an outdoor gear retailer. They're launching a new line of products designed to encourage young people to explore the outdoors. Help them create catchy taglines for this product line.
+Cymbal Direct is partnering with an outdoor gear retailer. They're launching a new line of products 
+designed to encourage young people to explore the outdoors. Help them create catchy taglines for this 
+product line.
 
-Include 2 Examples in your prompt to guide the output style. An example input and output are provided below for reference:
+Include 2 Examples in your prompt to guide the output style. An example input and output are provided 
+below for reference:
 
 Input	Output
 Write a tagline for a durable backpack designed for hikers that makes them feel prepared. Consider styles like minimalist.	Built for the Journey: Your Adventure Essentials.
@@ -62,32 +77,40 @@ In the Test box, add one input and click the submit button to have Gemini genera
 
 Evaluate and Iterate:
 Experiment with different parameter combinations to see the variety of taglines produced.
-Based on the results, fine-tune the wording of your prompt, add more parameter options, or adjust the style choices to achieve your desired outcome.
+Based on the results, fine-tune the wording of your prompt, add more parameter options, or adjust
+ the style choices to achieve your desired outcome.
+
 Name your prompt Cymbal Tagline Generator Template.
 
-Save Prompt: Once you're happy with the results, click Save, and select the us-central1 region.
-
 Task 3. Experiment with image analysis code
-In this task, you will explore the Python code for the image analysis prompt you created. You will then modify the prompt to be more specific and test the new prompt in a notebook.
+In this task, you will explore the Python code for the image analysis prompt you created. 
+You will then modify the prompt to be more specific and test the new prompt in a notebook.
 
 In the Google Cloud console, on the Navigation menu (Navigation menu icon), click Vertex AI > Workbench.
-
 Find the generative-ai-jupyterlab instance and click on the Open JupyterLab button.
-
 The JupyterLab interface for your Workbench instance opens in a new browser tab.
+
+or using colab
 
 Create a new notebook file named image-analysis.ipynb.
 Explore the image analysis code
-From the Vertex AI Studio page, navigate to the Saved Prompts page. Select the Cymbal Product Analysis prompt you created.
+From the Vertex AI Studio page, navigate to the Saved Prompts page. Select the Cymbal Product Analysis 
+prompt you created.
 
 On the right side of the prompt, click Get Code. Use Python as the language.
 
-The first code block uses terminal commands to install the necessary Python packages. You can run these commands in a terminal or in a notebook cell. If you run them in a notebook cell, you must include the ! character at the beginning of each command. In this scenario, run the first code block in the terminal by navigating to the File > New > Terminal.
+The first code block uses terminal commands to install the necessary Python packages. 
+You can run these commands in a terminal or in a notebook cell. If you run them in a notebook cell, 
+you must include the ! character at the beginning of each command. 
 
-Run the second code cells in the notebook. Verify that the code executes successfully and produces the expected output.
+In this scenario, run the first code block in the terminal by navigating to the File > New > Terminal.
+
+Run the second code cells in the notebook. Verify that the code executes successfully and produces 
+the expected output.
 
 Modify the image analysis prompt
-Within the code, there will be a line of text between triple quotes ("""). This is your current image analysis prompt. For example, it might be:
+Within the code, there will be a line of text between triple quotes ("""). This is your current 
+image analysis prompt. For example, it might be:
 
 """Describe this image with a focus on colors, textures, and the feeling it evokes."""
 
