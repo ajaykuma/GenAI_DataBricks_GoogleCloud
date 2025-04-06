@@ -1,0 +1,20 @@
+Testcode
+:
+Build a transformer based model that reads data from public url
+https://github.com/ajaykuma/Datasets_For_Work/tree/main/txt_sentoken
+
+Data acquisition:
+Get 5 files each for negative and positive sentiments
+text1_n = file1
+..
+text1_p = file5
+..
+
+10 different files
+
+--build your classifier model to classify the content of files into Pos/neg sentiments.
+--check this by using more than 1 model
+
+--get the results : labels/score and probabilities of why a label was chosen (hint:using SoftMax)
+
+explore options in this model to focus on multi head attention mechanism
