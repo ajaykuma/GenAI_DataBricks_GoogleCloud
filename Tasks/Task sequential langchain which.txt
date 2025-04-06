@@ -1,0 +1,3 @@
+Task: sequential langchain which benefits from prompt engineering and helps in first translating a customer feedback into english, 
+and then does sentiment analysis of customer feedback and creates a response in 20 words to be sent to customer based on 
+remarks/feedback

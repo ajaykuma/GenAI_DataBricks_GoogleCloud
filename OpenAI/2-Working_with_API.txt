@@ -1,0 +1,79 @@
+#Working with API - OPENAI
+
+Login into your account:
+https://platform.openai.com/docs/overview
+
+click on : https://platform.openai.com/api-keys
+> Generate an apikey by clicking on 'create new secret key'
+
+Name: testkey
+Project: default project
+Permissions: All
+copy
+& update in .env as 
+OPENAI_API_KEY=""
+
+Note** Usage of models from OpenAI may not be free for usage.
+Instead we can use other model's from google's vertexai or from HuggingFace or 
+Hugging Face Transformers library.
+
+#For OpenAI
+--Install the OpenAI Python library
+pip install --upgrade openai 
+
+#Refer: openai_1.py
+#Example 1
+--Initialize the OpenAI Client 
+import openai
+from openai import OpenAI
+client = OpenAI(api_key="your openai api key")
+
+--OR
+--Initialize the OpenAI Client when environmen variable is set
+import openai
+from openai import OpenAI
+import os
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+--OR
+--Initialize the OpenAI Client using load_dotenv
+--Install the OpenAI Python library
+pip install python-dotenv
+
+import os
+import openai
+from openai import OpenAI
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+#load_dotenv()
+OPENAI_API_KEY  = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+response = client.responses.create(
+    model="gpt-4o",
+    input="Write a one-sentence bedtime story about a unicorn."
+)
+
+print(response.output_text)
+#or use :  model="gpt-4o-mini"
+#-------------------------
+#Example 2:
+#Generate Text with the OpenAI API
+You can now generate text completions by calling the client.chat.completions.create() function. This function specifies the model (for example: gpt-3.5-turbo) 
+and simulates a conversation between a user and the assistant. 
+
+Inside the create() method:
+model="gpt-4o-mini": Specifies the model to use for the text generation. 
+In this case, “gpt-4o-mini” is chosen. 
+For more alternative models : https://platform.openai.com/docs/models
+
+messages: This is a list of messages that simulate a conversation between a user and the assistant. Each message is a dictionary with two keys: role and content. The role can be either “system”, “user”, or “assistant”, indicating the sender of the message.
+
+completion = client.chat.completions.create(
+  model="gpt-4o-mini",
+  messages=[
+    {"role": "user", "content": "Tell a good joke in the form of a question. Do not yet give the answer."}
+  ]
+)
+print(completion.choices[0].message.content)
+

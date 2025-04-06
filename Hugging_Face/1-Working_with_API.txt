@@ -1,0 +1,35 @@
+
+#Hugging Face Transformers library
+
+# Hugging Face Transformers library is a powerful Python library that provides APIs 
+# and tools to easily download, manipulate, and run thousands of pre-trained, 
+# open-source AI models for various tasks across natural language processing,
+# computer vision, audio, and multimodal learning. 
+
+#Working with API - Hugging Face
+Login into your account:
+https://huggingface.co/
+
+click on : https://huggingface.co/settings/tokens
+or Profile > settings > Access Tokens
+> Generate an apikey by clicking on 'create new token'
+name: HUGGINGFACEHUB_API_TOKEN
+type: write
+copy
+& update in .env
+
+HUGGINGFACEHUB_API_TOKEN=""
+
+pip install --upgrade huggingface_hub
+
+#Refer: 1-hf_api.py to see how to load .env containing your token and using llms from HF
+#Refer: 2.0-langchain.py to load token directly and use llms from HF
+#Refer: 2.1-transfpipe.py to load models from transformers library
+
+#Working with transformers library & langchain
+#Refer: 2.2-langchain.py to use llms and langchain
+
+#Refer: 2.3-langchain.py for usage of kwargs for llms 
+--may show warning such as below
+The class `LLMChain` was deprecated in 
+LangChain 0.1.17 and will be removed in 1.0. Use RunnableSequence
