@@ -33,3 +33,17 @@ pip install --upgrade huggingface_hub
 --may show warning such as below
 The class `LLMChain` was deprecated in 
 LangChain 0.1.17 and will be removed in 1.0. Use RunnableSequence
+
+#Woring with more than 1 model
+The LLMChain in LangChain is designed to work with one model at a time, 
+as it requires a single llm instance when initialized
+llm_chain = LLMChain(prompt=prompt, llm=llm)
+
+This means it cannot natively switch between multiple models within the same chain.
+If you want to use different models dynamically:
+#Refer: 2.4-langchain.py
+
+#Use a Router Chain (Advanced)
+If you need automatic model selection based on the input, LangChain provides 
+Router Chains that intelligently choose which model 
+to use based on the question.
