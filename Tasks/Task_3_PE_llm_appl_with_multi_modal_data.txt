@@ -1,0 +1,12 @@
+use PE to work with a LLM and build an application, which
+extracts information from video (small tutorial video)
+summarization of video at different times..
+
+--describe video in x number of words..
+--ask further questions about video and appl should generate responses..
+
+Good to have:
+use place holders/variables
+let your model benefit from techniques such as SC, COT, TOT etc...
+
+and remember to use model kwargs to control  output..
