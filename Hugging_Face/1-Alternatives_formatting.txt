@@ -1,3 +1,5 @@
+#Formatting & instructions
+
 --using OpenAI
 import os
 import openai
@@ -15,10 +17,10 @@ print(get_completion("What is 1+1?"))
 
 ---------------
 replace OpenAI's ChatCompletion with a pipeline, you can use something like 
-text-generation with a model such as mistralai/Mistral-7B-Instruct-v0.1, tiiuae/falcon-7b-instruct, or any other instruction-tuned model.
+text-generation with a model such as mistralai/Mistral-7B-Instruct-v0.1, 
+tiiuae/falcon-7b-instruct, or any other instruction-tuned model.
 
---using transformers
-
+#Using transformers library
 !pip install transformers
 from transformers import pipeline
 
@@ -31,26 +33,12 @@ def get_completion(prompt):
     response = generator(instruction, max_new_tokens=100, do_sample=False)
     return response[0]["generated_text"].split("[/INST]")[-1].strip()
 
-print(get_completion("What is 1+1?"))
+print(get_completion("What is defi in context of crypto world?"))
 
 Note**Access to model mistralai/Mistral-7B-Instruct-v0.1 is restricted. You must have access to it and be 
 authenticated to access it. Please log in.
-
+---------------------------------------------------
 --change model:
-from transformers import pipeline
-
-# Load a text-generation pipeline with an instruction-tuned model
-generator = pipeline("text2text-generation", model="google/flan-t5-base")
-
-def get_completion(prompt):
-    # For instruction-tuned models, prepend with an instruction-style format
-    instruction = f"<s>[INST] {prompt} [/INST]"
-    response = generator(instruction, max_new_tokens=100, do_sample=False)
-    return response[0]["generated_text"].split("[/INST]")[-1].strip()
-
-print(get_completion("What is 1+1?"))
-
-or
 --using heavier model
 from transformers import pipeline
 
@@ -63,9 +51,67 @@ def get_completion(prompt):
     response = generator(instruction, max_new_tokens=100, do_sample=False)
     return response[0]["generated_text"].split("[/INST]")[-1].strip()
 
-print(get_completion("What is 1+1?"))
+print(get_completion("What is defi in context of crypto world?"))
 
-----------------
+---------------------------------------------------
+OR
+--change model:
+
+from transformers import pipeline
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
+
+def get_completion(prompt):
+    # For instruction-tuned models, prepend with an instruction-style format
+    #instruction = f"<s>[INST] {prompt} [/INST]"
+    response = generator(prompt,max_new_tokens=100, do_sample=False)
+    return (response[0]["generated_text"].strip())
+
+print(get_completion("What is a DEFI in context of crypto world"))
+
+Response: crypto cryptography
+
+Now replace model: model="google/flan-t5-large"
+<test the code>
+Response: ?
+
+replace model : model="google/flan-t5-xl"
+<test the code>
+Response: DEFI is a digital identifier for a digital asset
+
+#check what is generator
+generator
+
+--------------------------------------------------------
+# Define the prompt template manually
+
+template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
+# Style and email input
+customer_style = "American English in a casual tone"
+customer_email = """
+I'm super excited about the new gaming console I bought! It arrived in just 2 days and I've been playing non-stop. Totally worth the price!
+"""
+# Fill in the prompt
+prompt = template_string.format(style=customer_style, text=customer_email)
+
+#with instructions for formatting
+# Add special tokens if needed (depending on model)
+instruction_prompt = f"<s>[INST] {prompt} [/INST]"
+# Generate a response
+response = generator(instruction_prompt, max_new_tokens=150, do_sample=False)
+# Extract the response (strip prompt)
+generated_text = response[0]['generated_text'].split("[/INST]")[-1].strip()
+print(generated_text)
+
+--shows no response as the formatting 
+Note**That [INST] syntax is specific to models like Mistral or LLaMA, not T5.
+
+#without any instructions for formatting
+# Generate a response
+response = generator(prompt, max_new_tokens=150, do_sample=False)
+# Extract the response (strip prompt)
+print(response[0]["generated_text"].strip())
+---------------------------------------------------
+
 --Using OpenAI
 # Start by creating an instance of the ChatOpenAI class.
 chat = ChatOpenAI(temperature=0.0)
@@ -86,7 +132,7 @@ customer_messages = prompt_template.format_messages(
 customer_response = chat(customer_messages)
 print(customer_response.content)
 
---Using transformers
+--Using transformers (without defining a function as shown in above examples)
 from transformers import pipeline
 
 # Set up the text generation pipeline with an instruction-following model
@@ -107,7 +153,7 @@ prompt = template_string.format(style=customer_style, text=customer_email)
 # Add special tokens if needed (depending on model)
 instruction_prompt = f"<s>[INST] {prompt} [/INST]"
 
-# Generate a response
+# Generate a response using instructions
 response = generator(instruction_prompt, max_new_tokens=150, do_sample=False)
 
 # Extract the response (strip prompt)
@@ -117,32 +163,16 @@ print(generated_text)
 
 Note**That [INST] syntax is specific to models like Mistral or LLaMA, not T5.
 
-Thus we will feel the prompt directly
-from transformers import pipeline
-
-# Use text2text-generation pipeline with flan-t5-base
-generator = pipeline("text2text-generation", model="google/flan-t5-base")
-
-# Define the prompt template
-template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
-
-# Style and input text
-customer_style = "American English in a casual tone"
-customer_email = """
-I'm super excited about the new gaming console I bought! It arrived in just 2 days and I've been playing non-stop. Totally worth the price!
-"""
-
-# Format the prompt without instruction tokens
-prompt = template_string.format(style=customer_style, text=customer_email)
+Thus we will use the prompt directly
 
 # Generate the response
 response = generator(prompt, max_new_tokens=150, do_sample=False)
-
 # Print the output
 print(response[0]["generated_text"].strip())
 
-
 -------------------
+#Formatting responses:
+
 --Using OpenAI
 service_reply = "Hey there, we're glad you're enjoying your new gaming console. Game on!"
 service_style_pirate = "a cheerful tone that speaks in English Pirate"
@@ -168,6 +198,14 @@ response = generator(instruction_prompt, max_new_tokens=150, do_sample=False)
 pirate_translation = response[0]['generated_text'].split("[/INST]")[-1].strip()
 
 print(pirate_translation)
+
+#without instructions
+# Generate the pirate-style translation
+response = generator(pirate_prompt, max_new_tokens=150, do_sample=False)
+pirate_translation = response[0]["generated_text"].strip()
+print(pirate_translation)
+
+--------------------------------------------------------------------
 
 
 

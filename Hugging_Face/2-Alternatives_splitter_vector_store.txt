@@ -1,0 +1,156 @@
+--using splitter
+
+#using RecursiveCharacterTextSplitter from LangChain, which is commonly used to split large texts into 
+#manageable chunks for processing (like for embedding or indexing):
+
+"""The TextSplitter like RecursiveCharacterTextSplitter is super useful when working with LLMs because many LLMs have token 
+limits (e.g., GPT-4 may cap at 8k or 32k tokens), and large texts need to be broken into smaller, overlapping chunks for:
+
+Context-aware responses
+Document search or retrieval
+Embedding & vector store creation 
+"""
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+text = """langchain is a framework for developing llm appls powered by llms
+          It connects different components such as models, prompts, configuration settings """
+
+text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size= 50,
+                chunk_overlap= 10,  
+)
+
+chunks = text_splitter.split_text(text)
+
+for i in chunks:
+  print(i)
+
+for i,chunk in enumerate(chunks):
+  print(f"Chunk {i+1}: {chunk}")
+
+--create generator and test it 
+from transformers import pipeline
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
+
+def get_completion(prompt):
+    # For instruction-tuned models, prepend with an instruction-style format
+    #instruction = f"<s>[INST] {prompt} [/INST]"
+    response = generator(prompt,max_new_tokens=100, do_sample=False)
+    return (response[0]["generated_text"].strip())
+
+print(get_completion("What is a DEFI in context of crypto world"))
+
+prompt = "what is benefit of using langchain"
+# Generate the response
+response = generator(prompt, max_new_tokens=150, do_sample=False)
+
+# Print the output
+print(response[0]["generated_text"].strip())
+
+--Now aim is to use create embeddings , push them in a vector store such as FAISS and using them when using model
+
+#Creating embeddings
+--for using openAI
+#from langchain.embeddings import OpenAIEmbeddings
+#api_token = ""
+#embeddings = OpenAIEmbeddings(openai_api_key=api_token,model="text-embedding-ada-002")
+
+--for using HuggingFace
+from langchain.embeddings import HuggingFaceEmbeddings
+model = "sentence-transformers/all-MiniLM-L6-v2"
+embeddings = HuggingFaceEmbeddings(model_name=model)
+text = "tell me something about langchain"
+test_embedding = embeddings.embed_documents(text)
+print(test_embedding)
+text2 = ["tell me something about langchain","how langchain helps"]
+test_embedding2 = embeddings.embed_documents(text2)
+for i in test_embedding2:
+  print(i)
+
+#Getting faiss
+#!pip install faiss-cpu
+
+#import the FAISS class
+from langchain.vectorstores.faiss import FAISS
+from langchain.docstore.document import Document
+chunks2 = text_splitter.create_documents([text]) 
+vectorstore = FAISS.from_documents(chunks2, embeddings)
+
+# 5. (Optional) Save the vectorstore
+vectorstore.save_local("faiss_store")
+# 6. (Optional) Load it again later
+# vectorstore = FAISS.load_local("faiss_store", embeddings)
+
+# 7. Perform similarity search
+query = "What does LangChain do?"
+results = vectorstore.similarity_search(query, k=2)
+
+for i, doc in enumerate(results, 1):
+    print(f"\nResult {i}:")
+    print(doc.page_content)
+
+#now testing the vector store usage within a LLM appl or with our generator 
+
+#Use a retriever to fetch relevant chunks
+retriever = vectorstore.as_retriever()
+#retriever = vectorstore.as_retriever(search_type="similarity", k=4)
+
+#using retriver in appl (for Retrieval-Augmented Generation (RAG))
+
+def rag_qa(query, retriever, gen_pipeline, top_k=3):
+    # 1. Retrieve relevant documents
+    docs = retriever.get_relevant_documents(query)
+    context = "\n".join([doc.page_content for doc in docs[:top_k]])
+
+    # 2. Format the prompt (FLAN works well with Q&A style prompts)
+    prompt = f"Context: {context}\n\nQuestion: {query}\nAnswer:"
+
+    # 3. Run generation
+    result = gen_pipeline(prompt, max_new_tokens=100, do_sample=False)
+    return result[0]["generated_text"]
+
+# Example
+query = "What is LangChain?"
+answer = rag_qa(query, retriever, pipeline)
+print("Answer:", answer)
+
+Note** if error, then..
+
+#using AutoTokenizer, AutoModelForSeq2SeqLM instead of pipeline()
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+# Load FLAN-T5
+model_id = "google/flan-t5-base"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+
+def generate_answer(prompt, max_tokens=100):
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+    outputs = model.generate(**inputs, max_new_tokens=max_tokens)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+def rag_qa(query, retriever, top_k=3):
+    # Ensure top_k is an integer
+    top_k = int(top_k)
+    # 1. Retrieve context
+    docs = retriever.get_relevant_documents(query)
+    context = "\n".join([doc.page_content for doc in docs[:top_k]])
+
+    # 2. Prompt format
+    prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+
+    # 3. Generate
+    return generate_answer(prompt)
+
+# Example
+query = "What is LangChain?"
+answer = rag_qa(query, retriever, top_k=3)
+print("Answer:", answer)
+
+
+--------------------------------
+
+
+
+
