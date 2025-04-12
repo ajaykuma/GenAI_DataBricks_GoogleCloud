@@ -1,0 +1,2 @@
+https://python.langchain.com/docs/integrations/vectorstores/faiss/
+https://github.com/facebookresearch/faiss/wiki/getting-started
