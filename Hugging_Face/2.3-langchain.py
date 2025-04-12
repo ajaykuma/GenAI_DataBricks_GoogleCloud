@@ -23,7 +23,7 @@ generation_kwargs = {
     "temperature": 0.7,   # Controls randomness (higher = more creative)
     #"max_length": 512,    # Max number of tokens in response
     "max_new_tokens": 20, # max tokens
-    "min_length": 150,      # Forces at least 50 words (~150 tokens)
+    #"min_length": 150,      # Forces at least 50 words (~150 tokens)
     "top_p": 0.9,         # Nucleus sampling (higher = more diverse responses)
     "top_k": 50,          # Limits the number of top tokens considered
     "repetition_penalty": 1.2,  # Penalizes repetition (1.0 = no penalty)

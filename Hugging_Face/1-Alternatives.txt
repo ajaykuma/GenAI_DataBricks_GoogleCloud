@@ -1,0 +1,178 @@
+--using OpenAI
+import os
+import openai
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+def get_completion(prompt, model="gpt-3.5-turbo"):
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0,
+    )
+    return response.choices[0].message["content"]
+print(get_completion("What is 1+1?"))
+
+---------------
+replace OpenAI's ChatCompletion with a pipeline, you can use something like 
+text-generation with a model such as mistralai/Mistral-7B-Instruct-v0.1, tiiuae/falcon-7b-instruct, or any other instruction-tuned model.
+
+--using transformers
+
+!pip install transformers
+from transformers import pipeline
+
+# Load a text-generation pipeline with an instruction-tuned model
+generator = pipeline("text-generation", model="mistralai/Mistral-7B-Instruct-v0.1")
+
+def get_completion(prompt):
+    # For instruction-tuned models, prepend with an instruction-style format
+    instruction = f"<s>[INST] {prompt} [/INST]"
+    response = generator(instruction, max_new_tokens=100, do_sample=False)
+    return response[0]["generated_text"].split("[/INST]")[-1].strip()
+
+print(get_completion("What is 1+1?"))
+
+Note**Access to model mistralai/Mistral-7B-Instruct-v0.1 is restricted. You must have access to it and be 
+authenticated to access it. Please log in.
+
+--change model:
+from transformers import pipeline
+
+# Load a text-generation pipeline with an instruction-tuned model
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
+
+def get_completion(prompt):
+    # For instruction-tuned models, prepend with an instruction-style format
+    instruction = f"<s>[INST] {prompt} [/INST]"
+    response = generator(instruction, max_new_tokens=100, do_sample=False)
+    return response[0]["generated_text"].split("[/INST]")[-1].strip()
+
+print(get_completion("What is 1+1?"))
+
+or
+--using heavier model
+from transformers import pipeline
+
+# Load a text-generation pipeline with an instruction-tuned model
+generator = pipeline("text-generation", model="tiiuae/falcon-7b-instruct")
+
+def get_completion(prompt):
+    # For instruction-tuned models, prepend with an instruction-style format
+    instruction = f"<s>[INST] {prompt} [/INST]"
+    response = generator(instruction, max_new_tokens=100, do_sample=False)
+    return response[0]["generated_text"].split("[/INST]")[-1].strip()
+
+print(get_completion("What is 1+1?"))
+
+----------------
+--Using OpenAI
+# Start by creating an instance of the ChatOpenAI class.
+chat = ChatOpenAI(temperature=0.0)
+
+# Define a template for our prompts.
+template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
+prompt_template = ChatPromptTemplate.from_template(template_string)
+
+# Use this template to format our messages.
+customer_style = "American English in a casual tone"
+customer_email = """
+I'm super excited about the new gaming console I bought! It arrived in just 2 days and I've been playing non-stop. Totally worth the price!
+"""
+
+customer_messages = prompt_template.format_messages(
+                    style=customer_style,
+                    text=customer_email)
+customer_response = chat(customer_messages)
+print(customer_response.content)
+
+--Using transformers
+from transformers import pipeline
+
+# Set up the text generation pipeline with an instruction-following model
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
+
+# Define the prompt template manually
+template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
+
+# Style and email input
+customer_style = "American English in a casual tone"
+customer_email = """
+I'm super excited about the new gaming console I bought! It arrived in just 2 days and I've been playing non-stop. Totally worth the price!
+"""
+
+# Fill in the prompt
+prompt = template_string.format(style=customer_style, text=customer_email)
+
+# Add special tokens if needed (depending on model)
+instruction_prompt = f"<s>[INST] {prompt} [/INST]"
+
+# Generate a response
+response = generator(instruction_prompt, max_new_tokens=150, do_sample=False)
+
+# Extract the response (strip prompt)
+generated_text = response[0]['generated_text'].split("[/INST]")[-1].strip()
+
+print(generated_text)
+
+Note**That [INST] syntax is specific to models like Mistral or LLaMA, not T5.
+
+Thus we will feel the prompt directly
+from transformers import pipeline
+
+# Use text2text-generation pipeline with flan-t5-base
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
+
+# Define the prompt template
+template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
+
+# Style and input text
+customer_style = "American English in a casual tone"
+customer_email = """
+I'm super excited about the new gaming console I bought! It arrived in just 2 days and I've been playing non-stop. Totally worth the price!
+"""
+
+# Format the prompt without instruction tokens
+prompt = template_string.format(style=customer_style, text=customer_email)
+
+# Generate the response
+response = generator(prompt, max_new_tokens=150, do_sample=False)
+
+# Print the output
+print(response[0]["generated_text"].strip())
+
+
+-------------------
+--Using OpenAI
+service_reply = "Hey there, we're glad you're enjoying your new gaming console. Game on!"
+service_style_pirate = "a cheerful tone that speaks in English Pirate"
+service_messages = prompt_template.format_messages(style=service_style_pirate, text=service_reply)
+print(service_messages[0].content)
+
+--Using transformers
+# New reply to be transformed
+service_reply = "Hey there, we're glad you're enjoying your new gaming console. Game on!"
+service_style_pirate = "a cheerful tone that speaks in English Pirate"
+
+# Use the same template and format it manually
+template_string = """Translate the text that is delimited by triple backticks into a style that is {style}. text: ```{text}```"""
+pirate_prompt = template_string.format(style=service_style_pirate, text=service_reply)
+
+# Wrap in instruction format (for models like Mistral)
+instruction_prompt = f"<s>[INST] {pirate_prompt} [/INST]"
+
+# Generate the pirate-style translation
+response = generator(instruction_prompt, max_new_tokens=150, do_sample=False)
+
+# Extract and clean the generated output
+pirate_translation = response[0]['generated_text'].split("[/INST]")[-1].strip()
+
+print(pirate_translation)
+
+
+
+
+
+
+
+
