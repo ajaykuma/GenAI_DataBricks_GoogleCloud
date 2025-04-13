@@ -57,7 +57,8 @@ print(response[0]["generated_text"].strip())
 #embeddings = OpenAIEmbeddings(openai_api_key=api_token,model="text-embedding-ada-002")
 
 --for using HuggingFace
-from langchain.embeddings import HuggingFaceEmbeddings
+!pip install langchain-community
+from langchain_community.embeddings import HuggingFaceEmbeddings
 model = "sentence-transformers/all-MiniLM-L6-v2"
 embeddings = HuggingFaceEmbeddings(model_name=model)
 text = "tell me something about langchain"
@@ -77,12 +78,19 @@ from langchain.docstore.document import Document
 chunks2 = text_splitter.create_documents([text]) 
 vectorstore = FAISS.from_documents(chunks2, embeddings)
 
-# 5. (Optional) Save the vectorstore
+#Note**
+FAISS.from_documents(documents, embeddings) is the constructor that:
+Takes in a list of Document objects (which are essentially text chunks + metadata),
+Uses the provided embedding model to convert each chunk into a vector,
+Builds a FAISS index from those vectors,
+Wraps it all into a FAISS vector store object you can search.
+
+# (Optional) Save the vectorstore
 vectorstore.save_local("faiss_store")
-# 6. (Optional) Load it again later
+# (Optional) Load it again later
 # vectorstore = FAISS.load_local("faiss_store", embeddings)
 
-# 7. Perform similarity search
+# Perform similarity search
 query = "What does LangChain do?"
 results = vectorstore.similarity_search(query, k=2)
 
@@ -90,7 +98,33 @@ for i, doc in enumerate(results, 1):
     print(f"\nResult {i}:")
     print(doc.page_content)
 
+#or
+query = "What is the document about?"
+retrieved_docs = vectorstore.similarity_search(query, k=3)  # k = number of results
+
+for i, doc in enumerate(retrieved_docs):
+    print(f"Result {i+1}:\n{doc.page_content}\n")
+
+Note**
+Use k=5 or more if your results are too narrow.
+You can also use similarity_search_with_score if you want distance scores.
+
 #now testing the vector store usage within a LLM appl or with our generator 
+
+#Adding more documents to vectorstore can be done
+new_docs = text_splitter.create_documents([new_text])
+vectorstore.add_documents(new_docs)
+
+
+#Note**
+the documents are stored internally in
+vectorstore.docstore._dict
+
+--to access all data from vectorstore
+all_docs = list(vectorstore.docstore._dict.values())
+
+for i, doc in enumerate(all_docs):
+    print(f"Document {i+1}:\n{doc.page_content}\n")
 
 #Use a retriever to fetch relevant chunks
 retriever = vectorstore.as_retriever()
@@ -148,7 +182,9 @@ query = "What is LangChain?"
 answer = rag_qa(query, retriever, top_k=3)
 print("Answer:", answer)
 
-
+#Export all chunks
+texts = [doc.page_content for doc in vectorstore.docstore._dict.values()]
+print(texts)
 --------------------------------
 
 

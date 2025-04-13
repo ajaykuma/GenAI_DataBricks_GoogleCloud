@@ -1,0 +1,195 @@
+#SequentialChain and langchain
+--with openAI
+
+import os
+import textwrap
+from getpass import getpass
+
+import langchain
+import openai
+from langchain.chains import LLMChain, SimpleSequentialChain
+from langchain.chat_models import ChatOpenAI
+from langchain.docstore.document import Document
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
+from langchain.vectorstores import Chroma
+
+def display_response(response: str):
+    print("\n".join(textwrap.wrap(response, width=100)))
+
+chat_model = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+
+scenario_template = """
+You have to come up with a scenario (along with a 20-50 word description)
+for a new episode of the TV show "Banking Chronicles" based on the theme
+
+{theme_input}
+
+ANSWER:
+"""
+prompt = PromptTemplate(input_variables=["theme_input"], template=scenario_template)
+
+scenario_chain = LLMChain(llm=chat_model, prompt=prompt)
+
+dialogue_template = """
+Generate a short dialogue between the bank manager and a customer
+from the TV show "Banking Chronicles" for a new episode based on the scenario
+
+{scenario}
+
+ANSWER:
+"""
+prompt = PromptTemplate(input_variables=["scenario"], template=dialogue_template)
+
+dialogue_chain = LLMChain(llm=chat_model, prompt=prompt)
+
+sequential_chain = SimpleSequentialChain(
+    chains=[scenario_chain, dialogue_chain], verbose=True
+)
+
+response = sequential_chain.run("Investment Strategies")
+conversation = response
+print(conversation)
+
+-------------
+#using langchain, SimpleSequentialChain & HuggingFacePipeline
+model: google/flan-t5-large
+
+import textwrap
+from langchain.chains import LLMChain, SimpleSequentialChain
+from langchain.llms import HuggingFacePipeline
+from langchain.prompts import PromptTemplate
+from transformers import pipeline
+
+# Step 1: Use Hugging Face transformers to create a generation pipeline
+hf_pipeline = pipeline(
+    "text-generation",
+    model="google/flan-t5-large",  # or "google/flan-t5-large" for smaller models
+    max_new_tokens=200,
+    temperature=0.7,
+    do_sample=True,
+    return_full_text=False
+)
+
+# Step 2: Wrap it with LangChain's HuggingFacePipeline
+llm = HuggingFacePipeline(pipeline=hf_pipeline)
+
+# Step 3: Create prompt templates
+scenario_template = PromptTemplate(
+    input_variables=["theme_input"],
+    template="""
+You have to come up with a scenario (along with a 20-50 word description)
+for a new episode of the TV show "Banking Chronicles" based on the theme
+
+{theme_input}
+
+ANSWER:
+"""
+)
+
+dialogue_template = PromptTemplate(
+    input_variables=["scenario"],
+    template="""
+Generate a short dialogue between the bank manager and a customer
+from the TV show "Banking Chronicles" for a new episode based on the scenario
+
+{scenario}
+
+ANSWER:
+"""
+)
+
+# Step 4: Create LLMChains
+scenario_chain = LLMChain(llm=llm, prompt=scenario_template)
+dialogue_chain = LLMChain(llm=llm, prompt=dialogue_template)
+
+# Step 5: Chain them together
+sequential_chain = SimpleSequentialChain(
+    chains=[scenario_chain, dialogue_chain],
+    verbose=True
+)
+
+# Step 6: Run the chain
+response = sequential_chain.run("Investment Strategies")
+
+# Optional: pretty print
+def display_response(response: str):
+    print("\n".join(textwrap.wrap(response, width=100)))
+
+print("\n--- Final Output ---")
+display_response(response)
+
+warnings:
+The model 'T5ForConditionalGeneration' is not supported for text-generation. Supported models are ['BartForCausalLM', 'BertLMHeadModel', 'BertGenerationDecoder', 'BigBirdForCausalLM', 'BigBirdPegasusForCausalLM', 'BioGptForCausalLM', 'BlenderbotForCausalLM', 'BlenderbotSmallForCausalLM', 'BloomForCausalLM', 'CamembertForCausalLM', 'LlamaForCausalLM', 'CodeGenForCausalLM', 'CohereForCausalLM', 'CpmAntForCausalLM', 'CTRLLMHeadModel', 'Data2VecTextForCausalLM', 'DbrxForCausalLM', 'ElectraForCausalLM', 'ErnieForCausalLM', 'FalconForCausalLM', 'FalconMambaForCausalLM', 'FuyuForCausalLM', 'GemmaForCausalLM', 'Gemma2ForCausalLM', 'GitForCausalLM', 'GlmForCausalLM', 'GPT2LMHeadModel', 'GPT2LMHeadModel', 'GPTBigCodeForCausalLM', 'GPTNeoForCausalLM', 'GPTNeoXForCausalLM', 'GPTNeoXJapaneseForCausalLM', 'GPTJForCausalLM', 'GraniteForCausalLM', 'GraniteMoeForCausalLM', 'JambaForCausalLM', 'JetMoeForCausalLM', 'LlamaForCausalLM', 'MambaForCausalLM', 'Mamba2ForCausalLM', 'MarianForCausalLM', 'MBartForCausalLM', 'MegaForCausalLM', 'MegatronBertForCausalLM', 'MistralForCausalLM', 'MixtralForCausalLM', 'MllamaForCausalLM', 'MoshiForCausalLM', 'MptForCausalLM', 'MusicgenForCausalLM', 'MusicgenMelodyForCausalLM', 'MvpForCausalLM', 'NemotronForCausalLM', 'OlmoForCausalLM', 'Olmo2ForCausalLM', 'OlmoeForCausalLM', 'OpenLlamaForCausalLM', 'OpenAIGPTLMHeadModel', 'OPTForCausalLM', 'PegasusForCausalLM', 'PersimmonForCausalLM', 'PhiForCausalLM', 'Phi3ForCausalLM', 'PhimoeForCausalLM', 'PLBartForCausalLM', 'ProphetNetForCausalLM', 'QDQBertLMHeadModel', 'Qwen2ForCausalLM', 'Qwen2MoeForCausalLM', 'RecurrentGemmaForCausalLM', 'ReformerModelWithLMHead', 'RemBertForCausalLM', 'RobertaForCausalLM', 'RobertaPreLayerNormForCausalLM', 'RoCBertForCausalLM', 'RoFormerForCausalLM', 'RwkvForCausalLM', 'Speech2Text2ForCausalLM', 'StableLmForCausalLM', 'Starcoder2ForCausalLM', 'TransfoXLLMHeadModel', 'TrOCRForCausalLM', 'WhisperForCausalLM', 'XGLMForCausalLM', 'XLMWithLMHeadModel', 'XLMProphetNetForCausalLM', 'XLMRobertaForCausalLM', 'XLMRobertaXLForCausalLM', 'XLNetLMHeadModel', 'XmodForCausalLM', 'ZambaForCausalLM'].
+<ipython-input-1-19c8a9c946dc>:18: LangChainDeprecationWarning: The class `HuggingFacePipeline` was deprecated in LangChain 0.0.37 and will be removed in 1.0. An updated version of the class exists in the :class:`~langchain-huggingface package and should be used instead. To use it run `pip install -U :class:`~langchain-huggingface` and import as `from :class:`~langchain_huggingface import HuggingFacePipeline``.
+  llm = HuggingFacePipeline(pipeline=hf_pipeline)
+<ipython-input-1-19c8a9c946dc>:46: LangChainDeprecationWarning: The class `LLMChain` was deprecated in LangChain 0.1.17 and will be removed in 1.0. Use :meth:`~RunnableSequence, e.g., `prompt | llm`` instead.
+  scenario_chain = LLMChain(llm=llm, prompt=scenario_template)
+<ipython-input-1-19c8a9c946dc>:56: LangChainDeprecationWarning: The method `Chain.run` was deprecated in langchain 0.1.0 and will be removed in 1.0. Use :meth:`~invoke` instead.
+  response = sequential_chain.run("Investment Strategies")
+
+why>
+FLAN-T5 is a seq2seq model, not an autoregressive LM > Use "text2text-generation" pipeline
+LangChain moved HF support to a separate package > Use langchain_huggingface
+New LangChain API prefers RunnableSequence + .invoke()
+
+Final modified code:
+!pip install langchain langchain-huggingface transformers
+import textwrap
+from transformers import pipeline
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import Runnable
+from langchain_huggingface import HuggingFacePipeline  # Modern import
+
+#Use the correct pipeline type for FLAN-T5 (text2text)
+hf_pipeline = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-large",
+    max_new_tokens=200,
+    temperature=0.7,
+    do_sample=True
+)
+
+#Wrap it as a LangChain-compatible LLM
+llm = HuggingFacePipeline(pipeline=hf_pipeline)
+
+#Define prompt templates
+scenario_prompt = PromptTemplate(
+    input_variables=["theme_input"],
+    template="""
+You have to come up with a scenario (along with a 20-50 word description)
+for a new episode of the TV show "Banking Chronicles" based on the theme
+
+{theme_input}
+
+ANSWER:
+"""
+)
+
+dialogue_prompt = PromptTemplate(
+    input_variables=["scenario"],
+    template="""
+Generate a short dialogue between the bank manager and a customer
+from the TV show "Banking Chronicles" for a new episode based on the scenario
+
+{scenario}
+
+ANSWER:
+"""
+)
+
+#Chain using the `|` operator — no list!
+chain: Runnable = scenario_prompt | llm | dialogue_prompt | llm
+
+#Run it
+output = chain.invoke({"theme_input": "Investment Strategies"})
+
+# Pretty print
+def display_response(response: str):
+    print("\n".join(textwrap.wrap(response, width=100)))
+
+print("\n--- Final Output ---")
+display_response(output)
+
+
