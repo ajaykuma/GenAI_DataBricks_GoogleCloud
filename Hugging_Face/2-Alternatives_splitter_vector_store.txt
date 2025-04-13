@@ -100,7 +100,8 @@ for i, doc in enumerate(results, 1):
 
 #or
 query = "What is the document about?"
-retrieved_docs = vectorstore.similarity_search(query, k=3)  # k = number of results
+retrieved_docs = vectorstore.similarity_search(query, k=3)  
+# k = number of results
 
 for i, doc in enumerate(retrieved_docs):
     print(f"Result {i+1}:\n{doc.page_content}\n")
