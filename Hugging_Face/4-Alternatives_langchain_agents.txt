@@ -20,19 +20,16 @@ result = agent(question)
 -----
 #Hugging Face
 
-!pip uninstall -y tensorflow tensorflow-cpu tensorflow-gpu keras
+#!pip uninstall -y tensorflow tensorflow-cpu tensorflow-gpu keras
 !pip install --upgrade --force-reinstall langchain langchain-core langchain-community
-!pip install --upgrade --force-reinstall transformers --no-deps
-or
 !pip install --upgrade --force-reinstall "transformers[torch]" --no-deps
-
-#If needed:
-
-!pip install --upgrade --force-reinstall torch
-!pip uninstall tensorflow
-!pip install --upgrade torch torchvision
 #to make models loading faster
 !pip install "accelerate" "huggingface-hub"
+
+#If only needed:(based on errors)
+#!pip install --upgrade --force-reinstall torch
+#!pip uninstall tensorflow
+#!pip install --upgrade torch torchvision
 
 #LangChain has changed a LOT recently (early 2025).
 #For example, agents and tool loading moved to langchain_community for many tools.
@@ -42,11 +39,20 @@ from langchain.llms import HuggingFacePipeline
 from langchain_community.agent_toolkits import load_tools
 from transformers import pipeline
 
-if needed:
+#If only needed:(based on errors)
 !pip install "numpy<2" --force-reinstall
 
 # Load a Hugging Face model (e.g., a small conversational model like "tiiuae/falcon-7b-instruct")
 # You can replace this model with any you want (something like 'mistral', 'phi', 'llama', etc.)
+
+hf_pipeline = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-base",
+    max_new_tokens=256,
+    temperature=0.0,
+)
+
+#or using a heavier model
 hf_pipeline = pipeline(
     "text-generation",
     model="tiiuae/falcon-7b-instruct",
@@ -59,6 +65,72 @@ llm_model = HuggingFacePipeline(pipeline=hf_pipeline)
 
 # Load tools, passing the llm_model to ones that require an LLM
 tools = load_tools(["llm-math", "wikipedia"], llm=llm_model)
+
+#if loading tool shows error:
+we're importing load_tools from langchain_community.agent_toolkits, but langchain_community itself is a module, 
+and agent_toolkits might not be exposing load_tools properly.
+In the latest langchain versions, load_tools was moved around.
+It's now usually imported from langchain.tools — not from langchain_community.agent_toolkits.
+
+#try with
+from langchain.tools import load_tools
+
+#if still shows error
+In new LangChain versions (2024+),
+load_tools is no longer in langchain.tools nor in langchain_community.agent_toolkits.
+Instead, it's moved into langchain_community.tools.
+
+#try with
+from langchain_community.tools import load_tools
+
+#if it still shows error
+Even langchain_community.tools does not have it.
+The whole idea of load_tools is basically deprecated now.
+
+#manually import tools
+from langchain_community.tools import WikipediaQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper
+from langchain.agents.tools import Tool
+from langchain.tools.llm_math.tool import LLMMathTool  # Special case for llm-math
+
+#create tool instances yourself
+# Setup the Wikipedia Tool
+wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+
+# Setup the Math Tool
+math_tool = LLMMathTool(llm=llm_model)
+
+# Bundle into a list
+tools = [
+    Tool.from_function(
+        func=wiki.run,
+        name="Wikipedia",
+        description="useful for searching Wikipedia"
+    ),
+    Tool.from_function(
+        func=math_tool.run,
+        name="Calculator",
+        description="useful for when you need to answer math questions"
+    ),
+]
+
+# Setup the individual tools (instead of tools step above)
+wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+math_tool = LLMMathTool(llm=llm_model)
+
+tools = [
+    Tool.from_function(
+        func=wiki.run,
+        name="Wikipedia",
+        description="useful for searching Wikipedia"
+    ),
+    Tool.from_function(
+        func=math_tool.run,
+        name="Calculator",
+        description="useful for when you need to answer math questions"
+    ),
+]
+
 
 # Initialize agent
 agent = initialize_agent(
