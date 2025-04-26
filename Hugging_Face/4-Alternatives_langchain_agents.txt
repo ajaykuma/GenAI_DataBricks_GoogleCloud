@@ -1,0 +1,450 @@
+--working with Langchain Agents
+-----------
+OpenAI
+from langchain.agents import load_tools, initialize_agent
+from langchain.agents import AgentType
+from langchain.chat_models import ChatOpenAI
+llm_model = ChatOpenAI(temperature=0.0)
+tools = load_tools(["llm-math","wikipedia"], llm=llm_model)
+agent= initialize_agent(
+    tools,
+    llm_model,
+    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_errors=True,
+    verbose = True)
+agent("What is the square root of 16?")
+
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+
+-----
+#Hugging Face
+
+!pip uninstall -y tensorflow tensorflow-cpu tensorflow-gpu keras
+!pip install --upgrade --force-reinstall langchain langchain-core langchain-community
+!pip install --upgrade --force-reinstall transformers --no-deps
+or
+!pip install --upgrade --force-reinstall "transformers[torch]" --no-deps
+
+#If needed:
+
+!pip install --upgrade --force-reinstall torch
+!pip uninstall tensorflow
+!pip install --upgrade torch torchvision
+#to make models loading faster
+!pip install "accelerate" "huggingface-hub"
+
+#LangChain has changed a LOT recently (early 2025).
+#For example, agents and tool loading moved to langchain_community for many tools.
+
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import HuggingFacePipeline
+from langchain_community.agent_toolkits import load_tools
+from transformers import pipeline
+
+if needed:
+!pip install "numpy<2" --force-reinstall
+
+# Load a Hugging Face model (e.g., a small conversational model like "tiiuae/falcon-7b-instruct")
+# You can replace this model with any you want (something like 'mistral', 'phi', 'llama', etc.)
+hf_pipeline = pipeline(
+    "text-generation",
+    model="tiiuae/falcon-7b-instruct",
+    max_new_tokens=256,
+    temperature=0.0,
+)
+
+# Wrap the Hugging Face pipeline in a LangChain LLM
+llm_model = HuggingFacePipeline(pipeline=hf_pipeline)
+
+# Load tools, passing the llm_model to ones that require an LLM
+tools = load_tools(["llm-math", "wikipedia"], llm=llm_model)
+
+# Initialize agent
+agent = initialize_agent(
+    tools,
+    llm_model,
+    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_errors=True,
+    verbose=True
+)
+
+# Run the agent
+agent("What is the square root of 16?")
+
+# Another query
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+print(result)
+
+Note**
+You must use a Hugging Face model that is good at following instructions or chatting.
+Examples: tiiuae/falcon-7b-instruct, mistralai/Mistral-7B-Instruct-v0.2, meta-llama/Llama-2-7b-chat-hf, etc.
+If you are limited on GPU RAM, use smaller models like google/flan-t5-small or facebook/bart-large.
+
+You can add device="cuda" if you want GPU acceleration:
+hf_pipeline = pipeline(
+    "text-generation",
+    model="tiiuae/falcon-7b-instruct",
+    device=0,
+    max_new_tokens=256,
+    temperature=0.0,
+)
+
+--------------
+#without langchain to avoid overhead
+from transformers import pipeline
+
+# Load a text generation model
+generator = pipeline(
+    "text-generation",
+    model="tiiuae/falcon-7b-instruct",  # or another instruction-following model
+    max_new_tokens=256,
+    temperature=0.0,
+    device=0  # set to 0 for GPU (CUDA), or remove if using CPU
+)
+
+# Simple function to interact with the model
+def ask_model(question):
+    prompt = f"Answer the following question:\n{question}\nAnswer:"
+    output = generator(prompt)[0]['generated_text']
+    return output
+
+# Example 1
+response = ask_model("What is the square root of 16?")
+print(response)
+
+# Example 2
+response = ask_model("Alan Turing was a British mathematician and computer scientist, what is he famous for?")
+print(response)
+
+----------------
+#to use a chat-style Hugging Face model (similar to OpenAI ChatCompletion)
+from transformers import pipeline
+
+# Load a model fine-tuned for chatting
+chat_pipeline = pipeline(
+    "text-generation",
+    model="mistralai/Mistral-7B-Instruct-v0.2",  # Or any chat-tuned model you like
+    max_new_tokens=512,
+    temperature=0.2,
+    device=0  # use 0 for GPU or remove for CPU
+)
+
+# Function to simulate a chat
+def chat(messages):
+    # Messages is a list of dicts: [{"role": "user", "content": "Hello"}, ...]
+    # We format it into a single prompt for the model
+    prompt = ""
+    for message in messages:
+        if message["role"] == "system":
+            prompt += f"[System]: {message['content']}\n"
+        elif message["role"] == "user":
+            prompt += f"[User]: {message['content']}\n"
+        elif message["role"] == "assistant":
+            prompt += f"[Assistant]: {message['content']}\n"
+    prompt += "[Assistant]:"
+    
+    output = chat_pipeline(prompt)[0]['generated_text']
+    
+    # Optionally clean it up (only return what comes after last "[Assistant]:")
+    if "[Assistant]:" in output:
+        output = output.split("[Assistant]:")[-1].strip()
+    
+    return output
+
+# Example chat
+messages = [
+    {"role": "system", "content": "You are a helpful and knowledgeable assistant."},
+    {"role": "user", "content": "What is the square root of 16?"}
+]
+
+response = chat(messages)
+print(response)
+
+# Follow-up chat
+messages.append({"role": "assistant", "content": response})
+messages.append({"role": "user", "content": "And who was Alan Turing?"})
+
+response = chat(messages)
+print(response)
+
+Note**
+You build a "conversation history" by formatting messages into a single input prompt.
+The model sees the full conversation context.
+New user messages just append to the list!
+You can keep it going for multi-turn conversations.
+
+------------------
+#a full OpenAI-style ChatCompletion clone, using Hugging Face:
+
+from transformers import pipeline
+
+# Load your chat model
+chat_pipeline = pipeline(
+    "text-generation",
+    model="mistralai/Mistral-7B-Instruct-v0.2",  # Choose any chat model
+    max_new_tokens=512,
+    temperature=0.2,
+    device=0  # 0 = first GPU; remove or set to -1 for CPU
+)
+
+class LocalChatModel:
+    def __init__(self, system_prompt="You are a helpful assistant."):
+        self.messages = [{"role": "system", "content": system_prompt}]
+    
+    def format_prompt(self):
+        """Turn the message list into a proper prompt."""
+        prompt = ""
+        for msg in self.messages:
+            if msg["role"] == "system":
+                prompt += f"[System]: {msg['content']}\n"
+            elif msg["role"] == "user":
+                prompt += f"[User]: {msg['content']}\n"
+            elif msg["role"] == "assistant":
+                prompt += f"[Assistant]: {msg['content']}\n"
+        prompt += "[Assistant]:"  # Cue the model to complete
+        return prompt
+
+    def chat(self, user_message):
+        """Send a user message, get an assistant response."""
+        self.messages.append({"role": "user", "content": user_message})
+        
+        formatted_prompt = self.format_prompt()
+        output = chat_pipeline(formatted_prompt)[0]['generated_text']
+        
+        # Extract only the new assistant reply
+        if "[Assistant]:" in output:
+            output = output.split("[Assistant]:")[-1].strip()
+        
+        self.messages.append({"role": "assistant", "content": output})
+        return output
+
+# --- Example usage ---
+
+# Create a chat session
+local_chat = LocalChatModel(system_prompt="You are a math and history expert.")
+
+# User sends a message
+response = local_chat.chat("What is the square root of 16?")
+print(f"Assistant: {response}")
+
+# Another user message
+response = local_chat.chat("Tell me about Alan Turing.")
+print(f"Assistant: {response}")
+
+# And another
+response = local_chat.chat("Can you summarize his contributions in a few points?")
+print(f"Assistant: {response}")
+
+Note**
+Memory!: It keeps track of all messages (system, user, assistant) just like OpenAI.
+Formatting: It re-creates the conversation at every turn so the model has context.
+Easy to extend: You can add things like "clear history", "edit messages", "rollback", etc
+
+----------------
+#Improvements:
+Handle very long history (by trimming old messages if the token limit is near).
+Use special system prompts per session.
+Support streaming outputs if the model and pipeline allow.
+Format the prompt better depending on the model you're using (like using [INST]...[/INST] for LLaMA 2 models).
+
+---------
+#Streaming Responses (token-by-token)
+streaming = generating output little by little instead of waiting for the whole answer.
+
+Note**Hugging Face's normal pipeline API does not support true streaming yet.
+BUT you can manually generate token-by-token if you drop to using model.generate() directly instead of pipeline.
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# Load model/tokenizer
+model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
+
+model.eval()
+
+def stream_chat(prompt, max_new_tokens=100):
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+    streamer = transformers.TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+    
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            temperature=0.2,
+            streamer=streamer,
+            do_sample=True
+        )
+
+# Example
+prompt = "[System]: You are a helpful assistant.\n[User]: What is the square root of 16?\n[Assistant]:"
+stream_chat(prompt)
+
+Note**
+TextStreamer will print out tokens as they are generated — live!
+skip_prompt=True means it doesn't reprint the input prompt.
+You can modify stream_chat to collect the output instead of printing if you want.
+
+--Streaming works when you use model.generate(), not pipeline.
+--For fully interactive apps (like FastAPI or terminal apps), this is super useful!
+
+#Better streaming:
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+import torch
+import threading
+
+# Load model/tokenizer
+model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
+model.eval()
+
+def stream_chat_capture(prompt, max_new_tokens=100):
+    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+    generated_text = ""
+
+    # Run model.generate() in a separate thread because the streamer blocks
+    generation_kwargs = dict(
+        **inputs,
+        streamer=streamer,
+        max_new_tokens=max_new_tokens,
+        temperature=0.2,
+        do_sample=True
+    )
+    thread = threading.Thread(target=model.generate, kwargs=generation_kwargs)
+    thread.start()
+
+    # Collect the tokens into a string
+    for token in streamer:
+        print(token, end="", flush=True)  # still prints live if you want
+        generated_text += token
+
+    return generated_text
+
+# Example usage
+prompt = "[System]: You are a helpful assistant.\n[User]: What is the square root of 16?\n[Assistant]:"
+response = stream_chat_capture(prompt)
+print("\nFull Response Captured:", response)
+-----------------------
+
+#Better Prompt Template (for LLaMA 2-style chats)
+Most modern Hugging Face chat models (like LLaMA 2, Mistral, Mixtral, Yi, etc.) expect very specific formatting for the 
+conversation history, not just simple [User]: and [Assistant]:.
+
+For LLaMA 2, the "correct" prompt format looks like:
+<s>[INST] <<SYS>>
+You are a helpful, respectful, and honest assistant.
+<</SYS>>
+
+Hello, who are you? [/INST]
+Hi! I am an AI developed to assist you.
+
+The <s>, [INST], <</SYS>>, and [/INST] tags are very important!
+
+--using proper template in code:
+def build_llama2_chat_prompt(messages, system_prompt="You are a helpful assistant."):
+    """Build a properly formatted LLaMA 2 / Mistral chat prompt."""
+    prompt = "<s>[INST] "
+    prompt += f"<<SYS>>\n{system_prompt}\n<</SYS>>\n\n"
+
+    for msg in messages:
+        if msg["role"] == "user":
+            prompt += f"{msg['content']} [/INST] "
+        elif msg["role"] == "assistant":
+            prompt += f"{msg['content']} </s><s>[INST] "
+    
+    # Final prompt expects a new assistant response
+    return prompt
+
+# Example usage
+messages = [
+    {"role": "user", "content": "What is the square root of 16?"},
+    {"role": "assistant", "content": "The square root of 16 is 4."},
+    {"role": "user", "content": "Tell me about Alan Turing."}
+]
+
+final_prompt = build_llama2_chat_prompt(messages)
+print(final_prompt)
+
+---------------------------
+#Advanced
+#Serving your own Chat API with Fast API
+
+--What we want to do:
+Build a local server that works just like OpenAI's API:
+
+/chat endpoint
+Accepts messages (user input)
+Returns the assistant's reply
+
+--create a file server.py
+from fastapi import FastAPI
+from pydantic import BaseModel
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+import torch
+
+# Initialize FastAPI app
+app = FastAPI()
+
+# Load your model and tokenizer
+model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
+model.eval()
+
+# Create a generation pipeline
+generator = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=512, temperature=0.2)
+
+# Request body schema
+class ChatRequest(BaseModel):
+    messages: list  # [{"role": "user", "content": "Hi!"}, ...]
+
+# Helper function to build a prompt
+def build_prompt(messages, system_prompt="You are a helpful assistant."):
+    prompt = "<s>[INST] <<SYS>>\n" + system_prompt + "\n<</SYS>>\n\n"
+    for message in messages:
+        if message["role"] == "user":
+            prompt += message["content"] + " [/INST] "
+        elif message["role"] == "assistant":
+            prompt += message["content"] + " </s><s>[INST] "
+    return prompt
+
+# Chat endpoint
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    prompt = build_prompt(req.messages)
+    output = generator(prompt)[0]['generated_text']
+    
+    # Extract only new assistant reply
+    if "[INST]" in output:
+        output = output.split("[INST]")[-1].strip()
+    if "</s>" in output:
+        output = output.split("</s>")[0].strip()
+    
+    return {"response": output}
+
+--run
+uvicorn server:app --host 0.0.0.0 --port 8000
+
+--now local chat API is available at:
+http://localhost:8000/chat
+
+
+--Example request (python based client)
+import requests
+
+url = "http://localhost:8000/chat"
+messages = [
+    {"role": "user", "content": "What is the capital of France?"}
+]
+
+response = requests.post(url, json={"messages": messages})
+print(response.json())
+
