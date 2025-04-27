@@ -1,0 +1,162 @@
+I did this.. and all works till failure happens in last step
+!pip uninstall numpy -y
+!pip install numpy==1.26.4
+#!pip install "numpy<2" --force-reinstall
+!pip install "huggingface-hub>=0.30.0,<1.0" --upgrade
+!pip install "langchain" "langchain-community" --upgrade
+!pip install "transformers==4.38.2" --force-reinstall
+!pip install "accelerate" --upgrade
+!pip install wikipedia
+
+#restart session
+
+#import packages
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import HuggingFacePipeline
+#from langchain_community.agent_toolkits import load_tools
+from langchain_community.agent_toolkits.load_tools import load_tools
+from transformers import pipeline
+
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import HuggingFacePipeline
+from langchain_community.agent_toolkits import load_tools
+from transformers import pipeline
+
+hf_pipeline = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-base",
+    max_new_tokens=256,
+    temperature=0.0,
+
+)
+
+# Wrap the Hugging Face pipeline in a LangChain LLM
+llm_model = HuggingFacePipeline(pipeline=hf_pipeline)
+
+# Run the agent
+agent("What is the square root of 16?")
+
+or 
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+
+Error:
+Could not parse LLM output: wikipedia
+For troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/OUTPUT_PARSING_FAILURE 
+Observation: Invalid or incomplete response
+Thought:/usr/local/lib/python3.10/dist-packages/transformers/generation/configuration_utils.py:410: UserWarning: `do_sample` is set to `False`. 
+However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+
+
+Error:
+"Could not parse LLM output: wikipedia"
+and
+Observation: Invalid or incomplete response
+
+agent (CHAT_ZERO_SHOT_REACT_DESCRIPTION) expects a structured output from the LLM like:
+
+Thought: I should look up information on Wikipedia
+Action: wikipedia
+Action Input: "Alan Turing"
+
+but our LLM (Flan-T5) just said something random like "wikipedia" without following the structure.
+Because Flan-T5 (google/flan-t5-base) is very small (250M params) and not fine-tuned for "react-style" agents or structured reasoning.
+It doesn’t naturally know how to properly output:
+
+Thought → Action → Observation → Thought → Final Answer
+like bigger LLMs (e.g., OpenAI GPT-4, etc.) or very large fine-tuned Flan models (like flan-t5-xl or flan-t5-xxl).
+
+Also, we can Use AgentType.ZERO_SHOT_REACT_DESCRIPTION instead of CHAT_ZERO_SHOT_REACT_DESCRIPTION.
+Because ZERO_SHOT_REACT_DESCRIPTION is more tolerant and expects simpler responses.
+
+Note**
+ZERO_SHOT_REACT_DESCRIPTION is the agent meant for normal Huggingface models.
+CHAT_ZERO_SHOT_REACT_DESCRIPTION expects very chat-optimized models (like chat-tuned LLMs: e.g., ChatGPT, Mistral-Chat, etc.)
+flan-t5-base is not tuned for detailed chat parsing.
+
+warning:
+UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes.
+
+is telling that setting temperature=0.0 while do_sample=False is a bit pointless.
+→ No big deal — it won't crash anything. 
+
+----------------------------------------------
+Solution 1:
+Use a more powerful model that is better at structured outputs.
+
+Instead of flan-t5-base, use google/flan-t5-xl or google/flan-t5-xxl:
+when trying:
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+print(result)
+
+shows warnings/errors:
+Could not parse LLM output: Question: Alan Turing, what is he famous for?                                                                                                                          
+For troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/OUTPUT_PARSING_FAILURE 
+Observation: Invalid or incomplete response
+Thought:/usr/local/lib/python3.10/dist-packages/transformers/generation/configuration_utils.py:410: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+Token indices sequence length is longer than the specified maximum sequence length for this model (541 > 512). Running this sequence through the model will result in indexing errors
+Could not parse LLM output: Answer: 
+
+Models like google/flan-t5-xl are not trained to produce agent-style outputs (like Thought -> Action -> Observation format).
+Even switching agent types (e.g., ZERO_SHOT_REACT_DESCRIPTION) helps a little, but the base model still doesn't know the agent output protocol.
+When the model answers "Alan Turing was famous for..." it doesn't say what the agent framework expects
+
+Solution 2:
+Use a model fine-tuned for ReAct/agent reasoning
+These models have been trained to produce outputs that LangChain can parse.
+
+Good options:
+
+google/flan-t5-xl + "Prompt Engineering" (manually prepend special prompts)
+
+or
+
+Use better tuned models like:
+
+mistralai/Mistral-7B-Instruct
+mistralai/Mixtral-8x7B-Instruct
+togethercomputer/RedPajama-INCITE-Instruct
+OpenOrca-Platypus2-13B (superb)
+
+But some are bigger models and may need a GPU.
+
+--Add a better Prompt Template
+instruction = """You are an AI agent that follows this format:
+
+Thought: (describe your reasoning)
+Action: (choose one of [wikipedia, calculator])
+Action Input: (input to the action)
+
+Then when you get the observation:
+
+Observation: (result)
+Thought: (reflect on observation)
+Final Answer: (the final answer)
+
+Question: {question}
+"""
+
+# Create hf pipeline
+hf_pipeline = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-xl",
+    max_new_tokens=512,
+    temperature=0,
+    do_sample=True,
+)
+
+# Wrap
+llm_model = HuggingFacePipeline(pipeline=hf_pipeline)
+
+# Before sending question to agent, use:
+formatted_question = instruction.format(question="Alan Turing was a British mathematician and computer scientist, what is he famous for?")
+
+# Then
+result = agent(formatted_question)
+print(result)
+
+
+
+
