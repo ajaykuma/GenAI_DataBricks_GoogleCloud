@@ -1,0 +1,143 @@
+To add agents, you just need to "wrap" your retriever and generator into tools 
+and give them to an Agent that can decide what to do based on user input.
+
+Create tools for:
+Searching the vectorstore (retriever)
+
+Generating the final answer
+Use LangChain Agent (like AgentExecutor) to manage the tools.
+
+# 1. Define the retriever tool
+from langchain.tools import Tool
+
+def retrieve_docs_tool(query):
+    docs = retriever.get_relevant_documents(query)
+    return "\n".join([doc.page_content for doc in docs])
+
+retriever_tool = Tool(
+    name="Retriever",
+    func=retrieve_docs_tool,
+    description="Useful for retrieving relevant documents from FAISS based on a user question."
+)
+
+# 2. Define the generator tool
+def generate_answer_tool(query):
+    context = retrieve_docs_tool(query)
+    prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+    answer = generate_answer(prompt)   # your FLAN model function
+    return answer
+
+generator_tool = Tool(
+    name="AnswerGenerator",
+    func=generate_answer_tool,
+    description="Useful for answering questions based on retrieved documents."
+)
+
+# 3. Set up the agent
+from langchain.agents import initialize_agent, AgentType
+
+tools = [retriever_tool, generator_tool]
+
+agent = initialize_agent(
+    tools, 
+    model,   # (or use your huggingface pipeline or custom wrapper)
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+    verbose=True
+)
+
+# 4. Run the agent
+query = "What is LangChain?"
+response = agent.run(query)
+print(response)
+-------------------
+
+final code:
+# --- Setup Splitter, Embeddings, Vector Store, Retriever ---
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores.faiss import FAISS
+from langchain.docstore.document import Document
+
+# 1. Splitter
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=50, chunk_overlap=10)
+texts = [
+    """LangChain is a framework for developing applications powered by LLMs.
+    It connects models, prompts, and configuration settings.""",
+    """FAISS is a library for efficient similarity search and clustering of dense vectors.
+    It is commonly used to implement vector stores."""
+]
+chunks = text_splitter.create_documents(texts)
+
+# 2. Embeddings
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
+embeddings = HuggingFaceEmbeddings(model_name=model_name)
+
+# 3. Vector Store
+vectorstore = FAISS.from_documents(chunks, embeddings)
+
+# 4. Retriever
+retriever = vectorstore.as_retriever()
+
+# --- Setup Generator (FLAN-T5) ---
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+model_id = "google/flan-t5-base"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+
+def generate_answer(prompt, max_tokens=100):
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+    outputs = model.generate(**inputs, max_new_tokens=max_tokens)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+# --- Create Tools ---
+
+from langchain.tools import Tool
+
+# Retriever tool
+def retrieve_docs_tool(query):
+    docs = retriever.get_relevant_documents(query)
+    context = "\n".join([doc.page_content for doc in docs])
+    return context
+
+retriever_tool = Tool(
+    name="Retriever",
+    func=retrieve_docs_tool,
+    description="Useful for retrieving relevant documents from FAISS based on a user question."
+)
+
+# Generator tool
+def generate_answer_tool(query):
+    context = retrieve_docs_tool(query)
+    prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+    answer = generate_answer(prompt)
+    return answer
+
+generator_tool = Tool(
+    name="AnswerGenerator",
+    func=generate_answer_tool,
+    description="Useful for answering questions based on retrieved documents."
+)
+
+# --- Create the Agent ---
+
+from langchain.agents import initialize_agent, AgentType
+
+tools = [retriever_tool, generator_tool]
+
+agent = initialize_agent(
+    tools=tools,
+    llm=None,   # Since we are using custom tools, we can set None (or a dummy LLM)
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# --- Test the Agent ---
+
+query = "What is LangChain?"
+response = agent.run(query)
+print("\nAgent Response:", response)
+
+--------------------
