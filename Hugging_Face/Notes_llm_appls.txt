@@ -1,0 +1,21 @@
+LLM applications
+----------
+having better/refined/specific outputs generated
+--prompt engineering, shaping prompts (depending on which model and what kind of tasks it handles)
+  --prompting level (structuring)
+--chainining different actions(better approach)
+--RAG/external sources which contain domain/use case specific data
+     --refined storage in underlying vector store --splitting/chunking strategy
+--agentic implementation 
+--letting your model learn more..
+--memory usage
+
+having better formatted data generated or understanding different formatted inputs
+--loaders
+--splitters
+--format specifications (input/output)
+
+controlling the output generated
+--temperature, samples, top k, using other parameters..
+
+

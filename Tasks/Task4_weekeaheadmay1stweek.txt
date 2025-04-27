@@ -1,0 +1,16 @@
+--refer these 3 files
+2-Alternatives_splitter_vector_store.txt
+4-Alternatives_langchain_agents_v2.txt
+5-Alternatives_langchain_agents_v1.txt
+
+--modify the application to include one of your own created tools
+  ---search
+  ---data change
+  -- filtering
+
+and then use that tool with your agent
+
+
+#advanced/bonus
+instead of prompt engineering to control behaviour or output of your model, you can use a different model which 
+supports chat based generation and then you can also use aspects like memory or chathistory etc to generate responses
