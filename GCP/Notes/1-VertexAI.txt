@@ -91,9 +91,6 @@ Describe the image. Replace the previous prompt with the following and
 click the Submit button.
   Prompt: Describe the image in detail
 
-<details>
-<Summary>Clcik here to see reponse</Summary>
-<pre>
 Output Response begins---
 Close-up, slightly low-angle view of a digital display board typically found in 
 an airport or train station. 
@@ -111,8 +108,7 @@ light blue-gray in color and have a curved or arched structure.  The overall
 lighting suggests a daytime scene. The focus is clearly on the departure board, 
 making the background details less distinct.
 --response ends---
-</pre>
-</details>
+
 
 Tune the parameter. In the Configuration section, adjust the temperature by scrolling 
 from left (0) to right (2). Resubmit the prompt to observe any changes in the outcome 
