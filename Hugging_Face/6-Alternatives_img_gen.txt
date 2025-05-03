@@ -1,0 +1,135 @@
+Use Hugging Face (Stable Diffusion) — Best Choice for Text-to-Image
+-------------------
+#dependencies
+!pip install diffusers transformers torch accelerate
+
+#code
+from diffusers import StableDiffusionPipeline
+import torch
+
+# Load the model
+pipe = StableDiffusionPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5",  # More up-to-date than CompVis version
+    torch_dtype=torch.float16,
+)
+pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
+
+# Input prompt
+text_prompt = input("Enter a Text: ")
+
+# Generate image
+image = pipe(text_prompt).images[0]
+image.save("output.png")
+
+print("Image saved as output.png")
+
+> Prmpt: create an image of gladiator
+
+If error or takes time: [error because the pipeline is configured to use torch.float16 (half-precision) for performance on GPUs, 
+but you're running it on CPU, which doesn't support float16 operations.]
+(modified code)
+
+from diffusers import StableDiffusionPipeline
+import torch
+
+# Load the model
+pipe = StableDiffusionPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5",  # More up-to-date than CompVis version
+   
+)
+
+pipe = pipe.to("cpu")  # or "cuda" if you have a GPU
+
+# Input prompt
+text_prompt = input("Enter a Text: ")
+
+# Generate image
+image = pipe(text_prompt).images[0]
+image.save("output.png")
+
+print("Image saved as output.png")
+---------------
+<optional>
+
+Hugging Face's models generate images locally, so to create a URL,
+
+upload the image somewhere publicly accessible, such as:
+
+--Imgur
+--Cloud storage (e.g., AWS S3, Google Cloud Storage, Firebase)
+--Image hosting APIs
+
+For example:Upload to Imgur via API (Fast & Free)
+#dependencies
+pip install diffusers torch accelerate requests
+
+#Get Imgur API credentials
+Go to Imgur API registration
+Choose "anonymous usage"
+Copy your Client ID
+
+#code
+from diffusers import StableDiffusionPipeline
+import torch
+import requests
+import base64
+from io import BytesIO
+
+# Load model
+pipe = StableDiffusionPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5",
+    torch_dtype=torch.float16,
+)
+pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
+
+# Generate image
+text_prompt = input("Enter a Text: ")
+image = pipe(text_prompt).images[0]
+
+# Convert image to base64
+buffered = BytesIO()
+image.save(buffered, format="PNG")
+img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+# Upload to Imgur
+client_id = "YOUR_IMGUR_CLIENT_ID"  # Replace with your actual client ID
+headers = {'Authorization': f'Client-ID {client_id}'}
+data = {'image': img_base64}
+response = requests.post("https://api.imgur.com/3/image", headers=headers, data=data)
+
+# Get URL
+if response.status_code == 200:
+    url = response.json()['data']['link']
+    print("Image URL:", url)
+else:
+    print("Failed to upload image:", response.text)
+
+----------------
+========================
+#Using Gemini/Imagen is not yet public via SDK.
+Note**You'll need proper authentication (gcloud auth application-default login) and to check if the model is 
+publicly available or in preview.
+Note**Gemini doesn't natively support image generation from text prompts directly like DALL·E. 
+You would typically use it for text, code, or vision tasks. Instead, consider using 
+Imagen (another Google model for image generation), available through Google Cloud Vertex AI.
+
+#code
+from vertexai.preview.generative_models import GenerativeModel, ImageGenerationModel
+
+# Initialize model
+model = ImageGenerationModel.from_pretrained("imagen-alpha")  # model name may vary
+
+# Generate image
+image = model.generate_image(prompt=Text_PROMPT, image_size="256x256")
+
+# Save or display image
+with open("output.png", "wb") as f:
+    f.write(image)
+
+----------------------------------------------
+
+
+
+
+
+
