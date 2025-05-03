@@ -1,4 +1,4 @@
-Use Hugging Face (Stable Diffusion) — Best Choice for Text-to-Image
+#Use Hugging Face (Stable Diffusion) — Best Choice for Text-to-Image
 -------------------
 #dependencies
 !pip install diffusers transformers torch accelerate
