@@ -10,7 +10,6 @@
 
 and then use that tool with your agent
 
-
 #advanced/bonus
 instead of prompt engineering to control behaviour or output of your model, you can use a different model which 
 supports chat based generation and then you can also use aspects like memory or chathistory etc to generate responses

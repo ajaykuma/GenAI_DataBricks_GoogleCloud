@@ -25,7 +25,8 @@ print("Image saved as output.png")
 
 > Prmpt: create an image of gladiator
 
-If error or takes time: [error because the pipeline is configured to use torch.float16 (half-precision) for performance on GPUs, 
+If error or takes time: [error because the pipeline is configured to use torch.float16 
+(half-precision) for performance on GPUs, 
 but you're running it on CPU, which doesn't support float16 operations.]
 (modified code)
 
