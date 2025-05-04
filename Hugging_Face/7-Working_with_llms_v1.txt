@@ -1,0 +1,151 @@
+#Using openAI
+# Define a function to count the tokens in a text string
+def num_tokens_from_string(string: str, encoding_name: str) -> int:
+    """Returns the number of tokens in a text string."""
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
+# Count the tokens in the extracted text
+num_tokens = num_tokens_from_string(text_body, "gpt-3.5-turbo")
+
+# Print the number of tokens
+print(num_tokens)
+
+-------------
+#Using Hugging Face Transformers
+To replace OpenAI's tiktoken tokenizer (which is specific to ChatGPT models like gpt-3.5-turbo) with a Hugging Face tokenizer, 
+we can use the tokenizer from a similar Hugging Face model, 
+like meta-llama/Llama-2-7b-chat-hf, mistralai/Mistral-7B-Instruct-v0.1, or tiiuae/falcon-7b.
+
+> 
+from transformers import AutoTokenizer
+
+# Choose a Hugging Face model tokenizer (you can change this)
+model_name = "mistralai/Mistral-7B-Instruct-v0.1"  # or another Hugging Face model
+
+# Load the tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Define a function to count tokens using Hugging Face tokenizer
+def num_tokens_from_string(string: str) -> int:
+    """Returns the number of tokens in a text string using Hugging Face tokenizer."""
+    tokens = tokenizer.encode(string, add_special_tokens=False)
+    return len(tokens)
+
+# Example text
+text_body = "Your input text here."
+
+# Count and print number of tokens
+num_tokens = num_tokens_from_string(text_body)
+print(num_tokens)
+
+------------------
+#Using simpler models for token counting
+
+| Model Name                | Description                         | Size   |
+| ------------------------- | ----------------------------------- | ------ |
+| `bert-base-uncased`       | Classic BERT model (uncased)        | \~110M |
+| `distilbert-base-uncased` | Smaller, faster version of BERT     | \~66M  |
+| `roberta-base`            | Robustly optimized BERT             | \~125M |
+| `albert-base-v2`          | Lightweight BERT with shared layers | \~12M  |
+| `gpt2`                    | Small decoder-only model            | \~117M |
+
+
+#If we're not generating text and just need a fast and lightweight tokenizer, 
+#distilbert-base-uncased or albert-base-v2 are excellent choices.
+
+>
+from transformers import AutoTokenizer
+
+# Choose a simple model
+model_name = "distilbert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+def num_tokens_from_string(string: str) -> int:
+    """Returns the number of tokens using Hugging Face tokenizer."""
+    tokens = tokenizer.encode(string, add_special_tokens=False)
+    return len(tokens)
+
+# Example
+text_body = "This is a simple test sentence."
+num_tokens = num_tokens_from_string(text_body)
+print(num_tokens)
+
+---------------------
+#Use LangChain to Generate a Summary of the Paper**
+
+--Define the system and human prompts.
+--Create the **ChatPromptTemplate** object.
+--Create the **ChatOpenAI** object.
+--Create the **LLMChain** object.
+--Run the **LLMChain**.
+--Print the output.
+
+#Using OpenAI
+# Define the system prompt
+context_template = "You are a helpful AI Researcher that specializes in analyzing ML, AI, and LLM papers. Please use all your expertise to approach this task. Output your content in markdown format and include titles where relevant."
+system_message_prompt = SystemMessagePromptTemplate.from_template(context_template)
+
+# Define the human prompt
+human_template = "Please summarize this paper focusing on the key important takeaways for each section. Expand the summary on methods so they can be clearly understood. \n\n PAPER: \n\n{paper_content}"
+human_message_prompt = HumanMessagePromptTemplate(
+        prompt=PromptTemplate(
+            template=human_template,
+            input_variables=["paper_content"],
+        )
+    )
+
+# Create the ChatPromptTemplate object
+chat_prompt_template = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+
+# Create the ChatOpenAI object
+chat = ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.2)
+
+# Create the LLMChain object
+summary_chain = LLMChain(llm=chat, prompt=chat_prompt_template)
+
+# Run the LLMChain and print the output
+with get_openai_callback() as cb:
+    output = summary_chain.run(text_body)
+print(output)
+
+-------------------
+##use a transformers pipeline instead of ChatOpenAI
+from transformers import pipeline
+
+# Load summarization pipeline with a simpler model
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+# Your paper content goes here
+text_body = "..."  # Replace with your paper text
+
+# Optionally chunk the input if it's very long (BART has a limit ~1024 tokens)
+max_chunk_size = 1024
+def chunk_text(text, max_length=1024):
+    sentences = text.split(". ")
+    chunks = []
+    chunk = ""
+    for sentence in sentences:
+        if len(chunk) + len(sentence) < max_length:
+            chunk += sentence + ". "
+        else:
+            chunks.append(chunk.strip())
+            chunk = sentence + ". "
+    chunks.append(chunk.strip())
+    return chunks
+
+# Split the text and summarize each chunk
+chunks = chunk_text(text_body)
+summaries = summarizer(chunks, max_length=300, min_length=80, do_sample=False)
+
+# Combine the chunked summaries
+full_summary = "\n\n".join([s['summary_text'] for s in summaries])
+
+# Print the final summary
+print(full_summary)
+
+Note**Models like google/pegasus-xsum and philschmid/bart-large-cnn-samsum are great alternatives for short or dialogue-style summaries.
+
+-------------------------------
+--more examples to be added
