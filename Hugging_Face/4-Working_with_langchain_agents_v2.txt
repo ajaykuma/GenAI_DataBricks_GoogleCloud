@@ -1,7 +1,4 @@
-I did this.. and all works till failure happens in last step
-!pip uninstall numpy -y
-!pip install numpy==1.26.4
-#!pip install "numpy<2" --force-reinstall
+
 !pip install "huggingface-hub>=0.30.0,<1.0" --upgrade
 !pip install "langchain" "langchain-community" --upgrade
 !pip install "transformers==4.38.2" --force-reinstall
@@ -9,6 +6,8 @@ I did this.. and all works till failure happens in last step
 !pip install wikipedia
 
 #restart session
+!pip uninstall numpy -y
+!pip install numpy==1.26.4
 
 #import packages
 from langchain.agents import initialize_agent, AgentType

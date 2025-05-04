@@ -11,6 +11,8 @@ Document search or retrieval
 Embedding & vector store creation 
 """
 
+<code>
+#Testing splitter
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 text = """langchain is a framework for developing llm appls powered by llms
@@ -29,13 +31,12 @@ for i in chunks:
 for i,chunk in enumerate(chunks):
   print(f"Chunk {i+1}: {chunk}")
 
+--------------------------------------
 --create generator and test it 
 from transformers import pipeline
 generator = pipeline("text2text-generation", model="google/flan-t5-base")
 
 def get_completion(prompt):
-    # For instruction-tuned models, prepend with an instruction-style format
-    #instruction = f"<s>[INST] {prompt} [/INST]"
     response = generator(prompt,max_new_tokens=100, do_sample=False)
     return (response[0]["generated_text"].strip())
 
@@ -48,15 +49,16 @@ response = generator(prompt, max_new_tokens=150, do_sample=False)
 # Print the output
 print(response[0]["generated_text"].strip())
 
+------------------------------------------
 --Now aim is to use create embeddings , push them in a vector store such as FAISS and using them when using model
 
 #Creating embeddings
---for using openAI
+#for using openAI
 #from langchain.embeddings import OpenAIEmbeddings
 #api_token = ""
 #embeddings = OpenAIEmbeddings(openai_api_key=api_token,model="text-embedding-ada-002")
 
---for using HuggingFace
+#for using HuggingFace
 !pip install langchain-community
 from langchain_community.embeddings import HuggingFaceEmbeddings
 model = "sentence-transformers/all-MiniLM-L6-v2"
@@ -64,19 +66,15 @@ embeddings = HuggingFaceEmbeddings(model_name=model)
 text = "tell me something about langchain"
 test_embedding = embeddings.embed_documents(text)
 print(test_embedding)
+
+#again
 text2 = ["tell me something about langchain","how langchain helps"]
 test_embedding2 = embeddings.embed_documents(text2)
 for i in test_embedding2:
   print(i)
 
 #Getting faiss
-#!pip install faiss-cpu
-
-#import the FAISS class
-from langchain.vectorstores.faiss import FAISS
-from langchain.docstore.document import Document
-chunks2 = text_splitter.create_documents([text]) 
-vectorstore = FAISS.from_documents(chunks2, embeddings)
+!pip install faiss-cpu
 
 #Note**
 FAISS.from_documents(documents, embeddings) is the constructor that:
@@ -85,15 +83,23 @@ Uses the provided embedding model to convert each chunk into a vector,
 Builds a FAISS index from those vectors,
 Wraps it all into a FAISS vector store object you can search.
 
-# (Optional) Save the vectorstore
+#import the FAISS class
+from langchain.vectorstores.faiss import FAISS
+from langchain.docstore.document import Document
+chunks2 = text_splitter.create_documents([text]) 
+vectorstore = FAISS.from_documents(chunks2, embeddings)
+
+
+# (Optional) 
+Save the vectorstore
 vectorstore.save_local("faiss_store")
-# (Optional) Load it again later
+# (Optional) 
+Load it again later
 # vectorstore = FAISS.load_local("faiss_store", embeddings)
 
 # Perform similarity search
 query = "What does LangChain do?"
 results = vectorstore.similarity_search(query, k=2)
-
 for i, doc in enumerate(results, 1):
     print(f"\nResult {i}:")
     print(doc.page_content)
@@ -112,10 +118,9 @@ You can also use similarity_search_with_score if you want distance scores.
 
 #now testing the vector store usage within a LLM appl or with our generator 
 
-#Adding more documents to vectorstore can be done
+#Adding more documents to vectorstore can be done (not required now)
 new_docs = text_splitter.create_documents([new_text])
 vectorstore.add_documents(new_docs)
-
 
 #Note**
 the documents are stored internally in
@@ -150,7 +155,17 @@ query = "What is LangChain?"
 answer = rag_qa(query, retriever, pipeline)
 print("Answer:", answer)
 
-Note** if error, then..
+Note** if error, such as
+[KeyError: "Unknown task Context: tell me something about langchain\n\nQuestion: What is LangChain?\nAnswer:, 
+available tasks are ['audio-classification', 'automatic-speech-recognition', 'depth-estimation', 'document-question-answering', 
+'feature-extraction', 'fill-mask', 'image-classification', 'image-feature-extraction', 'image-segmentation', 'image-text-to-text', 
+'image-to-image', 'image-to-text', 'mask-generation', 'ner', 'object-detection', 'question-answering', 'sentiment-analysis', 
+'summarization', 'table-question-answering', 'text-classification', 'text-generation', 'text-to-audio', 'text-to-speech', 
+'text2text-generation', 'token-classification', 'translation', 'video-classification', 'visual-question-answering', 'vqa', 
+'zero-shot-audio-classification', 'zero-shot-classification', 'zero-shot-image-classification', 'zero-shot-object-detection', 'translation_XX_to_YY']"
+]
+
+then..
 
 #using AutoTokenizer, AutoModelForSeq2SeqLM instead of pipeline()
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM

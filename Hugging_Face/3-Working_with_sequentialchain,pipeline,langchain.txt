@@ -1,5 +1,5 @@
 #SequentialChain and langchain
---with openAI
+##With openAI
 
 import os
 import textwrap
@@ -53,6 +53,7 @@ conversation = response
 print(conversation)
 
 -------------
+##With HuggingFace
 #using langchain, SimpleSequentialChain & HuggingFacePipeline
 model: google/flan-t5-large
 
@@ -134,6 +135,7 @@ FLAN-T5 is a seq2seq model, not an autoregressive LM > Use "text2text-generation
 LangChain moved HF support to a separate package > Use langchain_huggingface
 New LangChain API prefers RunnableSequence + .invoke()
 
+----------------------------
 Final modified code:
 !pip install langchain langchain-huggingface transformers
 import textwrap

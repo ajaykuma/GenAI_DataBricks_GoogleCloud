@@ -16,12 +16,16 @@ def get_completion(prompt, model="gpt-3.5-turbo"):
 print(get_completion("What is 1+1?"))
 
 ---------------
-replace OpenAI's ChatCompletion with a pipeline, you can use something like 
+To replace OpenAI's ChatCompletion with a pipeline, we can use something like 
 text-generation with a model such as mistralai/Mistral-7B-Instruct-v0.1, 
 tiiuae/falcon-7b-instruct, or any other instruction-tuned model.
 
 #Using transformers library
 !pip install transformers
+
+Note**Access to model mistralai/Mistral-7B-Instruct-v0.1 is restricted. You must have access to it and be 
+authenticated to access it. If yes, then we can use the code below.
+
 from transformers import pipeline
 
 # Load a text-generation pipeline with an instruction-tuned model
@@ -35,8 +39,7 @@ def get_completion(prompt):
 
 print(get_completion("What is defi in context of crypto world?"))
 
-Note**Access to model mistralai/Mistral-7B-Instruct-v0.1 is restricted. You must have access to it and be 
-authenticated to access it. Please log in.
+OR
 ---------------------------------------------------
 --change model:
 --using heavier model
@@ -68,8 +71,9 @@ def get_completion(prompt):
 
 print(get_completion("What is a DEFI in context of crypto world"))
 
+----------
 Response: crypto cryptography
-
+-----------
 Now replace model: model="google/flan-t5-large"
 <test the code>
 Response: ?
@@ -77,9 +81,6 @@ Response: ?
 replace model : model="google/flan-t5-xl"
 <test the code>
 Response: DEFI is a digital identifier for a digital asset
-
-#check what is generator
-generator
 
 --------------------------------------------------------
 # Define the prompt template manually
@@ -110,9 +111,10 @@ Note**That [INST] syntax is specific to models like Mistral or LLaMA, not T5.
 response = generator(prompt, max_new_tokens=150, do_sample=False)
 # Extract the response (strip prompt)
 print(response[0]["generated_text"].strip())
+
 ---------------------------------------------------
 
---Using OpenAI
+##Using OpenAI
 # Start by creating an instance of the ChatOpenAI class.
 chat = ChatOpenAI(temperature=0.0)
 
@@ -132,7 +134,7 @@ customer_messages = prompt_template.format_messages(
 customer_response = chat(customer_messages)
 print(customer_response.content)
 
---Using transformers (without defining a function as shown in above examples)
+##Using transformers (without defining a function as shown in above examples)
 from transformers import pipeline
 
 # Set up the text generation pipeline with an instruction-following model
