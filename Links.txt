@@ -1,2 +1,6 @@
 https://python.langchain.com/docs/integrations/vectorstores/faiss/
 https://github.com/facebookresearch/faiss/wiki/getting-started
+https://gluebenchmark.com/
+https://github.com/google/BIG-bench
+https://crfm.stanford.edu/helm/
+https://super.gluebenchmark.com/
