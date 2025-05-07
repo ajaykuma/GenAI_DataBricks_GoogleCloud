@@ -1,4 +1,5 @@
 # GenAI_DataBricks_GoogleCloud
+> 🚧 This repository is constantly being refined and improved. Stay tuned!
 
 My exploratory work on AI/GenAI 
 - Google AI/APIs
@@ -27,5 +28,4 @@ Models explored & Used:
 - google/gemini-1.5-flash
 -- <more to be added>
 
->>>> Content is being reviewed & updated
 
