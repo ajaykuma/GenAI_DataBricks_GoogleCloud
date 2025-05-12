@@ -1,0 +1,1042 @@
+Task :
+Challenge scenario
+You were recently hired as a Machine Learning Engineer at a startup movie review website. 
+Your manager has tasked you with building a machine learning model to classify the sentiment of user movie reviews 
+as positive or negative. These predictions will be used as an input in downstream movie rating systems and to surface 
+top supportive and critical reviews on the movie website application.
+
+The challenge: your business requirements are that you have just 6 weeks to productionize a model that achieves great 
+than 75% accuracy to improve upon an existing bootstrapped solution. 
+Furthermore, after doing some exploratory analysis in your startup's data warehouse, 
+you found that you only have a small dataset of 50k text reviews to build a higher performing solution.
+
+Your challenge
+To build and deploy a high performance machine learning model with limited data quickly, 
+you will walk through training and deploying a custom TensorFlow BERT sentiment classifier for 
+online predictions on Google Cloud's Vertex AI platform. Vertex AI is Google Cloud's next generation machine 
+learning development platform where you can leverage the latest ML pre-built components and AutoML 
+to significantly enhance your development productivity, the ability to scale your workflow and decision
+ making with your data, and accelerate time to value.
+
+First, you will progress through a typical experimentation workflow where you will build your model from pre-trained 
+BERT components from TF-Hub and tf.keras classification layers to train and evaluate your model in a Vertex Notebook. 
+You will then package your model code into a Docker container to train on Google Cloud's Vertex AI. Lastly, 
+you will define and run a Kubeflow Pipeline on Vertex Pipelines that trains and deploys your model to a 
+Vertex Endpoint that you will query for online predictions.
+----------------
+student-02-295c995756fb@qwiklabs.net
+coUvunIPMCON
+qwiklabs-gcp-03-1124073ed26f
+us-central1
+
+---------------
+Task 1:
+Open the notebook in Vertex AI Workbench
+1. In the Google Cloud console, on the Navigation menu (Navigation menu icon), click Vertex AI > Workbench.
+
+2. Find the Workbench instance name instance and click on the Open JupyterLab button.
+
+----------------
+Task 2: 
+Set up the notebook
+In your notebook, click the Terminal.
+Install the required packages for the lab:
+
+> pip3 install -U -r requirements.txt --user
+
+----------output----------
+(base) jupyter@vertex-ai-jupyterlab:~$ pip3 install -U -r requirements.txt --user
+Collecting google-cloud-aiplatform==1.22.0 (from -r requirements.txt (line 1))
+  Downloading google_cloud_aiplatform-1.22.0-py2.py3-none-any.whl.metadata (24 kB)
+Collecting tensorflow-text==2.13.0 (from -r requirements.txt (line 2))
+  Downloading tensorflow_text-2.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.0 kB)
+Collecting tf-models-official==2.13.1 (from -r requirements.txt (line 3))
+  Downloading tf_models_official-2.13.1-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting kfp==1.8.19 (from -r requirements.txt (line 4))
+  Downloading kfp-1.8.19.tar.gz (304 kB)
+  Preparing metadata (setup.py) ... done
+Collecting google_cloud_pipeline_components==1.0.39 (from -r requirements.txt (line 5))
+  Downloading google_cloud_pipeline_components-1.0.39-py3-none-any.whl.metadata (6.2 kB)
+Collecting google-api-core==2.11.0 (from -r requirements.txt (line 6))
+  Downloading google_api_core-2.11.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting googleapis-common-protos==1.58.0 (from -r requirements.txt (line 7))
+  Downloading googleapis_common_protos-1.58.0-py2.py3-none-any.whl.metadata (1.5 kB)
+Collecting grpcio-status==1.47.0 (from -r requirements.txt (line 8))
+  Downloading grpcio_status-1.47.0-py3-none-any.whl.metadata (1.2 kB)
+Collecting google-cloud-storage==2.7.0 (from -r requirements.txt (line 9))
+  Downloading google_cloud_storage-2.7.0-py2.py3-none-any.whl.metadata (5.0 kB)
+Collecting google-cloud-resource-manager==1.8.1 (from -r requirements.txt (line 10))
+  Downloading google_cloud_resource_manager-1.8.1-py2.py3-none-any.whl.metadata (5.2 kB)
+Collecting google-cloud-bigquery==3.4.2 (from -r requirements.txt (line 11))
+  Downloading google_cloud_bigquery-3.4.2-py2.py3-none-any.whl.metadata (8.3 kB)
+Collecting google-cloud-notebooks==1.6.1 (from -r requirements.txt (line 12))
+  Downloading google_cloud_notebooks-1.6.1-py2.py3-none-any.whl.metadata (5.4 kB)
+Requirement already satisfied: proto-plus<2.0.0dev,>=1.22.0 in /opt/conda/lib/python3.10/site-packages (from google-cloud-aiplatform==1.22.0->-r requirements.txt (line 1)) (1.26.1)
+Requirement already satisfied: protobuf!=3.20.0,!=3.20.1,!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.19.5 in /opt/conda/lib/python3.10/site-packages (from google-cloud-aiplatform==1.22.0->-r requirements.txt (line 1)) (3.20.3)
+Collecting packaging<22.0.0dev,>=14.3 (from google-cloud-aiplatform==1.22.0->-r requirements.txt (line 1))
+  Downloading packaging-21.3-py3-none-any.whl.metadata (15 kB)
+Collecting shapely<2.0.0 (from google-cloud-aiplatform==1.22.0->-r requirements.txt (line 1))
+  Downloading Shapely-1.8.5.post1-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl.metadata (43 kB)
+Collecting tensorflow-hub>=0.8.0 (from tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorflow_hub-0.16.1-py2.py3-none-any.whl.metadata (1.3 kB)
+Collecting tensorflow<2.14,>=2.13.0 (from tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorflow-2.13.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.4 kB)
+Collecting Cython (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading cython-3.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (30 kB)
+Requirement already satisfied: Pillow in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (11.1.0)
+Collecting gin-config (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading gin_config-0.5.0-py3-none-any.whl.metadata (2.9 kB)
+Requirement already satisfied: google-api-python-client>=1.6.7 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (2.166.0)
+Collecting immutabledict (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading immutabledict-4.2.1-py3-none-any.whl.metadata (3.5 kB)
+Collecting kaggle>=1.3.9 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading kaggle-1.7.4.5-py3-none-any.whl.metadata (16 kB)
+Requirement already satisfied: matplotlib in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (3.10.0)
+Requirement already satisfied: numpy>=1.20 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (2.1.3)
+Requirement already satisfied: oauth2client in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (4.1.3)
+Collecting opencv-python-headless (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading opencv_python_headless-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (20 kB)
+Requirement already satisfied: pandas>=0.22.0 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (2.2.3)
+Requirement already satisfied: psutil>=5.4.3 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (5.9.3)
+Collecting py-cpuinfo>=3.3.0 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading py_cpuinfo-9.0.0-py3-none-any.whl.metadata (794 bytes)
+Collecting pycocotools (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading pycocotools-2.0.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.1 kB)
+Collecting pyyaml<5.4.0,>=5.1 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading PyYAML-5.3.1.tar.gz (269 kB)
+  Preparing metadata (setup.py) ... done
+Collecting sacrebleu (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading sacrebleu-2.5.1-py3-none-any.whl.metadata (51 kB)
+Requirement already satisfied: scipy>=0.19.1 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.15.2)
+Collecting sentencepiece (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading sentencepiece-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)
+Collecting seqeval (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading seqeval-1.2.2.tar.gz (43 kB)
+  Preparing metadata (setup.py) ... done
+Requirement already satisfied: six in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.17.0)
+Collecting tensorflow-datasets (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading tensorflow_datasets-4.9.8-py3-none-any.whl.metadata (11 kB)
+Collecting tensorflow-model-optimization>=0.4.1 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading tensorflow_model_optimization-0.8.0-py2.py3-none-any.whl.metadata (904 bytes)
+Collecting tf-slim>=1.1.0 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading tf_slim-1.1.0-py2.py3-none-any.whl.metadata (1.6 kB)
+Collecting absl-py<2,>=0.9 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading absl_py-1.4.0-py3-none-any.whl.metadata (2.3 kB)
+Collecting kubernetes<20,>=8.0.0 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading kubernetes-19.15.0-py2.py3-none-any.whl.metadata (1.5 kB)
+Collecting google-api-python-client>=1.6.7 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading google_api_python_client-1.12.11-py2.py3-none-any.whl.metadata (4.2 kB)
+Requirement already satisfied: google-auth<3,>=1.6.1 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (2.38.0)
+Requirement already satisfied: requests-toolbelt<1,>=0.8.0 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (0.10.1)
+Collecting cloudpickle<3,>=2.0.0 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading cloudpickle-2.2.1-py3-none-any.whl.metadata (6.9 kB)
+Collecting kfp-server-api<2.0.0,>=1.1.2 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading kfp-server-api-1.8.5.tar.gz (58 kB)
+  Preparing metadata (setup.py) ... done
+Requirement already satisfied: jsonschema<5,>=3.0.1 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (4.23.0)
+Requirement already satisfied: tabulate<1,>=0.8.6 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (0.9.0)
+Requirement already satisfied: click<9,>=7.1.2 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (8.1.8)
+Requirement already satisfied: Deprecated<2,>=1.2.7 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (1.2.18)
+Collecting strip-hints<1,>=0.1.8 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading strip_hints-0.1.13-py3-none-any.whl.metadata (11 kB)
+Requirement already satisfied: docstring-parser<1,>=0.7.3 in /opt/conda/lib/python3.10/site-packages (from kfp==1.8.19->-r requirements.txt (line 4)) (0.16)
+Collecting kfp-pipeline-spec<0.2.0,>=0.1.16 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading kfp_pipeline_spec-0.1.16-py3-none-any.whl.metadata (323 bytes)
+Collecting fire<1,>=0.3.1 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading fire-0.7.0.tar.gz (87 kB)
+  Preparing metadata (setup.py) ... done
+Collecting uritemplate<4,>=3.0.1 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading uritemplate-3.0.1-py2.py3-none-any.whl.metadata (4.6 kB)
+Collecting pydantic<2,>=1.8.2 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading pydantic-1.10.22-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (154 kB)
+Collecting typer<1.0,>=0.3.2 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading typer-0.15.3-py3-none-any.whl.metadata (15 kB)
+Requirement already satisfied: requests<3.0.0dev,>=2.18.0 in /opt/conda/lib/python3.10/site-packages (from google-api-core==2.11.0->-r requirements.txt (line 6)) (2.32.3)
+Requirement already satisfied: grpcio>=1.47.0 in /opt/conda/lib/python3.10/site-packages (from grpcio-status==1.47.0->-r requirements.txt (line 8)) (1.71.0)
+Requirement already satisfied: google-cloud-core<3.0dev,>=2.3.0 in /opt/conda/lib/python3.10/site-packages (from google-cloud-storage==2.7.0->-r requirements.txt (line 9)) (2.4.3)
+Requirement already satisfied: google-resumable-media>=2.3.2 in /opt/conda/lib/python3.10/site-packages (from google-cloud-storage==2.7.0->-r requirements.txt (line 9)) (2.7.2)
+Requirement already satisfied: grpc-google-iam-v1<1.0.0dev,>=0.12.4 in /opt/conda/lib/python3.10/site-packages (from google-cloud-resource-manager==1.8.1->-r requirements.txt (line 10)) (0.14.2)
+Requirement already satisfied: python-dateutil<3.0dev,>=2.7.2 in /opt/conda/lib/python3.10/site-packages (from google-cloud-bigquery==3.4.2->-r requirements.txt (line 11)) (2.9.0.post0)
+Requirement already satisfied: wrapt<2,>=1.10 in /opt/conda/lib/python3.10/site-packages (from Deprecated<2,>=1.2.7->kfp==1.8.19->-r requirements.txt (line 4)) (1.17.2)
+Collecting termcolor (from fire<1,>=0.3.1->kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading termcolor-3.1.0-py3-none-any.whl.metadata (6.4 kB)
+Requirement already satisfied: httplib2<1dev,>=0.15.0 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.22.0)
+Requirement already satisfied: google-auth-httplib2>=0.0.3 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.2.0)
+Requirement already satisfied: cachetools<6.0,>=2.0.0 in /opt/conda/lib/python3.10/site-packages (from google-auth<3,>=1.6.1->kfp==1.8.19->-r requirements.txt (line 4)) (5.5.2)
+Requirement already satisfied: pyasn1-modules>=0.2.1 in /opt/conda/lib/python3.10/site-packages (from google-auth<3,>=1.6.1->kfp==1.8.19->-r requirements.txt (line 4)) (0.4.2)
+Requirement already satisfied: rsa<5,>=3.1.4 in /opt/conda/lib/python3.10/site-packages (from google-auth<3,>=1.6.1->kfp==1.8.19->-r requirements.txt (line 4)) (4.9)
+Requirement already satisfied: google-crc32c<2.0dev,>=1.0 in /opt/conda/lib/python3.10/site-packages (from google-resumable-media>=2.3.2->google-cloud-storage==2.7.0->-r requirements.txt (line 9)) (1.7.1)
+Requirement already satisfied: attrs>=22.2.0 in /opt/conda/lib/python3.10/site-packages (from jsonschema<5,>=3.0.1->kfp==1.8.19->-r requirements.txt (line 4)) (25.3.0)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /opt/conda/lib/python3.10/site-packages (from jsonschema<5,>=3.0.1->kfp==1.8.19->-r requirements.txt (line 4)) (2024.10.1)
+Requirement already satisfied: referencing>=0.28.4 in /opt/conda/lib/python3.10/site-packages (from jsonschema<5,>=3.0.1->kfp==1.8.19->-r requirements.txt (line 4)) (0.36.2)
+Requirement already satisfied: rpds-py>=0.7.1 in /opt/conda/lib/python3.10/site-packages (from jsonschema<5,>=3.0.1->kfp==1.8.19->-r requirements.txt (line 4)) (0.24.0)
+Requirement already satisfied: bleach in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (6.2.0)
+Requirement already satisfied: certifi>=14.05.14 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (2025.1.31)
+Requirement already satisfied: charset-normalizer in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (3.4.1)
+Requirement already satisfied: idna in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (3.10)
+Collecting python-slugify (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading python_slugify-8.0.4-py2.py3-none-any.whl.metadata (8.5 kB)
+Requirement already satisfied: setuptools>=21.0.0 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (75.8.2)
+Collecting text-unidecode (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading text_unidecode-1.3-py2.py3-none-any.whl.metadata (2.4 kB)
+Requirement already satisfied: tqdm in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (4.67.1)
+Requirement already satisfied: urllib3>=1.15.1 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.26.20)
+Requirement already satisfied: webencodings in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.5.1)
+INFO: pip is looking at multiple versions of kubernetes to determine which version is compatible with other requirements. This could take a while.
+Collecting kubernetes<20,>=8.0.0 (from kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading kubernetes-18.20.0-py2.py3-none-any.whl.metadata (1.4 kB)
+  Downloading kubernetes-17.17.0-py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: websocket-client!=0.40.0,!=0.41.*,!=0.42.*,>=0.32.0 in /opt/conda/lib/python3.10/site-packages (from kubernetes<20,>=8.0.0->kfp==1.8.19->-r requirements.txt (line 4)) (1.8.0)
+Requirement already satisfied: requests-oauthlib in /opt/conda/lib/python3.10/site-packages (from kubernetes<20,>=8.0.0->kfp==1.8.19->-r requirements.txt (line 4)) (2.0.0)
+Requirement already satisfied: pyparsing!=3.0.5,>=2.0.2 in /opt/conda/lib/python3.10/site-packages (from packaging<22.0.0dev,>=14.3->google-cloud-aiplatform==1.22.0->-r requirements.txt (line 1)) (3.2.3)
+Requirement already satisfied: pytz>=2020.1 in /opt/conda/lib/python3.10/site-packages (from pandas>=0.22.0->tf-models-official==2.13.1->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: tzdata>=2022.7 in /opt/conda/lib/python3.10/site-packages (from pandas>=0.22.0->tf-models-official==2.13.1->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: typing-extensions>=4.2.0 in /opt/conda/lib/python3.10/site-packages (from pydantic<2,>=1.8.2->kfp==1.8.19->-r requirements.txt (line 4)) (4.13.0)
+Requirement already satisfied: wheel in /opt/conda/lib/python3.10/site-packages (from strip-hints<1,>=0.1.8->kfp==1.8.19->-r requirements.txt (line 4)) (0.45.1)
+Collecting astunparse>=1.6.0 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading astunparse-1.6.3-py2.py3-none-any.whl.metadata (4.4 kB)
+Collecting flatbuffers>=23.1.21 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading flatbuffers-25.2.10-py2.py3-none-any.whl.metadata (875 bytes)
+Collecting gast<=0.4.0,>=0.2.1 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading gast-0.4.0-py3-none-any.whl.metadata (1.1 kB)
+Collecting google-pasta>=0.1.1 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading google_pasta-0.2.0-py3-none-any.whl.metadata (814 bytes)
+Collecting h5py>=2.9.0 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading h5py-3.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.5 kB)
+Collecting keras<2.14,>=2.13.1 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading keras-2.13.1-py3-none-any.whl.metadata (2.4 kB)
+Collecting libclang>=13.0.0 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl.metadata (5.2 kB)
+Collecting numpy>=1.20 (from tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading numpy-1.24.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.6 kB)
+Collecting opt-einsum>=2.3.2 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading opt_einsum-3.4.0-py3-none-any.whl.metadata (6.3 kB)
+Collecting tensorboard<2.14,>=2.13 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorboard-2.13.0-py3-none-any.whl.metadata (1.8 kB)
+Collecting tensorflow-estimator<2.14,>=2.13.0 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorflow_estimator-2.13.0-py2.py3-none-any.whl.metadata (1.3 kB)
+Collecting typing-extensions>=4.2.0 (from pydantic<2,>=1.8.2->kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading typing_extensions-4.5.0-py3-none-any.whl.metadata (8.5 kB)
+Collecting tensorflow-io-gcs-filesystem>=0.23.1 (from tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorflow_io_gcs_filesystem-0.37.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (14 kB)
+Collecting tf-keras>=2.14.1 (from tensorflow-hub>=0.8.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tf_keras-2.19.0-py3-none-any.whl.metadata (1.8 kB)
+Requirement already satisfied: dm-tree~=0.1.1 in /opt/conda/lib/python3.10/site-packages (from tensorflow-model-optimization>=0.4.1->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.1.9)
+Collecting shellingham>=1.3.0 (from typer<1.0,>=0.3.2->kfp==1.8.19->-r requirements.txt (line 4))
+  Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+Requirement already satisfied: rich>=10.11.0 in /opt/conda/lib/python3.10/site-packages (from typer<1.0,>=0.3.2->kfp==1.8.19->-r requirements.txt (line 4)) (13.9.4)
+Requirement already satisfied: contourpy>=1.0.1 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.3.1)
+Requirement already satisfied: cycler>=0.10 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.12.1)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.13.1->-r requirements.txt (line 3)) (4.56.0)
+Requirement already satisfied: kiwisolver>=1.3.1 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.4.8)
+Requirement already satisfied: pyasn1>=0.1.7 in /opt/conda/lib/python3.10/site-packages (from oauth2client->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.6.1)
+Collecting portalocker (from sacrebleu->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading portalocker-3.1.1-py3-none-any.whl.metadata (8.6 kB)
+Collecting regex (from sacrebleu->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading regex-2024.11.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (40 kB)
+Requirement already satisfied: colorama in /opt/conda/lib/python3.10/site-packages (from sacrebleu->tf-models-official==2.13.1->-r requirements.txt (line 3)) (0.4.6)
+Collecting lxml (from sacrebleu->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading lxml-5.4.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (3.5 kB)
+Requirement already satisfied: scikit-learn>=0.21.3 in /opt/conda/lib/python3.10/site-packages (from seqeval->tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.6.1)
+Collecting array_record>=0.5.0 (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading array_record-0.7.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (899 bytes)
+Collecting etils>=1.6.0 (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading etils-1.12.2-py3-none-any.whl.metadata (6.5 kB)
+Collecting promise (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading promise-2.3.tar.gz (19 kB)
+  Preparing metadata (setup.py) ... done
+Requirement already satisfied: pyarrow in /opt/conda/lib/python3.10/site-packages (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3)) (19.0.1)
+Collecting simple_parsing (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading simple_parsing-0.1.7-py3-none-any.whl.metadata (7.3 kB)
+Collecting tensorflow-metadata (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading tensorflow_metadata-1.17.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting toml (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading toml-0.10.2-py2.py3-none-any.whl.metadata (7.1 kB)
+Requirement already satisfied: fsspec in /opt/conda/lib/python3.10/site-packages (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3)) (2025.3.0)
+Collecting importlib_resources (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading importlib_resources-6.5.2-py3-none-any.whl.metadata (3.9 kB)
+Requirement already satisfied: zipp in /opt/conda/lib/python3.10/site-packages (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3)) (3.21.0)
+Collecting einops (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading einops-0.8.1-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /opt/conda/lib/python3.10/site-packages (from rich>=10.11.0->typer<1.0,>=0.3.2->kfp==1.8.19->-r requirements.txt (line 4)) (3.0.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /opt/conda/lib/python3.10/site-packages (from rich>=10.11.0->typer<1.0,>=0.3.2->kfp==1.8.19->-r requirements.txt (line 4)) (2.19.1)
+Requirement already satisfied: joblib>=1.2.0 in /opt/conda/lib/python3.10/site-packages (from scikit-learn>=0.21.3->seqeval->tf-models-official==2.13.1->-r requirements.txt (line 3)) (1.4.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /opt/conda/lib/python3.10/site-packages (from scikit-learn>=0.21.3->seqeval->tf-models-official==2.13.1->-r requirements.txt (line 3)) (3.6.0)
+Collecting google-auth-oauthlib<1.1,>=0.5 (from tensorboard<2.14,>=2.13->tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading google_auth_oauthlib-1.0.0-py2.py3-none-any.whl.metadata (2.7 kB)
+Collecting markdown>=2.6.8 (from tensorboard<2.14,>=2.13->tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading markdown-3.8-py3-none-any.whl.metadata (5.1 kB)
+Collecting tensorboard-data-server<0.8.0,>=0.7.0 (from tensorboard<2.14,>=2.13->tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl.metadata (1.1 kB)
+Collecting werkzeug>=1.0.1 (from tensorboard<2.14,>=2.13->tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading werkzeug-3.1.3-py3-none-any.whl.metadata (3.7 kB)
+INFO: pip is looking at multiple versions of tf-keras to determine which version is compatible with other requirements. This could take a while.
+Collecting tf-keras>=2.14.1 (from tensorflow-hub>=0.8.0->tensorflow-text==2.13.0->-r requirements.txt (line 2))
+  Downloading tf_keras-2.18.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.17.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.16.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.15.1-py3-none-any.whl.metadata (1.7 kB)
+  Downloading tf_keras-2.15.0-py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: oauthlib>=3.0.0 in /opt/conda/lib/python3.10/site-packages (from requests-oauthlib->kubernetes<20,>=8.0.0->kfp==1.8.19->-r requirements.txt (line 4)) (3.2.2)
+INFO: pip is looking at multiple versions of tensorflow-metadata to determine which version is compatible with other requirements. This could take a while.
+Collecting tensorflow-metadata (from tensorflow-datasets->tf-models-official==2.13.1->-r requirements.txt (line 3))
+  Downloading tensorflow_metadata-1.17.0-py3-none-any.whl.metadata (2.6 kB)
+  Downloading tensorflow_metadata-1.16.1-py3-none-any.whl.metadata (2.4 kB)
+Requirement already satisfied: mdurl~=0.1 in /opt/conda/lib/python3.10/site-packages (from markdown-it-py>=2.2.0->rich>=10.11.0->typer<1.0,>=0.3.2->kfp==1.8.19->-r requirements.txt (line 4)) (0.1.2)
+Requirement already satisfied: MarkupSafe>=2.1.1 in /opt/conda/lib/python3.10/site-packages (from werkzeug>=1.0.1->tensorboard<2.14,>=2.13->tensorflow<2.14,>=2.13.0->tensorflow-text==2.13.0->-r requirements.txt (line 2)) (3.0.2)
+Downloading google_cloud_aiplatform-1.22.0-py2.py3-none-any.whl (2.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 54.6 MB/s eta 0:00:00
+Downloading tensorflow_text-2.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (6.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.5/6.5 MB 128.0 MB/s eta 0:00:00
+Downloading tf_models_official-2.13.1-py2.py3-none-any.whl (2.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.6/2.6 MB 123.6 MB/s eta 0:00:00
+Downloading google_cloud_pipeline_components-1.0.39-py3-none-any.whl (870 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 870.6/870.6 kB 48.3 MB/s eta 0:00:00
+Downloading google_api_core-2.11.0-py3-none-any.whl (120 kB)
+Downloading googleapis_common_protos-1.58.0-py2.py3-none-any.whl (223 kB)
+Downloading grpcio_status-1.47.0-py3-none-any.whl (10.0 kB)
+Downloading google_cloud_storage-2.7.0-py2.py3-none-any.whl (110 kB)
+Downloading google_cloud_resource_manager-1.8.1-py2.py3-none-any.whl (235 kB)
+Downloading google_cloud_bigquery-3.4.2-py2.py3-none-any.whl (215 kB)
+Downloading google_cloud_notebooks-1.6.1-py2.py3-none-any.whl (190 kB)
+Downloading absl_py-1.4.0-py3-none-any.whl (126 kB)
+Downloading cloudpickle-2.2.1-py3-none-any.whl (25 kB)
+Downloading google_api_python_client-1.12.11-py2.py3-none-any.whl (62 kB)
+Downloading kaggle-1.7.4.5-py3-none-any.whl (181 kB)
+Downloading kfp_pipeline_spec-0.1.16-py3-none-any.whl (19 kB)
+Downloading kubernetes-17.17.0-py3-none-any.whl (1.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 59.2 MB/s eta 0:00:00
+Downloading packaging-21.3-py3-none-any.whl (40 kB)
+Downloading py_cpuinfo-9.0.0-py3-none-any.whl (22 kB)
+Downloading pydantic-1.10.22-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 68.4 MB/s eta 0:00:00
+Downloading Shapely-1.8.5.post1-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (2.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 73.9 MB/s eta 0:00:00
+Downloading strip_hints-0.1.13-py3-none-any.whl (23 kB)
+Downloading tensorflow-2.13.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (479.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 479.7/479.7 MB 55.0 MB/s eta 0:00:00
+Downloading numpy-1.24.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 17.3/17.3 MB 133.8 MB/s eta 0:00:00
+Downloading tensorflow_hub-0.16.1-py2.py3-none-any.whl (30 kB)
+Downloading tensorflow_model_optimization-0.8.0-py2.py3-none-any.whl (242 kB)
+Downloading tf_slim-1.1.0-py2.py3-none-any.whl (352 kB)
+Downloading typer-0.15.3-py3-none-any.whl (45 kB)
+Downloading uritemplate-3.0.1-py2.py3-none-any.whl (15 kB)
+Downloading cython-3.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 114.0 MB/s eta 0:00:00
+Downloading gin_config-0.5.0-py3-none-any.whl (61 kB)
+Downloading immutabledict-4.2.1-py3-none-any.whl (4.7 kB)
+Downloading opencv_python_headless-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (50.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.0/50.0 MB 71.6 MB/s eta 0:00:00
+Downloading pycocotools-2.0.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (427 kB)
+Downloading sacrebleu-2.5.1-py3-none-any.whl (104 kB)
+Downloading sentencepiece-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 3.6 MB/s eta 0:00:00
+Downloading tensorflow_datasets-4.9.8-py3-none-any.whl (5.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.3/5.3 MB 16.9 MB/s eta 0:00:00
+Downloading array_record-0.7.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 25.7 MB/s eta 0:00:00
+Downloading astunparse-1.6.3-py2.py3-none-any.whl (12 kB)
+Downloading etils-1.12.2-py3-none-any.whl (167 kB)
+Downloading flatbuffers-25.2.10-py2.py3-none-any.whl (30 kB)
+Downloading gast-0.4.0-py3-none-any.whl (9.8 kB)
+Downloading google_pasta-0.2.0-py3-none-any.whl (57 kB)
+Downloading h5py-3.13.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 110.0 MB/s eta 0:00:00
+Downloading keras-2.13.1-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 90.4 MB/s eta 0:00:00
+Downloading libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl (24.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.5/24.5 MB 132.3 MB/s eta 0:00:00
+Downloading opt_einsum-3.4.0-py3-none-any.whl (71 kB)
+Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Downloading tensorboard-2.13.0-py3-none-any.whl (5.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.6/5.6 MB 116.8 MB/s eta 0:00:00
+Downloading tensorflow_estimator-2.13.0-py2.py3-none-any.whl (440 kB)
+Downloading tensorflow_io_gcs_filesystem-0.37.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.1/5.1 MB 96.9 MB/s eta 0:00:00
+Downloading termcolor-3.1.0-py3-none-any.whl (7.7 kB)
+Downloading tf_keras-2.15.0-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 93.1 MB/s eta 0:00:00
+Downloading typing_extensions-4.5.0-py3-none-any.whl (27 kB)
+Downloading lxml-5.4.0-cp310-cp310-manylinux_2_28_x86_64.whl (5.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.1/5.1 MB 117.9 MB/s eta 0:00:00
+Downloading portalocker-3.1.1-py3-none-any.whl (19 kB)
+Downloading python_slugify-8.0.4-py2.py3-none-any.whl (10 kB)
+Downloading text_unidecode-1.3-py2.py3-none-any.whl (78 kB)
+Downloading regex-2024.11.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (781 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 781.7/781.7 kB 46.8 MB/s eta 0:00:00
+Downloading simple_parsing-0.1.7-py3-none-any.whl (112 kB)
+Downloading tensorflow_metadata-1.16.1-py3-none-any.whl (28 kB)
+Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
+Downloading google_auth_oauthlib-1.0.0-py2.py3-none-any.whl (18 kB)
+Downloading markdown-3.8-py3-none-any.whl (106 kB)
+Downloading tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 130.5 MB/s eta 0:00:00
+Downloading werkzeug-3.1.3-py3-none-any.whl (224 kB)
+Downloading einops-0.8.1-py3-none-any.whl (64 kB)
+Downloading importlib_resources-6.5.2-py3-none-any.whl (37 kB)
+Building wheels for collected packages: kfp, fire, kfp-server-api, pyyaml, seqeval, promise
+  Building wheel for kfp (setup.py) ... done
+  Created wheel for kfp: filename=kfp-1.8.19-py3-none-any.whl size=427014 sha256=9d28e121842765ed43de2fef592219b034165a04b9245f01326b7b526600a8f1
+  Stored in directory: /home/jupyter/.cache/pip/wheels/48/c2/5b/a5916ef7fadeaf1ff3b989da41498edcbef2439c47c481a7ba
+  Building wheel for fire (setup.py) ... done
+  Created wheel for fire: filename=fire-0.7.0-py3-none-any.whl size=114299 sha256=08bb1a868c6dc0ce55a57c5436a69495ffbbab976ef90933a555c89f3c4149b3
+  Stored in directory: /home/jupyter/.cache/pip/wheels/19/39/2f/2d3cadc408a8804103f1c34ddd4b9f6a93497b11fa96fe738e
+  Building wheel for kfp-server-api (setup.py) ... done
+  Created wheel for kfp-server-api: filename=kfp_server_api-1.8.5-py3-none-any.whl size=99744 sha256=32893f748d0350971a32adf565dc636a0397adab205a5853c663cb2086421d7f
+  Stored in directory: /home/jupyter/.cache/pip/wheels/c5/97/d5/e8a0f596dc85f5cfe383c800fbf3e29a99853bb54e01f26fca
+  Building wheel for pyyaml (setup.py) ... done
+  Created wheel for pyyaml: filename=pyyaml-5.3.1-cp310-cp310-linux_x86_64.whl size=44695 sha256=eedcc7160d5a8ec4f707b9469dd649e1686e74a43b5faf1db6d205f444a81d02
+  Stored in directory: /home/jupyter/.cache/pip/wheels/0b/a9/6a/d0a6981a8dbb698845178818642f72ce179f14336908c7df01
+  Building wheel for seqeval (setup.py) ... done
+  Created wheel for seqeval: filename=seqeval-1.2.2-py3-none-any.whl size=16218 sha256=82d4e1ceadb385cea35baa92c7bc598532b41e37823f9b2d85c85631e87b187d
+  Stored in directory: /home/jupyter/.cache/pip/wheels/1a/67/4a/ad4082dd7dfc30f2abfe4d80a2ed5926a506eb8a972b4767fa
+  Building wheel for promise (setup.py) ... done
+  Created wheel for promise: filename=promise-2.3-py3-none-any.whl size=21549 sha256=a5c006612e5e35055f3f31bbc4bf532529692a56c23c1fc3f9617b67d52f7dd7
+  Stored in directory: /home/jupyter/.cache/pip/wheels/54/4e/28/3ed0e1c8a752867445bab994d2340724928aa3ab059c57c8db
+Successfully built kfp fire kfp-server-api pyyaml seqeval promise
+Installing collected packages: text-unidecode, sentencepiece, py-cpuinfo, libclang, gin-config, flatbuffers, werkzeug, uritemplate, typing-extensions, toml, tf-keras, termcolor, tensorflow-io-gcs-filesystem, tensorflow-estimator, tensorboard-data-server, strip-hints, shellingham, shapely, regex, pyyaml, python-slugify, promise, portalocker, packaging, opt-einsum, numpy, markdown, lxml, kfp-pipeline-spec, keras, importlib_resources, immutabledict, googleapis-common-protos, google-pasta, gast, etils, einops, Cython, cloudpickle, astunparse, absl-py, tf-slim, tensorflow-metadata, tensorflow-hub, simple_parsing, sacrebleu, pydantic, opencv-python-headless, kfp-server-api, kaggle, h5py, grpcio-status, fire, typer, tensorflow-model-optimization, kubernetes, google-auth-oauthlib, google-api-core, tensorboard, seqeval, pycocotools, google-api-python-client, array_record, tensorflow, google-cloud-storage, google-cloud-resource-manager, google-cloud-notebooks, google-cloud-bigquery, tensorflow-text, tensorflow-datasets, kfp, google-cloud-aiplatform, tf-models-official, google_cloud_pipeline_components
+  WARNING: The script cpuinfo is installed in '/home/jupyter/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script strip-hints is installed in '/home/jupyter/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts estimator_ckpt_converter, import_pb_to_tensorboard, saved_model_cli, tensorboard, tf_upgrade_v2, tflite_convert, toco and toco_from_protos are installed in '/home/jupyter/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+ ....
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+bigframes 1.42.0 requires google-cloud-bigquery[bqstorage,pandas]>=3.18.0, but you have google-cloud-bigquery 3.4.2 which is incompatible.
+bigframes 1.42.0 requires google-cloud-resource-manager>=1.10.3, but you have google-cloud-resource-manager 1.8.1 which is incompatible.
+conda 25.3.0 requires packaging>=23.0, but you have packaging 21.3 which is incompatible.
+fastapi 0.115.12 requires typing-extensions>=4.8.0, but you have typing-extensions 4.5.0 which is incompatible.
+geopandas 1.0.1 requires shapely>=2.0.0, but you have shapely 1.8.5.post1 which is incompatible.
+google-cloud-bigtable 2.30.0 requires google-api-core[grpc]<3.0.0,>=2.16.0, but you have google-api-core 2.11.0 which is incompatible.
+jupyter-server 2.15.0 requires packaging>=22.0, but you have packaging 21.3 which is incompatible.
+pandas-gbq 0.28.0 requires packaging>=22.0.0, but you have packaging 21.3 which is incompatible.
+pyopenssl 25.0.0 requires typing-extensions>=4.9; python_version < "3.13" and python_version >= "3.8", but you have typing-extensions 4.5.0 which is incompatible.
+pydantic-core 2.33.0 requires typing-extensions!=4.7.0,>=4.6.0, but you have typing-extensions 4.5.0 which is incompatible.
+sqlalchemy 2.0.40 requires typing-extensions>=4.6.0, but you have typing-extensions 4.5.0 which is incompatible.
+typeguard 4.4.2 requires typing_extensions>=4.10.0, but you have typing-extensions 4.5.0 which is incompatible.
+typing-inspection 0.4.0 requires typing-extensions>=4.12.0, but you have typing-extensions 4.5.0 which is incompatible.
+ydata-profiling 4.16.1 requires pydantic>=2, but you have pydantic 1.10.22 which is incompatible.
+Successfully installed Cython-3.1.0 absl-py-1.4.0 array_record-0.7.2 astunparse-1.6.3 cloudpickle-2.2.1 einops-0.8.1 etils-1.12.2 fire-0.7.0 flatbuffers-25.2.10 gast-0.4.0 gin-config-0.5.0 google-api-core-2.11.0 google-api-python-client-1.12.11 google-auth-oauthlib-1.0.0 google-cloud-aiplatform-1.22.0 google-cloud-bigquery-3.4.2 google-cloud-notebooks-1.6.1 google-cloud-resource-manager-1.8.1 google-cloud-storage-2.7.0 google-pasta-0.2.0 google_cloud_pipeline_components-1.0.39 googleapis-common-protos-1.58.0 grpcio-status-1.47.0 h5py-3.13.0 immutabledict-4.2.1 importlib_resources-6.5.2 kaggle-1.7.4.5 keras-2.13.1 kfp-1.8.19 kfp-pipeline-spec-0.1.16 kfp-server-api-1.8.5 kubernetes-17.17.0 libclang-18.1.1 lxml-5.4.0 markdown-3.8 numpy-1.24.3 opencv-python-headless-4.11.0.86 opt-einsum-3.4.0 packaging-21.3 portalocker-3.1.1 promise-2.3 py-cpuinfo-9.0.0 pycocotools-2.0.8 pydantic-1.10.22 python-slugify-8.0.4 pyyaml-5.3.1 regex-2024.11.6 sacrebleu-2.5.1 sentencepiece-0.2.0 seqeval-1.2.2 shapely-1.8.5.post1 shellingham-1.5.4 simple_parsing-0.1.7 strip-hints-0.1.13 tensorboard-2.13.0 tensorboard-data-server-0.7.2 tensorflow-2.13.1 tensorflow-datasets-4.9.8 tensorflow-estimator-2.13.0 tensorflow-hub-0.16.1 tensorflow-io-gcs-filesystem-0.37.1 tensorflow-metadata-1.16.1 tensorflow-model-optimization-0.8.0 tensorflow-text-2.13.0 termcolor-3.1.0 text-unidecode-1.3 tf-keras-2.15.0 tf-models-official-2.13.1 tf-slim-1.1.0 toml-0.10.2 typer-0.15.3 typing-extensions-4.5.0 uritemplate-3.0.1 werkzeug-3.1.3
+(base) jupyter@vertex-ai-jupyterlab:~$ 
+
+
+------------output ends----------
+
+3. In the File Browser on the left, click on the notebook name file.
+
+4. When asked which kernel to use, select the Python 3 (ipykernel) kernel.
+
+5. Run through the Setup section of the notebook to install the required libraries and set up your environment.
+
+For Project ID, use Project ID, and for the Region, use Region.
+
+-------------------
+Task 3: Build and train your model locally in a Vertex notebook
+
+This lab adapts and extends the official TensorFlow BERT text classification tutorial to utilize Vertex AI services. 
+See the tutorial for additional coverage on fine-tuning BERT models using TensorFlow.
+
+https://www.tensorflow.org/text/tutorials/classify_text_with_bert#define_your_model
+
+Build and compile a TensorFlow BERT sentiment classifier
+
+1.Fill out the #TODO section to add a hub.KerasLayer for BERT text preprocessing.
+
+2.Fill out the #TODO section to add a hub.KerasLayer for BERT text encoding.
+
+3.Fill out the #TODO section to save your BERT sentiment classifier locally. 
+You should save it to the ./bert-sentiment-classifier-local directory.
+
+--------------------
+Task 4: Task 4. Use Cloud Build to build and submit your model container to Artifact Registry
+
+Create Artifact Registry for custom container images
+
+1. Fill out the #TODO section to create a Docker Artifact Registry using the gcloud CLI. 
+refer: https://cloud.google.com/sdk/gcloud/reference/artifacts/repositories/create
+
+Note: Make sure you specify the location, repository-format, and description flags.
+---------------output------------
+(base) jupyter@vertex-ai-jupyterlab:~$ gcloud services enable artifactregistry.googleapis.com
+
+(base) jupyter@vertex-ai-jupyterlab:~$ gcloud artifacts repositories create bert-sentiment-classifier     --repository-format=docker     --location=us-central1     --description="Docker repository for BERT sentiment classifier"
+Create request issued for: [my-docker]
+Waiting for operation [projects/qwiklabs-gcp-02-5bb5d7d7df19/locations/us-east1/operations/102bc4b5-f8f5-4667-8773-a0
+f568e1ed85] to complete...done.                                                                                      
+Created repository .
+
+----------------output ------------
+
+Build and submit your container image to Artifact Registry using Cloud Build
+
+1. Fill out the #TODO section to use Cloud Build to build and submit your custom model container to Artifact Registry.
+refer: https://cloud.google.com/sdk/gcloud/reference/builds/submit
+
+Note: Make sure the config flag is pointed at {MODEL_DIR}/cloudbuild.yaml, defined above, and you include your model directory.
+
+--------------output ends------------
+
+--create cloudbuild.yaml instructions
+--Build and submit your cntainer image to artifact registry using Cloud build
+
+(base) jupyter@vertex-ai-jupyterlab:~$ MODEL_DIR=bert-sentiment-classifier
+
+(base) jupyter@vertex-ai-jupyterlab:~$ gcloud builds submit --config=${MODEL_DIR}/cloudbuild.yaml --timeout=1200s ${MODEL_DIR}
+
+------------------output-------------
+(base) jupyter@vertex-ai-jupyterlab:~$ gcloud builds submit --config=${MODEL_DIR}/cloudbuild.yaml --timeout=1200s ${MODEL_DIR}
+Creating temporary archive of 6 file(s) totalling 8.3 KiB before compression.
+Uploading tarball of [bert-sentiment-classifier] to [gs://qwiklabs-gcp-02-5bb5d7d7df19_cloudbuild/source/1746746372.898992-864d56e8d9a84f5aa2cd6e64069b5c42.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/qwiklabs-gcp-02-5bb5d7d7df19/locations/global/builds/2e6ea430-6a70-4bb1-9ff3-2d41308f88cb].
+Logs are available at [ https://console.cloud.google.com/cloud-build/builds/2e6ea430-6a70-4bb1-9ff3-2d41308f88cb?project=910561169491 ].
+Waiting for build to complete. Polling interval: 1 second(s).
+------------------------------------------------ REMOTE BUILD OUTPUT -------------------------------------------------
+starting build "2e6ea430-6a70-4bb1-9ff3-2d41308f88cb"
+
+FETCHSOURCE
+Fetching storage object: gs://qwiklabs-gcp-02-5bb5d7d7df19_cloudbuild/source/1746746372.898992-864d56e8d9a84f5aa2cd6e64069b5c42.tgz#1746746373122303
+Copying gs://qwiklabs-gcp-02-5bb5d7d7df19_cloudbuild/source/1746746372.898992-864d56e8d9a84f5aa2cd6e64069b5c42.tgz#1746746373122303...
+/ [1 files][  3.4 KiB/  3.4 KiB]                                                
+Operation completed over 1 objects/3.4 KiB.
+tar: trainer/__init__.py: time stamp 2049-01-01 00:00:00 is 746325622.409854421 s in the future
+BUILD
+Already have image (with digest): gcr.io/cloud-builders/docker
+Sending build context to Docker daemon  14.85kB
+Step 1/8 : FROM us-docker.pkg.dev/vertex-ai/training/tf-cpu.2-11:latest
+latest: Pulling from vertex-ai/training/tf-cpu.2-11
+57c139bbda7e: Pulling fs layer
+b36d8262105c: Pulling fs layer
+6289371d2bb3: Pulling fs layer
+481786a11c6e: Pulling fs layer
+275a246fad1f: Pulling fs layer
+6391690ddce2: Pulling fs layer
+bbce0e9b489f: Pulling fs layer
+a7ec0c7527b6: Pulling fs layer
+7aff549e4c97: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+e4bff5ce614c: Pulling fs layer
+2999545bd192: Pulling fs layer
+bd33b5a5ec4a: Pulling fs layer
+8fea5fa58717: Pulling fs layer
+a73bd9480671: Pulling fs layer
+139c41303dbe: Pulling fs layer
+d7df78d5fe61: Pulling fs layer
+7daa1f38b6ab: Pulling fs layer
+bce9940ec07e: Pulling fs layer
+01f79f64a163: Pulling fs layer
+5113ced62272: Pulling fs layer
+aa0eae780ea1: Pulling fs layer
+caeb9ac3c484: Pulling fs layer
+481786a11c6e: Waiting
+275a246fad1f: Waiting
+6391690ddce2: Waiting
+bbce0e9b489f: Waiting
+a7ec0c7527b6: Waiting
+7aff549e4c97: Waiting
+4f4fb700ef54: Waiting
+e4bff5ce614c: Waiting
+2999545bd192: Waiting
+bd33b5a5ec4a: Waiting
+8fea5fa58717: Waiting
+a73bd9480671: Waiting
+139c41303dbe: Waiting
+d7df78d5fe61: Waiting
+7daa1f38b6ab: Waiting
+bce9940ec07e: Waiting
+01f79f64a163: Waiting
+5113ced62272: Waiting
+aa0eae780ea1: Waiting
+caeb9ac3c484: Waiting
+6289371d2bb3: Verifying Checksum
+6289371d2bb3: Download complete
+b36d8262105c: Verifying Checksum
+b36d8262105c: Download complete
+275a246fad1f: Verifying Checksum
+275a246fad1f: Download complete
+57c139bbda7e: Verifying Checksum
+57c139bbda7e: Download complete
+bbce0e9b489f: Verifying Checksum
+bbce0e9b489f: Download complete
+481786a11c6e: Verifying Checksum
+481786a11c6e: Download complete
+a7ec0c7527b6: Verifying Checksum
+a7ec0c7527b6: Download complete
+6391690ddce2: Verifying Checksum
+6391690ddce2: Download complete
+4f4fb700ef54: Verifying Checksum
+4f4fb700ef54: Download complete
+e4bff5ce614c: Verifying Checksum
+e4bff5ce614c: Download complete
+2999545bd192: Verifying Checksum
+2999545bd192: Download complete
+bd33b5a5ec4a: Verifying Checksum
+bd33b5a5ec4a: Download complete
+a73bd9480671: Verifying Checksum
+a73bd9480671: Download complete
+8fea5fa58717: Verifying Checksum
+8fea5fa58717: Download complete
+d7df78d5fe61: Verifying Checksum
+d7df78d5fe61: Download complete
+7daa1f38b6ab: Verifying Checksum
+7daa1f38b6ab: Download complete
+bce9940ec07e: Download complete
+01f79f64a163: Verifying Checksum
+01f79f64a163: Download complete
+5113ced62272: Verifying Checksum
+5113ced62272: Download complete
+aa0eae780ea1: Download complete
+caeb9ac3c484: Verifying Checksum
+caeb9ac3c484: Download complete
+57c139bbda7e: Pull complete
+b36d8262105c: Pull complete
+6289371d2bb3: Pull complete
+139c41303dbe: Verifying Checksum
+139c41303dbe: Download complete
+7aff549e4c97: Verifying Checksum
+7aff549e4c97: Download complete
+481786a11c6e: Pull complete
+275a246fad1f: Pull complete
+6391690ddce2: Pull complete
+bbce0e9b489f: Pull complete
+a7ec0c7527b6: Pull complete
+7aff549e4c97: Pull complete
+4f4fb700ef54: Pull complete
+e4bff5ce614c: Pull complete
+2999545bd192: Pull complete
+bd33b5a5ec4a: Pull complete
+8fea5fa58717: Pull complete
+a73bd9480671: Pull complete
+139c41303dbe: Pull complete
+d7df78d5fe61: Pull complete
+7daa1f38b6ab: Pull complete
+bce9940ec07e: Pull complete
+01f79f64a163: Pull complete
+5113ced62272: Pull complete
+aa0eae780ea1: Pull complete
+caeb9ac3c484: Pull complete
+Digest: sha256:07e7ea696bf78f9e51c481f74c4cee100c00870cad74b04de849aea7e66f8c51
+Status: Downloaded newer image for us-docker.pkg.dev/vertex-ai/training/tf-cpu.2-11:latest
+ ---> 2c270b121e81
+Step 2/8 : WORKDIR /root
+ ---> Running in fe30086a853b
+Removing intermediate container fe30086a853b
+ ---> 6bbb6eacb0b9
+Step 3/8 : COPY requirements.txt .
+ ---> 56aa32e6f090
+Step 4/8 : RUN pip3 install -U -r requirements.txt
+ ---> Running in 93aaf467f8b3
+Collecting tf-models-official==2.15.0 (from -r requirements.txt (line 1))
+  Downloading tf_models_official-2.15.0-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting tensorflow-text==2.15.0 (from -r requirements.txt (line 2))
+  Downloading tensorflow_text-2.15.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.9 kB)
+Collecting tensorflow-hub==0.16.1 (from -r requirements.txt (line 3))
+  Downloading tensorflow_hub-0.16.1-py2.py3-none-any.whl.metadata (1.3 kB)
+Requirement already satisfied: Cython in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.0.8)
+Requirement already satisfied: Pillow in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (10.2.0)
+Collecting gin-config (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading gin_config-0.5.0-py3-none-any.whl.metadata (2.9 kB)
+Requirement already satisfied: google-api-python-client>=1.6.7 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.118.0)
+Collecting immutabledict (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading immutabledict-4.2.1-py3-none-any.whl.metadata (3.5 kB)
+Collecting kaggle>=1.3.9 (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading kaggle-1.7.4.5-py3-none-any.whl.metadata (16 kB)
+Requirement already satisfied: matplotlib in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.8.3)
+Requirement already satisfied: numpy>=1.20 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.26.4)
+Requirement already satisfied: oauth2client in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.1.3)
+Collecting opencv-python-headless (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading opencv_python_headless-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (20 kB)
+Requirement already satisfied: pandas>=0.22.0 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.2.0)
+Requirement already satisfied: psutil>=5.4.3 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (5.9.8)
+Collecting py-cpuinfo>=3.3.0 (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading py_cpuinfo-9.0.0-py3-none-any.whl.metadata (794 bytes)
+Collecting pycocotools (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading pycocotools-2.0.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.1 kB)
+Requirement already satisfied: pyyaml>=6.0.0 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (6.0.1)
+Collecting sacrebleu (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading sacrebleu-2.5.1-py3-none-any.whl.metadata (51 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 51.8/51.8 kB 5.4 MB/s eta 0:00:00
+Requirement already satisfied: scipy>=0.19.1 in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.12.0)
+Collecting sentencepiece (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading sentencepiece-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)
+Collecting seqeval (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading seqeval-1.2.2.tar.gz (43 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.6/43.6 kB 5.3 MB/s eta 0:00:00
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: six in /opt/conda/lib/python3.10/site-packages (from tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.16.0)
+Collecting tensorflow-datasets (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorflow_datasets-4.9.8-py3-none-any.whl.metadata (11 kB)
+Collecting tensorflow-model-optimization>=0.4.1 (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorflow_model_optimization-0.8.0-py2.py3-none-any.whl.metadata (904 bytes)
+Collecting tensorflow~=2.15.0 (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorflow-2.15.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)
+Collecting tf-slim>=1.1.0 (from tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tf_slim-1.1.0-py2.py3-none-any.whl.metadata (1.6 kB)
+Requirement already satisfied: protobuf>=3.19.6 in /opt/conda/lib/python3.10/site-packages (from tensorflow-hub==0.16.1->-r requirements.txt (line 3)) (3.20.1)
+Collecting tf-keras>=2.14.1 (from tensorflow-hub==0.16.1->-r requirements.txt (line 3))
+  Downloading tf_keras-2.19.0-py3-none-any.whl.metadata (1.8 kB)
+Requirement already satisfied: httplib2<1.dev0,>=0.15.0 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.22.0)
+Requirement already satisfied: google-auth<3.0.0.dev0,>=1.19.0 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.27.0)
+Requirement already satisfied: google-auth-httplib2>=0.1.0 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.2.0)
+Requirement already satisfied: google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.10.1)
+Requirement already satisfied: uritemplate<5,>=3.0.1 in /opt/conda/lib/python3.10/site-packages (from google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.1.1)
+Collecting bleach (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading bleach-6.2.0-py3-none-any.whl.metadata (30 kB)
+Requirement already satisfied: certifi>=14.05.14 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2024.2.2)
+Requirement already satisfied: charset-normalizer in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.3.2)
+Requirement already satisfied: idna in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.6)
+Requirement already satisfied: python-dateutil>=2.5.3 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.8.2)
+Collecting python-slugify (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading python_slugify-8.0.4-py2.py3-none-any.whl.metadata (8.5 kB)
+Requirement already satisfied: requests in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.31.0)
+Requirement already satisfied: setuptools>=21.0.0 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (69.0.3)
+Collecting text-unidecode (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading text_unidecode-1.3-py2.py3-none-any.whl.metadata (2.4 kB)
+Requirement already satisfied: tqdm in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.66.2)
+Requirement already satisfied: urllib3>=1.15.1 in /opt/conda/lib/python3.10/site-packages (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.2.0)
+Collecting webencodings (from kaggle>=1.3.9->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)
+Requirement already satisfied: pytz>=2020.1 in /opt/conda/lib/python3.10/site-packages (from pandas>=0.22.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2024.1)
+Requirement already satisfied: tzdata>=2022.7 in /opt/conda/lib/python3.10/site-packages (from pandas>=0.22.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2024.1)
+Requirement already satisfied: absl-py>=1.0.0 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.1.0)
+Requirement already satisfied: astunparse>=1.6.0 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.6.3)
+Requirement already satisfied: flatbuffers>=23.5.26 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (23.5.26)
+Requirement already satisfied: gast!=0.5.0,!=0.5.1,!=0.5.2,>=0.2.1 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.4.0)
+Requirement already satisfied: google-pasta>=0.1.1 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.2.0)
+Requirement already satisfied: h5py>=2.9.0 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.10.0)
+Requirement already satisfied: libclang>=13.0.0 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (16.0.6)
+Collecting ml-dtypes~=0.3.1 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading ml_dtypes-0.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (20 kB)
+Requirement already satisfied: opt-einsum>=2.3.2 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.3.0)
+Requirement already satisfied: packaging in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (23.2)
+Collecting protobuf>=3.19.6 (from tensorflow-hub==0.16.1->-r requirements.txt (line 3))
+  Downloading protobuf-4.25.7-cp37-abi3-manylinux2014_x86_64.whl.metadata (541 bytes)
+Requirement already satisfied: termcolor>=1.1.0 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.4.0)
+Requirement already satisfied: typing-extensions>=3.6.6 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.9.0)
+Collecting wrapt<1.15,>=1.11.0 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading wrapt-1.14.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.7 kB)
+Requirement already satisfied: tensorflow-io-gcs-filesystem>=0.23.1 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.29.0)
+Requirement already satisfied: grpcio<2.0,>=1.24.3 in /opt/conda/lib/python3.10/site-packages (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.60.1)
+Collecting tensorboard<2.16,>=2.15 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorboard-2.15.2-py3-none-any.whl.metadata (1.7 kB)
+Collecting tensorflow-estimator<2.16,>=2.15.0 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorflow_estimator-2.15.0-py2.py3-none-any.whl.metadata (1.3 kB)
+Collecting keras<2.16,>=2.15.0 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading keras-2.15.0-py3-none-any.whl.metadata (2.4 kB)
+Collecting absl-py>=1.0.0 (from tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading absl_py-1.4.0-py3-none-any.whl.metadata (2.3 kB)
+Requirement already satisfied: dm-tree~=0.1.1 in /opt/conda/lib/python3.10/site-packages (from tensorflow-model-optimization>=0.4.1->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.1.8)
+INFO: pip is looking at multiple versions of tf-keras to determine which version is compatible with other requirements. This could take a while.
+Collecting tf-keras>=2.14.1 (from tensorflow-hub==0.16.1->-r requirements.txt (line 3))
+  Downloading tf_keras-2.18.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.17.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.16.0-py3-none-any.whl.metadata (1.6 kB)
+  Downloading tf_keras-2.15.1-py3-none-any.whl.metadata (1.7 kB)
+Requirement already satisfied: contourpy>=1.0.1 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.2.0)
+Requirement already satisfied: cycler>=0.10 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.12.1)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.48.1)
+Requirement already satisfied: kiwisolver>=1.3.1 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.4.5)
+Requirement already satisfied: pyparsing>=2.3.1 in /opt/conda/lib/python3.10/site-packages (from matplotlib->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.1.1)
+Requirement already satisfied: pyasn1>=0.1.7 in /opt/conda/lib/python3.10/site-packages (from oauth2client->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.5.1)
+Requirement already satisfied: pyasn1-modules>=0.0.5 in /opt/conda/lib/python3.10/site-packages (from oauth2client->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.3.0)
+Requirement already satisfied: rsa>=3.1.4 in /opt/conda/lib/python3.10/site-packages (from oauth2client->tf-models-official==2.15.0->-r requirements.txt (line 1)) (4.9)
+Collecting portalocker (from sacrebleu->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading portalocker-3.1.1-py3-none-any.whl.metadata (8.6 kB)
+Collecting regex (from sacrebleu->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading regex-2024.11.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (40 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.5/40.5 kB 4.5 MB/s eta 0:00:00
+Requirement already satisfied: tabulate>=0.8.9 in /opt/conda/lib/python3.10/site-packages (from sacrebleu->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.9.0)
+Requirement already satisfied: colorama in /opt/conda/lib/python3.10/site-packages (from sacrebleu->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.4.6)
+Collecting lxml (from sacrebleu->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading lxml-5.4.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (3.5 kB)
+Requirement already satisfied: scikit-learn>=0.21.3 in /opt/conda/lib/python3.10/site-packages (from seqeval->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.0.2)
+Collecting array_record>=0.5.0 (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading array_record-0.7.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (899 bytes)
+Collecting etils>=1.6.0 (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading etils-1.12.2-py3-none-any.whl.metadata (6.5 kB)
+Collecting promise (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading promise-2.3.tar.gz (19 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: pyarrow in /opt/conda/lib/python3.10/site-packages (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1)) (15.0.0)
+Collecting simple_parsing (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading simple_parsing-0.1.7-py3-none-any.whl.metadata (7.3 kB)
+Collecting tensorflow-metadata (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorflow_metadata-1.17.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting toml (from tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading toml-0.10.2-py2.py3-none-any.whl.metadata (7.1 kB)
+Requirement already satisfied: wheel<1.0,>=0.23.0 in /opt/conda/lib/python3.10/site-packages (from astunparse>=1.6.0->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (0.42.0)
+Collecting einops (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading einops-0.8.1-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: fsspec in /opt/conda/lib/python3.10/site-packages (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2024.2.0)
+Collecting importlib_resources (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading importlib_resources-6.5.2-py3-none-any.whl.metadata (3.9 kB)
+Requirement already satisfied: zipp in /opt/conda/lib/python3.10/site-packages (from etils[edc,enp,epath,epy,etree]>=1.6.0; python_version < "3.11"->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.17.0)
+Requirement already satisfied: googleapis-common-protos<2.0dev,>=1.56.2 in /opt/conda/lib/python3.10/site-packages (from google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5->google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.56.4)
+Requirement already satisfied: cachetools<6.0,>=2.0.0 in /opt/conda/lib/python3.10/site-packages (from google-auth<3.0.0.dev0,>=1.19.0->google-api-python-client>=1.6.7->tf-models-official==2.15.0->-r requirements.txt (line 1)) (5.3.2)
+Requirement already satisfied: joblib>=0.11 in /opt/conda/lib/python3.10/site-packages (from scikit-learn>=0.21.3->seqeval->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.3.2)
+Requirement already satisfied: threadpoolctl>=2.0.0 in /opt/conda/lib/python3.10/site-packages (from scikit-learn>=0.21.3->seqeval->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.3.0)
+Collecting google-auth-oauthlib<2,>=0.5 (from tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading google_auth_oauthlib-1.2.2-py3-none-any.whl.metadata (2.7 kB)
+Requirement already satisfied: markdown>=2.6.8 in /opt/conda/lib/python3.10/site-packages (from tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.5.2)
+Collecting tensorboard-data-server<0.8.0,>=0.7.0 (from tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl.metadata (1.1 kB)
+Requirement already satisfied: werkzeug>=1.0.1 in /opt/conda/lib/python3.10/site-packages (from tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.0.1)
+Collecting docstring-parser<1.0,>=0.15 (from simple_parsing->tensorflow-datasets->tf-models-official==2.15.0->-r requirements.txt (line 1))
+  Downloading docstring_parser-0.16-py3-none-any.whl.metadata (3.0 kB)
+Collecting protobuf>=3.19.6 (from tensorflow-hub==0.16.1->-r requirements.txt (line 3))
+  Downloading protobuf-4.21.12-cp37-abi3-manylinux2014_x86_64.whl.metadata (541 bytes)
+Requirement already satisfied: requests-oauthlib>=0.7.0 in /opt/conda/lib/python3.10/site-packages (from google-auth-oauthlib<2,>=0.5->tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (1.3.1)
+Requirement already satisfied: MarkupSafe>=2.1.1 in /opt/conda/lib/python3.10/site-packages (from werkzeug>=1.0.1->tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (2.1.5)
+Requirement already satisfied: oauthlib>=3.0.0 in /opt/conda/lib/python3.10/site-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<2,>=0.5->tensorboard<2.16,>=2.15->tensorflow~=2.15.0->tf-models-official==2.15.0->-r requirements.txt (line 1)) (3.2.2)
+Downloading tf_models_official-2.15.0-py2.py3-none-any.whl (2.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.7/2.7 MB 42.1 MB/s eta 0:00:00
+Downloading tensorflow_text-2.15.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 93.2 MB/s eta 0:00:00
+Downloading tensorflow_hub-0.16.1-py2.py3-none-any.whl (30 kB)
+Downloading kaggle-1.7.4.5-py3-none-any.whl (181 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 181.2/181.2 kB 21.0 MB/s eta 0:00:00
+Downloading py_cpuinfo-9.0.0-py3-none-any.whl (22 kB)
+Downloading tensorflow-2.15.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (475.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 475.2/475.2 MB 2.8 MB/s eta 0:00:00
+Downloading tensorflow_model_optimization-0.8.0-py2.py3-none-any.whl (242 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 242.5/242.5 kB 20.8 MB/s eta 0:00:00
+Downloading tf_keras-2.15.1-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 72.5 MB/s eta 0:00:00
+Downloading tf_slim-1.1.0-py2.py3-none-any.whl (352 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 352.1/352.1 kB 35.3 MB/s eta 0:00:00
+Downloading gin_config-0.5.0-py3-none-any.whl (61 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.3/61.3 kB 7.5 MB/s eta 0:00:00
+Downloading immutabledict-4.2.1-py3-none-any.whl (4.7 kB)
+Downloading opencv_python_headless-4.11.0.86-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (50.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.0/50.0 MB 40.2 MB/s eta 0:00:00
+Downloading pycocotools-2.0.8-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (427 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 427.8/427.8 kB 29.1 MB/s eta 0:00:00
+Downloading sacrebleu-2.5.1-py3-none-any.whl (104 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 104.1/104.1 kB 12.1 MB/s eta 0:00:00
+Downloading sentencepiece-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 68.1 MB/s eta 0:00:00
+Downloading tensorflow_datasets-4.9.8-py3-none-any.whl (5.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.3/5.3 MB 65.4 MB/s eta 0:00:00
+Downloading absl_py-1.4.0-py3-none-any.whl (126 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 126.5/126.5 kB 14.7 MB/s eta 0:00:00
+Downloading array_record-0.7.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 83.3 MB/s eta 0:00:00
+Downloading etils-1.12.2-py3-none-any.whl (167 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 167.6/167.6 kB 20.2 MB/s eta 0:00:00
+Downloading keras-2.15.0-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 74.8 MB/s eta 0:00:00
+Downloading ml_dtypes-0.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 85.4 MB/s eta 0:00:00
+Downloading tensorboard-2.15.2-py3-none-any.whl (5.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.5/5.5 MB 98.9 MB/s eta 0:00:00
+Downloading tensorflow_estimator-2.15.0-py2.py3-none-any.whl (441 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 442.0/442.0 kB 30.2 MB/s eta 0:00:00
+Downloading wrapt-1.14.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (77 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 77.9/77.9 kB 10.0 MB/s eta 0:00:00
+Downloading bleach-6.2.0-py3-none-any.whl (163 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 163.4/163.4 kB 19.0 MB/s eta 0:00:00
+Downloading lxml-5.4.0-cp310-cp310-manylinux_2_28_x86_64.whl (5.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.1/5.1 MB 99.8 MB/s eta 0:00:00
+Downloading portalocker-3.1.1-py3-none-any.whl (19 kB)
+Downloading python_slugify-8.0.4-py2.py3-none-any.whl (10 kB)
+Downloading text_unidecode-1.3-py2.py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.2/78.2 kB 9.1 MB/s eta 0:00:00
+Downloading regex-2024.11.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (781 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 781.7/781.7 kB 52.2 MB/s eta 0:00:00
+Downloading simple_parsing-0.1.7-py3-none-any.whl (112 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 112.8/112.8 kB 13.6 MB/s eta 0:00:00
+Downloading tensorflow_metadata-1.17.1-py3-none-any.whl (31 kB)
+Downloading protobuf-4.21.12-cp37-abi3-manylinux2014_x86_64.whl (409 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 409.8/409.8 kB 37.9 MB/s eta 0:00:00
+Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
+Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)
+Downloading docstring_parser-0.16-py3-none-any.whl (36 kB)
+Downloading google_auth_oauthlib-1.2.2-py3-none-any.whl (19 kB)
+Downloading tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 87.6 MB/s eta 0:00:00
+Downloading einops-0.8.1-py3-none-any.whl (64 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.4/64.4 kB 8.3 MB/s eta 0:00:00
+Downloading importlib_resources-6.5.2-py3-none-any.whl (37 kB)
+Building wheels for collected packages: seqeval, promise
+  Building wheel for seqeval (setup.py): started
+  Building wheel for seqeval (setup.py): finished with status 'done'
+  Created wheel for seqeval: filename=seqeval-1.2.2-py3-none-any.whl size=16162 sha256=b1f7a352bda36ef1f4cb96e9b65007e794e1ad0805485912d1c31e15eacbb20f
+  Stored in directory: /root/.cache/pip/wheels/1a/67/4a/ad4082dd7dfc30f2abfe4d80a2ed5926a506eb8a972b4767fa
+  Building wheel for promise (setup.py): started
+  Building wheel for promise (setup.py): finished with status 'done'
+  Created wheel for promise: filename=promise-2.3-py3-none-any.whl size=21483 sha256=8157a12a8b84a4c7851abd2ec9e65e16cc6bf4581e873245367ad050d7e6c821
+  Stored in directory: /root/.cache/pip/wheels/54/4e/28/3ed0e1c8a752867445bab994d2340724928aa3ab059c57c8db
+Successfully built seqeval promise
+Installing collected packages: webencodings, text-unidecode, sentencepiece, py-cpuinfo, gin-config, wrapt, toml, tensorflow-estimator, tensorboard-data-server, regex, python-slugify, protobuf, promise, portalocker, opencv-python-headless, ml-dtypes, lxml, keras, importlib_resources, immutabledict, etils, einops, docstring-parser, bleach, absl-py, tf-slim, tensorflow-model-optimization, tensorflow-metadata, simple_parsing, sacrebleu, kaggle, seqeval, pycocotools, google-auth-oauthlib, tensorboard, array_record, tensorflow, tf-keras, tensorflow-datasets, tensorflow-hub, tensorflow-text, tf-models-official
+  Attempting uninstall: wrapt
+    Found existing installation: wrapt 1.16.0
+    Uninstalling wrapt-1.16.0:
+      Successfully uninstalled wrapt-1.16.0
+  Attempting uninstall: tensorflow-estimator
+    Found existing installation: tensorflow-estimator 2.11.0
+    Uninstalling tensorflow-estimator-2.11.0:
+      Successfully uninstalled tensorflow-estimator-2.11.0
+  Attempting uninstall: tensorboard-data-server
+    Found existing installation: tensorboard-data-server 0.6.1
+    Uninstalling tensorboard-data-server-0.6.1:
+      Successfully uninstalled tensorboard-data-server-0.6.1
+  Attempting uninstall: protobuf
+    Found existing installation: protobuf 3.20.1
+    Uninstalling protobuf-3.20.1:
+      Successfully uninstalled protobuf-3.20.1
+  Attempting uninstall: keras
+    Found existing installation: keras 2.11.0
+    Uninstalling keras-2.11.0:
+      Successfully uninstalled keras-2.11.0
+  Attempting uninstall: absl-py
+    Found existing installation: absl-py 2.1.0
+    Uninstalling absl-py-2.1.0:
+      Successfully uninstalled absl-py-2.1.0
+  Attempting uninstall: google-auth-oauthlib
+    Found existing installation: google-auth-oauthlib 0.4.6
+    Uninstalling google-auth-oauthlib-0.4.6:
+      Successfully uninstalled google-auth-oauthlib-0.4.6
+  Attempting uninstall: tensorboard
+    Found existing installation: tensorboard 2.11.2
+    Uninstalling tensorboard-2.11.2:
+      Successfully uninstalled tensorboard-2.11.2
+  Attempting uninstall: tensorflow
+    Found existing installation: tensorflow 2.11.0
+    Uninstalling tensorflow-2.11.0:
+      Successfully uninstalled tensorflow-2.11.0
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+google-cloud-datastore 1.15.5 requires protobuf<4.0.0dev, but you have protobuf 4.21.12 which is incompatible.
+tensorflow-serving-api 2.11.0 requires protobuf<3.20,>=3.9.2, but you have protobuf 4.21.12 which is incompatible.
+Successfully installed absl-py-1.4.0 array_record-0.7.2 bleach-6.2.0 docstring-parser-0.16 einops-0.8.1 etils-1.12.2 gin-config-0.5.0 google-auth-oauthlib-1.2.2 immutabledict-4.2.1 importlib_resources-6.5.2 kaggle-1.7.4.5 keras-2.15.0 lxml-5.4.0 ml-dtypes-0.3.2 opencv-python-headless-4.11.0.86 portalocker-3.1.1 promise-2.3 protobuf-4.21.12 py-cpuinfo-9.0.0 pycocotools-2.0.8 python-slugify-8.0.4 regex-2024.11.6 sacrebleu-2.5.1 sentencepiece-0.2.0 seqeval-1.2.2 simple_parsing-0.1.7 tensorboard-2.15.2 tensorboard-data-server-0.7.2 tensorflow-2.15.1 tensorflow-datasets-4.9.8 tensorflow-estimator-2.15.0 tensorflow-hub-0.16.1 tensorflow-metadata-1.17.1 tensorflow-model-optimization-0.8.0 tensorflow-text-2.15.0 text-unidecode-1.3 tf-keras-2.15.1 tf-models-official-2.15.0 tf-slim-1.1.0 toml-0.10.2 webencodings-0.5.1 wrapt-1.14.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+Removing intermediate container 93aaf467f8b3
+ ---> 75d443ea2025
+Step 5/8 : RUN rm -rf /var/sitecustomize/sitecustomize.py
+ ---> Running in 20eec026322f
+Removing intermediate container 20eec026322f
+ ---> 4dee291e63f8
+Step 6/8 : COPY . /trainer
+ ---> a802b7581e98
+Step 7/8 : WORKDIR /trainer
+ ---> Running in 46cb1e06f38f
+Removing intermediate container 46cb1e06f38f
+ ---> 207c2d7d753e
+Step 8/8 : ENTRYPOINT ["python", "-m", "trainer.task"]
+ ---> Running in 66d4f420c0ac
+Removing intermediate container 66d4f420c0ac
+ ---> 0cb000650803
+Successfully built 0cb000650803
+Successfully tagged us-east1-docker.pkg.dev/qwiklabs-gcp-02-5bb5d7d7df19/bert-sentiment-classifier/bert-sentiment-classifier:latest
+PUSH
+Pushing us-east1-docker.pkg.dev/qwiklabs-gcp-02-5bb5d7d7df19/bert-sentiment-classifier/bert-sentiment-classifier:latest
+The push refers to repository [us-east1-docker.pkg.dev/qwiklabs-gcp-02-5bb5d7d7df19/bert-sentiment-classifier/bert-sentiment-classifier]
+cc1f18c9eb6a: Preparing
+472688e57e2b: Preparing
+bea902ff9664: Preparing
+0d19b2274885: Preparing
+e42695c7b436: Preparing
+e42695c7b436: Preparing
+7e34967c8575: Preparing
+03aa2a4bdb68: Preparing
+69ff3552dab2: Preparing
+bde9e2053036: Preparing
+bde9e2053036: Preparing
+b253aec57174: Preparing
+e9a5c35692b6: Preparing
+5ca5a09f80b2: Preparing
+f27306b95858: Preparing
+e96984247094: Preparing
+bf89224ff876: Preparing
+ca7739d6661c: Preparing
+ca7739d6661c: Preparing
+6afff9338181: Preparing
+5f70bf18a086: Preparing
+380cd88b9fb2: Preparing
+25c9ddea4aaa: Preparing
+eec152ec24b8: Preparing
+dd7d6ac03700: Preparing
+be9dc4e2456b: Preparing
+ceab7f116eb5: Preparing
+7e34967c8575: Waiting
+03aa2a4bdb68: Waiting
+69ff3552dab2: Waiting
+bde9e2053036: Waiting
+b253aec57174: Waiting
+e9a5c35692b6: Waiting
+5ca5a09f80b2: Waiting
+f27306b95858: Waiting
+e96984247094: Waiting
+bf89224ff876: Waiting
+ca7739d6661c: Waiting
+6afff9338181: Waiting
+5f70bf18a086: Waiting
+380cd88b9fb2: Waiting
+25c9ddea4aaa: Waiting
+eec152ec24b8: Waiting
+dd7d6ac03700: Waiting
+be9dc4e2456b: Waiting
+bd5ff18df433: Preparing
+a27f4aa3db94: Preparing
+1a102d1cac2b: Preparing
+ceab7f116eb5: Waiting
+bd5ff18df433: Waiting
+a27f4aa3db94: Waiting
+1a102d1cac2b: Waiting
+472688e57e2b: Pushed
+0d19b2274885: Pushed
+cc1f18c9eb6a: Pushed
+e42695c7b436: Pushed
+69ff3552dab2: Pushed
+7e34967c8575: Pushed
+03aa2a4bdb68: Pushed
+bde9e2053036: Pushed
+e9a5c35692b6: Pushed
+b253aec57174: Pushed
+f27306b95858: Pushed
+bf89224ff876: Pushed
+ca7739d6661c: Pushed
+5f70bf18a086: Layer already exists
+6afff9338181: Pushed
+e96984247094: Pushed
+eec152ec24b8: Pushed
+25c9ddea4aaa: Pushed
+be9dc4e2456b: Pushed
+ceab7f116eb5: Pushed
+bd5ff18df433: Pushed
+a27f4aa3db94: Pushed
+.....
+1a102d1cac2b: Pushed
+5ca5a09f80b2: Pushed
+bea902ff9664: Pushed
+dd7d6ac03700: Pushed
+380cd88b9fb2: Pushed
+latest: digest: sha256:9ead0dd264f2c7dda6acb010e7ef0a920240eb4de46317ccb59edc1deaaba191 size: 6588
+DONE
+----------------------------------------------------------------------------------------------------------------------
+
+INFO: The service account running this build projects/qwiklabs-gcp-02-5bb5d7d7df19/serviceAccounts/910561169491-compute@developer.gserviceaccount.com does not have permission to write logs to Cloud Logging. To fix this, grant the Logs Writer (roles/logging.logWriter) role to the service account.
+
+1 message(s) issued.
+ID                                    CREATE_TIME                DURATION  SOURCE                                                                                                      IMAGES                                                                                                              STATUS
+2e6ea430-6a70-4bb1-9ff3-2d41308f88cb  2025-05-08T23:19:33+00:00  9M36S     gs://qwiklabs-gcp-02-5bb5d7d7df19_cloudbuild/source/1746746372.898992-864d56e8d9a84f5aa2cd6e64069b5c42.tgz  us-east1-docker.pkg.dev/qwiklabs-gcp-02-5bb5d7d7df19/bert-sentiment-classifier/bert-sentiment-classifier (+1 more)  SUCCESS
+
+---------------output ends---------
+-----------------------
+Task 5: Define a pipeline using the KFP SDK
+
+1. Fill out the #TODO section to add and configure CustomContainerTrainingJobOp components for your pipeline.
+Note: The arguments will be the same as the CustomContainerTrainingJob earlier.
+Note: This training can take around 30-40 minutes to train and deploy the model.
+
+------------------------
+Task 6: Query the deployed model using your Vertex endpoint
+
+1. Fill out the #TODO section to generate online predictions using your Vertex Endpoint.
+
+<Task completed>
+
+
+
