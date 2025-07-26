@@ -41,6 +41,7 @@ from transformers import pipeline
 
 #If only needed:(based on errors)
 !pip install "numpy<2" --force-reinstall
+!pip install transformers -U
 
 # Load a Hugging Face model (e.g., a small conversational model like "tiiuae/falcon-7b-instruct")
 # You can replace this model with any you want (something like 'mistral', 'phi', 'llama', etc.)
@@ -73,65 +74,21 @@ In the latest langchain versions, load_tools was moved around.
 It's now usually imported from langchain.tools — not from langchain_community.agent_toolkits.
 
 #try with
-from langchain.tools import load_tools
-
-#if still shows error
-In new LangChain versions (2024+),
-load_tools is no longer in langchain.tools nor in langchain_community.agent_toolkits.
-Instead, it's moved into langchain_community.tools.
-
-#try with
 from langchain_community.tools import load_tools
+instead of > from langchain_community.agent_toolkits import load_tools
 
 #if it still shows error
-Even langchain_community.tools does not have it.
-The whole idea of load_tools is basically deprecated now.
+try 
+from langchain.agents import load_tools
+try again
+tools = load_tools(["llm-math", "wikipedia"], llm=llm_model)
 
-#manually import tools
-from langchain_community.tools import WikipediaQueryRun
-from langchain_community.utilities import WikipediaAPIWrapper
-from langchain.agents.tools import Tool
-from langchain.tools.llm_math.tool import LLMMathTool  # Special case for llm-math
+If it complains on wikipedia model
+we can > !pip install wikipedia
 
-#create tool instances yourself
-# Setup the Wikipedia Tool
-wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+then rerun > tools = load_tools(["llm-math", "wikipedia"], llm=llm_model)
 
-# Setup the Math Tool
-math_tool = LLMMathTool(llm=llm_model)
-
-# Bundle into a list
-tools = [
-    Tool.from_function(
-        func=wiki.run,
-        name="Wikipedia",
-        description="useful for searching Wikipedia"
-    ),
-    Tool.from_function(
-        func=math_tool.run,
-        name="Calculator",
-        description="useful for when you need to answer math questions"
-    ),
-]
-
-# Setup the individual tools (instead of tools step above)
-wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
-math_tool = LLMMathTool(llm=llm_model)
-
-tools = [
-    Tool.from_function(
-        func=wiki.run,
-        name="Wikipedia",
-        description="useful for searching Wikipedia"
-    ),
-    Tool.from_function(
-        func=math_tool.run,
-        name="Calculator",
-        description="useful for when you need to answer math questions"
-    ),
-]
-
-
+Working with Agents & tools
 # Initialize agent
 agent = initialize_agent(
     tools,
@@ -141,10 +98,7 @@ agent = initialize_agent(
     verbose=True
 )
 
-# Run the agent
-agent("What is the square root of 16?")
-
-# Another query
+# Query
 question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
 result = agent(question)
 print(result)
@@ -163,6 +117,97 @@ hf_pipeline = pipeline(
     temperature=0.0,
 )
 
+& then test..
+
+OR <optional>
+
+#manually import tools
+from langchain_community.tools import WikipediaQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper
+
+#create tool instances yourself
+# Setup the Wikipedia Tool
+wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+
+#from langchain.agents.tools import Tool
+#from langchain.tools.llm_math.tool import LLMMathTool  # Special case for llm-math
+
+# Setup the Math Tool
+math_tool = LLMMathTool(llm=llm_model)
+
+# Setup the individual tools (instead of tools step above)
+wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+math_tool = LLMMathTool(llm=llm_model)
+
+tools = [
+    Tool.from_function(
+        func=wiki.run,
+        name="Wikipedia",
+        description="useful for searching Wikipedia"
+    ),
+    Tool.from_function(
+        func=math_tool.run,
+        name="Calculator",
+        description="useful for when you need to answer math questions"
+    ),
+]
+
+# Initialize agent
+agent = initialize_agent(
+    tools,
+    llm_model,
+    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_errors=True,
+    verbose=True
+)
+
+# Query
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+print(result)
+
+Note**
+You must use a Hugging Face model that is good at following instructions or chatting.
+Examples: tiiuae/falcon-7b-instruct, mistralai/Mistral-7B-Instruct-v0.2, meta-llama/Llama-2-7b-chat-hf, etc.
+If you are limited on GPU RAM, use smaller models like google/flan-t5-small or facebook/bart-large.
+
+You can add device="cuda" if you want GPU acceleration:
+hf_pipeline = pipeline(
+    "text-generation",
+    model="tiiuae/falcon-7b-instruct",
+    device=0,
+    max_new_tokens=256,
+    temperature=0.0,
+)
+
+then..
+llm_model = HuggingFacePipeline(pipeline=hf_pipeline)
+
+agent = initialize_agent(
+    tools,
+    llm_model,
+    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_errors=True,
+    verbose=True
+)
+
+# Query
+question = "Alan Turing was a British mathematician and computer scientist, what is he famous for?"
+result = agent(question)
+print(result)
+
+
+if errors or warnings>
+hf_pipeline = pipeline(
+    "text-generation",
+    model="tiiuae/falcon-7b-instruct",
+    device=0,
+    max_new_tokens=256,
+    do_sample=False,        
+    temperature=0.0         
+)
+
+and try again..
 --------------
 #without langchain to avoid overhead
 from transformers import pipeline
