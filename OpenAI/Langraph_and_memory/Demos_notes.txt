@@ -1,0 +1,237 @@
+--create Virtual environment & then activate it..
+
+E:\Lesson_2_demos\venv\Scripts>activate
+
+(venv) E:\Lesson_2_demos\venv\Scripts>
+
+(venv) E:\Lesson_2_demos\venv\Scripts>cd ..\\..\\
+
+(venv) E:\Lesson_2_demos>notepad requirements.txt
+
+> 'requirements.txt' contains
+
+langchain==0.1.16
+langchain-openai==0.1.1
+langgraph>=0.0.25
+openai==1.64.0
+streamlit==1.30.0
+matplotlib==3.8.2
+pydantic==1.10.13
+networkx==3.2.1
+python-dotenv==1.0.1
+
+--list packages
+(venv) E:\Lesson_2_demos\venv>pip list
+
+--within Virtual environment run : pip install -r requirements.txt
+(venv) E:\Lesson_2_demos\venv>pip install -r requirements.txt
+
+Edit D1.py,D2.py,D3.py,D4.py & D5/agents.py to map to endpoint that contains deployed models.
+
+Note** When using chat completion operations:
+Option 1:
+import openai
+client = openai.AzureOpenAI(
+    api_key="myapikey",  
+    api_version="2023-12-01-preview",
+    azure_endpoint="https://info-mdub1hyj-eastus2.cognitiveservices.azure.com/"
+)
+
+& then
+response = client.chat.completions.create(model="gpt-4o-mini",
+                                          messages=[{"role": "user", "content": user_query}],
+                                          temperature=0.3)
+
+#gpt-4o-mini only supports chat-based operations.
+
+--Now we can run our applications and deploy using streamlit
+(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D1.py
+(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D2.py
+(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D3.py
+(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D4.py
+(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D5\\main.py
+
+----------------------------------------------------------
+
+Note** When using a completion-style API > (AzureOpenAI(...).invoke(...))
+Option 2: 
+from langchain_openai import AzureOpenAI
+
+# Initialize Azure OpenAI client
+client = AzureOpenAI(
+    #api_key=os.getenv("AZURE_OPENAI_API_KEY"),  # Store securely in .env
+    api_key="myapikey",
+    azure_endpoint="https://info-mdub1hyj-eastus2.cognitiveservices.azure.com/",
+    api_version="2023-12-01-preview",
+    deployment_name="gpt-4o-mini"
+)
+
+& later
+response = client.invoke(f"Generate an optimized search query and explain why for: '{user_query}'")
+
+Then..
+use the chat-based API, which works with gpt-4, gpt-4o, and gpt-4o-mini
+& remember LangChain ChatModel responses are AIMessage objects,so we need to extract text
+
+Refer: D-0.py,D-1.py 
+
+Using other Models/Libraries:
+--------------------------
+#llama
+--using other models
+https://ollama.com/download/windows
+C:\Users\Ajay\Downloads> .\OllamaSetup.exe /DIR=D:\Ollama
+ollama run llama3
+
+Refer: D-2.py, D-3.py
+
+run app using streamlit
+
+#mistral
+After running ollama run llama3
+ollama pull mistral
+llm = Ollama(model="mistral")
+
+--------------------
+D1.py
+#a Streamlit web app that allows users to enter a natural-language question 
+and get back a structured search query and a justification for that query, using a GPT model via Azure OpenAI.
+
+A Pydantic model ensures that GPT’s output can be captured in a structured way.
+search_query: The optimized search string.
+justification: Explanation or reasoning behind the search query.
+(justification is filled with the full response content)
+
+in Extras:
+D-0.py
+Contains more explicit prompt to the model, asking for:
+
+An optimized search query
+An explanation/justification
+
+The LLM is expected to return a plain text response.
+Using client.invoke() -- a wrapper or higher-level such as SDK—possibly LangChain
+
+D-1.py (better structured respnse in JSON format)
+
+D2.py
+LangGraph-style workflow orchestration
+
+--class State
+Acts as shared memory across all steps.
+Each function reads from and adds to this state.
+TypedDict ensures clarity about data structure without full runtime validation (like pydantic).
+
+Each function takes state as input, sends a prompt to GPT
+Then adds a specific field to state (ie incremental updates)
+
+generate_basic_description > starts the chain, gives an outpt as short informative description.
+add_features_benefits > builds on prior output
+Also, identifies specific selling points and values.
+
+create_marketing_message > Converts technical/functional benefits into a persuasive marketing message.
+
+polish_final_description > Merges the outputs into a final consumer-facing product description.
+
+build_workflow turns steps into a DAG
+START
+  ↓
+generate_basic_description
+  ↓
+add_features_benefits
+  ↓
+create_marketing_message
+  ↓
+polish_final_description
+  ↓
+END
+
+It is a memory-preserving workflow, where
+state object maintains memory across all steps
+i.e. lightweight working memory for the whole generation pipeline.
+
+Extension of this in D-4.py
+#Generate multiple marketing messages targeted at different customer segments 
+#in parallel
+#Later we can use them independently or combine/compare them
+
+Add three parallel nodes in your workflow:
+--create_marketing_message_premium
+--create_marketing_message_loyalty
+--create_marketing_message_corporate
+
+and create workflow accordindly
+
+Also we can add memory to your LangGraph-style implementation — and doing so will give your system the ability to:
+
+Recall recent interactions (e.g., last 5 product queries)
+Avoid redundant generations
+Improve coherence for repeat customers or repeated product types
+Enable context-aware personalization
+
+LangGraph doesn't manage memory by itself — but you can integrate LangChain-style memory into any node or agent within your graph.
+
+Option 1:
+1. Central Memory Store (Per Session or Global)
+You maintain a buffer or vector memory outside the workflow and query/update it within each node as needed.
+
+Examples:
+ConversationBufferMemory (stores last N messages)
+VectorStoreRetrieverMemory (retrieves semantically similar past queries)
+Custom memory dictionary (lightweight and flexible)
+
+Option 2:
+Per-Node Memory Enhancement
+If only some steps (e.g., marketing generation) benefit from memory, you can wrap just those nodes in memory-enabled functions or agents.
+
+To integrate memory
+#Add memory to the state
+--Update your State to optionally include memory:
+from typing import List, Union
+from langchain.schema import BaseMessage
+
+class State(TypedDict):
+    ...........
+    memory: Union[List[BaseMessage], None]  # Optional message history
+
+--Add memory initialization at runtime
+
+--Use memory-aware LLM call in node (e.g., generate_basic_description)
+
+Code uses memory, and if the user asked about a similar product previously, the LLM will remember it and adjust accordingly.
+
+<Optional>
+Store & Reuse Memory Across Sessions
+If you're in a multi-user app:
+
+Store memory.buffer in a Redis/SQLite backend per user.
+On each session, rehydrate the memory and pass it into the chain.
+
+Summary:
+Short-Term Recall:Respond with continuity across product descriptions
+Similarity Checking: Skip regeneration if similar query seen
+Personalization:Use customer tone/history for targeted outputs
+Reuse: Efficiency — store and reuse frequent results
+
+
+When using memory, if issues with packages
+--(check your packages and versions)
+pip list
+
+--if required
+pip uninstall langchain-core langchain-openai langchain
+pip install --upgrade langchain
+pip install --upgrade openai
+pip install langchain-community
+
+To track memory usage and capture info like:
+
+Was the memory actually used to answer the query?
+How many times similar queries have been asked?
+Which parts of the conversation matched or hit the memory window?
+
+
+
+
+
+
