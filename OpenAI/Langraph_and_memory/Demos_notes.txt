@@ -67,7 +67,11 @@ Then..
 use the chat-based API, which works with gpt-4, gpt-4o, and gpt-4o-mini
 & remember LangChain ChatModel responses are AIMessage objects,so we need to extract text
 
-Refer: D-0.py,D-1.py 
+Refer: for extensions
+D-1.0.py
+D-1.1.py
+ 
+
 
 Using other Models/Libraries:
 --------------------------
@@ -77,7 +81,7 @@ https://ollama.com/download/windows
 C:\Users\Ajay\Downloads> .\OllamaSetup.exe /DIR=D:\Ollama
 ollama run llama3
 
-Refer: D-2.py, D-3.py
+Refer: D-3.py, D-4.py
 
 run app using streamlit
 
@@ -97,7 +101,7 @@ justification: Explanation or reasoning behind the search query.
 (justification is filled with the full response content)
 
 in Extras:
-D-0.py
+D-1.0.py
 Contains more explicit prompt to the model, asking for:
 
 An optimized search query
@@ -106,7 +110,7 @@ An explanation/justification
 The LLM is expected to return a plain text response.
 Using client.invoke() -- a wrapper or higher-level such as SDK—possibly LangChain
 
-D-1.py (better structured respnse in JSON format)
+D-1.1.py (better structured respnse in JSON format)
 
 D2.py
 LangGraph-style workflow orchestration
@@ -144,7 +148,11 @@ It is a memory-preserving workflow, where
 state object maintains memory across all steps
 i.e. lightweight working memory for the whole generation pipeline.
 
-Extension of this in D-4.py
+Extension of this in 
+D-2.0.py
+D-2.1.py
+D-2.2.py
+
 #Generate multiple marketing messages targeted at different customer segments 
 #in parallel
 #Later we can use them independently or combine/compare them
