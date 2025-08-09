@@ -232,6 +232,16 @@ Was the memory actually used to answer the query?
 How many times similar queries have been asked?
 Which parts of the conversation matched or hit the memory window?
 
+===================
+For Demo_3:
+Addiitonal packages to be installed are
+so in your venv >
+pip install pytesseract==0.3.10  
+pip install pdf2image==1.16.3  
+pip install pyautogen==0.7.6
+
+Then refer > code examples in Demo_3> Extras
+
 
 
 
