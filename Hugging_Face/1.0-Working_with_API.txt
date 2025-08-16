@@ -15,17 +15,33 @@ or Profile > settings > Access Tokens
 > Generate an apikey by clicking on 'create new token'
 name: HUGGINGFACEHUB_API_TOKEN
 type: write
-copy
-& update in .env
 
+Create a folder : Sample_Codes
+> cd Sample_Codes
+--Create a file here as .env
+--update in .env
 HUGGINGFACEHUB_API_TOKEN=""
 
-pip install --upgrade huggingface_hub
+--Now create virtual environment
+> python -m venv venv
+> cd venv/Scripts
+> activate
+> (venv) E:\Sample_Codes\venv>pip install -U langchain-huggingface
+> (venv) E:\Sample_Codes\venv>pip install dotenv
+> (venv) E:\Sample_Codes\venv>pip install langchain langchain-community langchain-core
+> (venv) E:\Sample_Codes\venv>pip list
 
 #Refer: 1-hf_api.py to see how to load .env containing your token and using llms from HF
-#Refer: 2.0-langchain.py to load token directly and use llms from HF
-#Refer: 2.1-transfpipe.py to load models from transformers library
+#Refer: 2.0-langchain_v1.py to load token directly and use llms from HF
 
+> (venv) E:\Sample_Codes\venv>pip install hf_xet
+> (venv) E:\Sample_Codes\venv>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+> (venv) E:\Sample_Codes\venv>pip install transformers
+--reinstall transformers to be safe (if needed: pip install --upgrade transformers)
+> (venv) E:\Sample_Codes\venv>pip install --upgrade transformers
+
+#Refer: 2.1-transfpipe.py to load models from transformers library
+---------------------------------------------------------------------------
 #Working with transformers library & langchain
 #Refer: 2.2-langchain.py to use llms and langchain
 

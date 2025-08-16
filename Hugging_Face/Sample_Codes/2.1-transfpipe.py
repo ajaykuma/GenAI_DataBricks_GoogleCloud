@@ -1,8 +1,3 @@
-#pip install  transformers accelerate
-#pip install langchain langchain-community langchain-core
-#might be needed
-    #pip install hf_xet
-
 #This code bypasses Hugging Face’s API and runs the model locally (may require GPU).
 #Instead of HuggingFaceHub, Running by loading the model locally
 #no api keys required here
@@ -23,8 +18,8 @@ questions = [
 
 for question in questions:
     response = pipe(question)
-    print(f"Q: {question}\nA: {response}\n")
+    print(f"Q: {question}\nA: {response[0]['generated_text']}\n")
 
 for question in questions:
     response = pipe(question)
-    print(response[0]['generated_text'])
+    print(f"Q: {question}\nA: {response[0]['generated_text']}\n")
