@@ -9,6 +9,9 @@ My exploratory work on AI/GenAI
 
 and integration with distributed search platforms such as ELK, OpenSearch, Vector stores(DBs)
 
+> 🚧 When looking in folders, look in *.txt files for instructions or explainations/code examples and then use *.py files.
+- Remember to install packages to test codes or install packages within your virtual environment to run code examples.
+
 Models explored & Used:
 - OpenAI/gpt-3.5-turbo
 - mistralai/Mistral-7B-Instruct-v0.1
