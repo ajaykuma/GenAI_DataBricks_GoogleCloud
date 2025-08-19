@@ -3,17 +3,12 @@ import torch
 from transformers import pipeline
 from transformers import pipeline, AutoModelForSeq2SeqLM, AutoTokenizer
 from langchain.chains import LLMChain
-#from langchain import HuggingFaceHub
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import HuggingFacePipeline
 
 # Define prompt
 template = "Question: {question}\nAnswer: Let's think step by step."
 prompt = PromptTemplate(template=template, input_variables=["question"])
-
-# Load two different models
-#llm_1 = HuggingFaceHub(repo_id="google/flan-t5-large", model_kwargs={"temperature": 0.7, "max_length": 512})
-#llm_2 = HuggingFaceHub(repo_id="tiiuae/falcon-7b-instruct", model_kwargs={"temperature": 0.7, "max_length": 512})
 
 # Load the model and tokenizer locally
 model1_name = "google/flan-t5-large"  # You can also use "google/flan-t5-xl"
@@ -52,23 +47,23 @@ else:
 
 print(response)
 
-#Using a Function to Dynamically Select the Model
-def get_llm_chain(model_name):
-    model_map = {
-        "flan-t5": model1_name,
-        "falcon-7b": model2_name
-    }
+#Using a Function to Dynamically Select the Model (uncmment below code)
+# def get_llm_chain(model_name):
+#     model_map = {
+#         "flan-t5": model1_name,
+#         "falcon-7b": model2_name
+#     }
     
-    llm = model_map.get(model_name)
-    if not llm:
-        raise ValueError("Invalid model name")
+#     llm = model_map.get(model_name)
+#     if not llm:
+#         raise ValueError("Invalid model name")
 
-    return LLMChain(prompt=prompt, llm=llm)
+#     return LLMChain(prompt=prompt, llm=llm)
 
-# Example usage
-llm_chain = get_llm_chain("flan-t5")
-response = llm_chain.run("Explain relativity in simple terms.")
-print(response)
+# # Example usage
+# llm_chain = get_llm_chain("flan-t5")
+# response = llm_chain.run("Explain relativity in simple terms.")
+# print(response)
 
 
 

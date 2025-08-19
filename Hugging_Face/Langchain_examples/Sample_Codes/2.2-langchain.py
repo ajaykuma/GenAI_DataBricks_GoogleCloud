@@ -28,12 +28,6 @@ template = """Question: {question}
 Answer: Let's think step by step."""
 prompt = PromptTemplate(template=template, input_variables=["question"])
 
-# Create LLMChain
-#llm_chain = LLMChain(prompt=prompt, llm=llm)
-
-# # RunnableSequence
-chain = prompt | llm
-
 # Example questions
 questions = [
     "Explain the concept of black holes in simple terms.",
@@ -41,12 +35,22 @@ questions = [
     "Provide a brief overview of the history of artificial intelligence."
 ]
 
-for q in questions:
-     print(f"\nQ: {q}")
-     print(chain.invoke({"question": q}))
+#Option 1(Older version)
+# Create LLMChain
+#llm_chain = LLMChain(prompt=prompt, llm=llm)
 
 # # Run model for each question
 # for question in questions:
 #     response = llm_chain.run(question)
 #     print(f"Q: {question}\nA: {response}\n")
+
+#Option 2(newer version)
+# # RunnableSequence
+chain = prompt | llm
+
+for q in questions:
+     print(f"\nQ: {q}")
+     print(chain.invoke({"question": q}))
+
+
 
