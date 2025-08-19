@@ -4,7 +4,7 @@
 
 from transformers import pipeline
 #from langchain.llms import HuggingFacePipeline <--deprecated
-from langchain_community.llms import HuggingFacePipeline
+#from langchain_community.llms import HuggingFacePipeline
 
 pipe = pipeline("text2text-generation", model="google/flan-t5-large")
 # response = pipe("Explain the concept of black holes in simple terms.")
@@ -16,10 +16,15 @@ questions = [
     "Provide a brief overview of the history of artificial intelligence."
 ]
 
-for question in questions:
-    response = pipe(question)
-    print(f"Q: {question}\nA: {response[0]['generated_text']}\n")
+# for question in questions:
+#     response = pipe(question)
+#     print(f"Q: {question}\nA: {response[0]['generated_text']}\n")
 
+# Run model for each question
 for question in questions:
     response = pipe(question)
-    print(f"Q: {question}\nA: {response[0]['generated_text']}\n")
+    print(f"Q: {question}\nA: {response}\n")
+
+# for question in questions:
+#     response = pipe(question)
+#     print(f"Q: {question}\nA: {response[0]['generated_text']}\n")

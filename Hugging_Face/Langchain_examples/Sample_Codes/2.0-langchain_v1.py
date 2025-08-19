@@ -2,8 +2,8 @@
 #add your token here or refer:hf_api_1.py to use .env file to load token
 api_token = ""
 
-#from langchain.prompts import PromptTemplate
-#from langchain_huggingface import HuggingFaceEndpoint 
+from langchain.prompts import PromptTemplate
+from langchain_huggingface import HuggingFaceEndpoint 
 
 #Option 1
 # repo_id = "google/flan-t5-base"  
@@ -100,7 +100,7 @@ client = InferenceClient("HuggingFaceH4/zephyr-7b-alpha", token=api_token)
 response = client.chat_completion(
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Explain the concept of black holes in simple terms."}
+        {"role": "user", "content": "Explain the concept of neaural networks in simple terms."}
     ],
     max_tokens=200,
     temperature=0.5
