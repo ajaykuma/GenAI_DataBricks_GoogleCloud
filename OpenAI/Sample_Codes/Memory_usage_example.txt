@@ -8,7 +8,7 @@ from langchain.memory import ConversationBufferMemory, ConversationBufferWindowM
 # Initialize the Azure OpenAI Chat Model
 llm = AzureChatOpenAI(
     azure_deployment="gpt-4.1-mini",         # deployment name from Azure portal
-    azure_endpoint="https://singhalkajay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
+    azure_endpoint="https://singalkaay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
     api_version="2023-12-01-preview",
     api_key="mykey",
     temperature=0.0
