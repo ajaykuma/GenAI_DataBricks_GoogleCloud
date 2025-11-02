@@ -1,8 +1,0 @@
-pypdf
-transformers
-numpy
-scipy
-openai
-langchain_community
-langchain-core
-langchain
