@@ -7,7 +7,7 @@ from langchain_huggingface import HuggingFaceEndpoint
 
 #Option 1
 # repo_id = "google/flan-t5-base"  
-# #alternatives:"flan-t5-large","flan-t5-xl" or "t5-large"
+# #alternatives:"flan-t5-large","flan-t5-xl" or "t5-xxl"
 
 # llm = HuggingFaceEndpoint(
 #     repo_id=repo_id,

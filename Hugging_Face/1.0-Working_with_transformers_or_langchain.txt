@@ -84,11 +84,14 @@ print(num_tokens)
 
 #Using OpenAI
 # Define the system prompt
-context_template = "You are a helpful AI Researcher that specializes in analyzing ML, AI, and LLM papers. Please use all your expertise to approach this task. Output your content in markdown format and include titles where relevant."
+context_template = "You are a helpful AI Researcher that specializes in analyzing ML, AI, and LLM papers. 
+        Please use all your expertise to approach this task. Output your content in markdown format 
+        and include titles where relevant."
 system_message_prompt = SystemMessagePromptTemplate.from_template(context_template)
 
 # Define the human prompt
-human_template = "Please summarize this paper focusing on the key important takeaways for each section. Expand the summary on methods so they can be clearly understood. \n\n PAPER: \n\n{paper_content}"
+human_template = "Please summarize this paper focusing on the key important takeaways for each section. 
+ Expand the summary on methods so they can be clearly understood. \n\n PAPER: \n\n{paper_content}"
 human_message_prompt = HumanMessagePromptTemplate(
         prompt=PromptTemplate(
             template=human_template,
@@ -145,7 +148,8 @@ full_summary = "\n\n".join([s['summary_text'] for s in summaries])
 # Print the final summary
 print(full_summary)
 
-Note**Models like google/pegasus-xsum and philschmid/bart-large-cnn-samsum are great alternatives for short or dialogue-style summaries.
+Note**Models like google/pegasus-xsum and philschmid/bart-large-cnn-samsum are great alternatives 
+for short or dialogue-style summaries.
 
 -------------------------------
 --more examples to be added
