@@ -1,0 +1,36 @@
+Good links to look into documentation & more
+--------------------------
+
+https://python.langchain.com/docs/integrations/vectorstores/faiss/
+https://github.com/facebookresearch/faiss/wiki/getting-started
+https://gluebenchmark.com/
+https://github.com/google/BIG-bench
+https://crfm.stanford.edu/helm/
+https://super.gluebenchmark.com/
+
+Explore AI solutions/websites
+-----------------
+https://theresanaiforthat.com
+https://artlist.io/image-to-image-ai/nano-banana
+https://monkeytype.com/
+https://notegpt.io/
+https://www.mindluster.com/
+https://linusorii-deepsite-v2.hf.space/projects/new
+https://smallest.ai/
+https://www.phot.ai/
+https://www.lyzr.ai/
+https://superkalam.com
+https://www.karya.in
+https://www.olakrutrim.com/
+https://www.supergrow.ai/
+https://app.emergent.sh/landing/
+https://composio.dev/
+https://www.haptik.ai/
+https://www.ringg.ai/
+https://writesonic.com/
+https://bhindi.io/
+https://www.sarvam.ai/
+https://invideo.io/
+https://www.feedough.com/
+https://originality.ai/
+https://www.prompthackers.co/

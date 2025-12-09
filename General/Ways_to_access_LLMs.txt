@@ -1,0 +1,8 @@
+HF HUB --API Access -- direct models from huggingface
+OPENAI --API Access --direct models from openai (prob via paid account)
+using transformers and models freely available without any api/token based access
+--local machine (limited resources)
+--cloud machines (extensive paid/free resources)
+connecting to cloud platform like GCP --using trial or paid acct --access models
+connect to cloud -azure openai --using trial or paid acct --connecting to models on your provisioned endpoints
+or using already setup LMS (limited access to specific models to use)
