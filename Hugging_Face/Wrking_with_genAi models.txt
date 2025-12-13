@@ -2,9 +2,12 @@ Prompt in chatGPT
 give me the code example to use gan model to create an image of a forest with deers
 
 Response:
-Here's an example of how to use a Generative Adversarial Network (GAN) to generate an image of a forest with deer. This code uses TensorFlow and Keras to create a simple GAN. The generator is designed to create images from random noise, and the discriminator is trained to distinguish between real and generated images.
+Here's an example of how to use a Generative Adversarial Network (GAN) to generate an image of a forest with deer. 
+This code uses TensorFlow and Keras to create a simple GAN. The generator is designed to create images from random noise, 
+and the discriminator is trained to distinguish between real and generated images.
 
-For a more realistic result, you should train the GAN on a dataset containing forest and deer images, such as those from ImageNet or another high-quality dataset.
+For a more realistic result, you should train the GAN on a dataset containing forest and deer images, such as those from 
+ImageNet or another high-quality dataset.
 
 Steps:
 Define the generator and discriminator models.
@@ -117,7 +120,8 @@ This basic example can be extended with more complex architectures like DCGAN (D
 Prompt:
 create image of real forest containing deers . The resolution should be 128 *128 or 256*256
 <response>
-Generating a high-quality, realistic image of a forest containing deer requires a trained GAN model like StyleGAN or Stable Diffusion. However, I cannot train and generate such an image directly.
+Generating a high-quality, realistic image of a forest containing deer requires a trained GAN model like StyleGAN or Stable Diffusion. 
+However, I cannot train and generate such an image directly.
 
 For your requirement, you have two options:
 
@@ -221,7 +225,6 @@ def save_generated_images(epoch, generator):
 
 # Train the GAN
 train_gan()
-
 
 -----------------------------
 Fine-Tuning for Better Results

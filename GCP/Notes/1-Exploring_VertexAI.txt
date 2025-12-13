@@ -1,0 +1,566 @@
+Explorting Vertex AI
+----------------------
+
+Vertex AI is a comprehensive machine learning development platform that provides 
+both predictive and generative AI capabilities. It allows you to train, evaluate, 
+and deploy predictive machine learning models for forecasting purposes. 
+Additionally, you can utilize the platform to discover, tune, and serve generative 
+AI models to produce content.
+
+Vertex AI Studio lets you quickly test and customize generative AI models so you 
+can leverage their capabilities in your applications. It provides a variety of 
+tools and resources including both UI (user interface) and coding examples that 
+make it easy to start with generative AI, even if you don't have a background 
+in machine learning.
+
+Vertex AI Studio, where you can unlock the potential 
+of cutting-edge generative AI models. Explore Gemini and use it to 
+analyze images, design prompts, and generate conversations directly on the 
+Google Cloud console. 
+No need for API or Python SDKs - it's all accessible 
+through the intuitive user interface.
+
+Using Vertex AI
+
+--Analyze images with Gemini
+--Explore Vertex AI Studio Freeform mode now merges into New layout option
+--Design text prompts for zero-shot, one-shot, and few-shot prompting
+--Generate conversations with chat prompts
+
+## Task 1. 
+Analyze images with Gemini in using New layout
+Here you will use Gemini to analyze an image and extract information from it. 
+
+You can design prompts for various tasks such as classification, 
+extraction, and generation. 
+
+Enable the Vertex AI API
+In the Google Cloud console, enter Vertex AI API in the top search bar.
+
+You can click on 'enable all recommended APIs'
+
+If Vertex AI API not enabled earlier, click on it
+Click Enable.
+
+Click on show API list to see which APIs are enabled.
+
+Analyze images with Gemini
+In the Google Cloud console, from the Navigation menu (Navigation menu), 
+select Vertex AI > Vertex AI Studio 
+
+shows:
+Vertex AI Studio
+Develop, test & deploy advanced multi-media AI
+
+Click on Gemini 3 Pro (as per new layout)
+
+[Left] Click on New that shows various options like : Chat, Image, Video, Music, Speech etc..
+       Get API Key (to use in Code)
+       Documentation
+       Settings
+[Center] Prompt : Here, you can create a prompt that utilizes & works with multimodal capabilities.
+[Right ] 
+        Name : Image Analysis (save in a region of your choice)
+        Model : gemini-3-pro-preview > This section allows you to select models, configure parameters/settings (click on model to look at other options)
+        System Instructions : To give model context to understand task and provide tailored responses.
+Response (located at the bottom): This section displays the results of your prompt.
+
+On the top left, click Untitled Prompt and rename your prompt as Image Analysis.
+
+Note:The model name and version may change with the release of new models.
+
+Download the sample image (boarding_details) from datasets folder.
+
+Click on + to Insert media > Upload. 
+Upload the 'boarding_details' you downloaded. The media can be in the form of an image,video, text, or audio file.
+
+The image will be displayed inside of the Prompt section. 
+
+Copy the following text and paste it under the image and click on the
+
+Submit button on the bottom right of the Prompt section.
+  Prompt: Title the image
+
+<response> Title: Airport Departure Board Displaying International Flights
+
+Or be more specific:
+  Prompt: Title the image in 3 words.
+
+<response> Flight Departure Board
+click on submit(play icon)
+
+Does the title meet your expectations? Try to modify the prompt to see if you get different results.
+
+Additionally 
+#1 we can click on evaluate to evaluate the model generated responses.
+Here it uses Adaptive metrics.
+For more info: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/rubric-metric-details
+> #managed-metrics-details
+
+#Compare (to compare output using different model and settings)
+
+---------------------------------
+Describe the image. Replace the previous prompt with the following and 
+click the Submit button.
+  Prompt: Describe the image in detail
+
+Output Response begins---
+This image displays a close-up, low-angle view of a large electronic flight information board, typical of an airport terminal. 
+Here are the specific details:
+
+The Display Board:
+
+Technology: It is a black dot-matrix display board where text is formed by bright amber/orange LED lights.
+Layout: The information is organized into rows. The left column displays the departure time in a 24-hour format, and the right 
+column displays the destination city (and sometimes the specific airport code) in all capital letters.
+Visible Flight Data: The board lists the following sequence of flights:
+10:50 – MOSCOW/SVO
+11:05 – EDINBURGH
+11:05 – LONDON/LHR
+11:10 – BUCHAREST/OTP
+11:30 – KIEV/BORISPOL
+11:35 – DUBLIN
+11:45 – EAST MIDLANDS
+12:15 – SOFIA
+12:30 – LONDON/LGW
+12:30 – NEWCASTLE
+12:40 – ST PETERSBURG
+12:40 – LONDON/LGW
+12:45 – MANCHESTER
+Background and Composition:
+
+Perspective: The photo is taken from below looking up, slanting diagonally toward the left. This emphasizes the height of the board.
+Surroundings: To the left of the board, the background is out of focus. 
+It reveals the industrial architecture of the building, featuring blueish-grey steel trusses, beams, and what 
+appears to be a high ceiling or skylight, suggesting a large, open terminal space. 
+The lighting is cool and somewhat dim in the background, contrasting with the bright warmth of the text.
+--response ends---
+
+Expand the Model section to change settings
+Tune the parameter > adjust the temperature by scrolling 
+from left (0) to right (1). Resubmit the prompt to observe any changes in the outcome compared to the previous result.
+
+Note*Temperature controls the degree of randomness in token selection. 
+Lower temperatures are good for prompts that expect a true or correct response, 
+while higher temperatures can lead to more diverse, unexpected, or potentially 
+biased results. 
+With a temperature of 0 the highest probability token is always selected.
+
+Now change the temperature settings back to 1 and run this prompt.
+ Prompt: what is the difference between the outputs generated in past two prompts
+
+ Prompt: did temperature as a setting play an important role in the variation in output
+
+Since we did a temperature change:
+Summary of the Effect:
+Because the visual input (the image) remained the same, the facts (the list of flights) did not change—the model is grounded by the image data. 
+However, the Temperature setting is responsible for the "remixing" of the style, tone, and organization surrounding those facts.
+------------------------------------------
+Extract the text from the image. Replace the previous prompt with the following:
+  Prompt: Read the text in the image.
+<submit>
+
+--response--
+10:50 MOSCOW/SVO 11:05 EDINBURGH 11:05 LONDON/LHR 11:10 BUCHAREST/OTP 11:30 
+KIEV/BORISPOL 11:35 DUBLIN 11:45 EAST MIDLANDS 12:15 SOFIA 12:30 LONDON/LGW 
+12:30 NEWCASTLE 12:40 ST PETERSBURG 12:40 LONDON/LGW 12:45 MANCHESTER
+--response ends---
+
+Further on, if you want to format the output to a list, replace the previous prompt 
+with the following:
+
+  Prompt: Parse the time and city in this image into a list with two columns:
+  time and city.
+
+--response begins--
+Here's the parsed list of times and cities:
+
+| Time  | City              |
+|-------|-------------------|
+| 10:50 | Moscow/SUO       |
+| 11:05 | Edinburgh         |
+| 11:05 | London/LHR       |
+| 11:10 | Bucharest/OTP     |
+| 11:30 | Kiev/Borispol   |
+| 11:35 | Dublin            |
+| 11:45 | East Midlands      |
+| 12:15 | Sofia            |
+| 12:30 | London/LGW       |
+| 12:30 | Newcastle        |
+| 12:40 | St Petersburg    |
+| 12:40 | London/LGW       |
+| 12:45 | Manchester       |
+--------------------response ends---------
+
+Your turn - try out some different prompts! How do these results differ from before?
+
+for example:
+  Prompt: show the city names from the image in one line
+
+--response--
+MOSCOW/SVO, EDINBURGH, LONDON/LHR, BUCHAREST/OTP, KIEV/BORISPOL, DUBLIN, EAST MIDLANDS, SOFIA, LONDON/LGW, NEWCASTLE, ST PETERSBURG, LONDON/LGW, MANCHESTER
+----response ends--
+
+one more example
+  Prompt: show the cities which are in Europe
+
+--response begins--
+All of the destinations listed on the board are located in Europe:
+
+MOSCOW (Russia)
+EDINBURGH (United Kingdom)
+LONDON (United Kingdom)
+BUCHAREST (Romania)
+KIEV (Ukraine)
+DUBLIN (Ireland)
+EAST MIDLANDS (United Kingdom)
+SOFIA (Bulgaria)
+NEWCASTLE (United Kingdom)
+ST PETERSBURG (Russia)
+MANCHESTER (United Kingdom)
+------response ends---
+
+-----------------------------------------------------------
+Analyze the information on the image. Replace the previous prompt with the following:
+  Prompt: Calculate the percentage of the flights to different continents.
+
+--response--
+
+Based on the destinations listed on the board, here is the breakdown by continent:
+
+Step 1: Identify the Continent for Each Destination
+There are 13 flights listed on the board:
+
+MOSCOW (Russia) – Europe (West of the Ural Mountains)
+EDINBURGH (UK) – Europe
+LONDON/LHR (UK) – Europe
+BUCHAREST (Romania) – Europe
+KIEV (Ukraine) – Europe
+DUBLIN (Ireland) – Europe
+EAST MIDLANDS (UK) – Europe
+SOFIA (Bulgaria) – Europe
+LONDON/LGW (UK) – Europe
+NEWCASTLE (UK) – Europe
+ST PETERSBURG (Russia) – Europe
+LONDON/LGW (UK) – Europe
+MANCHESTER (UK) – Europe
+Step 2: Calculate Percentages
+
+Total Flights: 13
+Flights to Europe: 13
+Flights to Other Continents: 0
+Result:
+
+Europe: 100%
+
+response ends---
+
+> change temperature & other settings and try out.Does the result meet your expectations? 
+--Try different prompts for various tasks. 
+
+Prompt might be getting auto saved as chosen earlier or save it and it will appear on left.
+Note**After selecting Save, give the prompts a few seconds to properly save 
+and then proceed further. Click "Try again" if prompted "failed to update history."
+
+================================================
+Task 2. 
+Explore multimodal capabilities
+In addition to images, text, and audio, Gemini is capable of accepting videos as 
+inputs and generating text as an output.
+
+Navigate to Cloud Storage > Buckets and copy the name of your Cloud Storage 
+bucket and save it to use in the further step.
+If no bucket exists, create one 
+
+for example:  mybucketaj17
+
+From configuration details : get the path of your bucket > gsutil URI
+Click Activate Cloud Shell Activate Cloud Shell icon at the top of the
+Google Cloud console.
+
+In your Cloud Shell terminal, run the command below to copy 
+the sample video gs://spls/gsp154/video/train.mp4 (preview) to your
+Cloud Storage bucket. Replace <Your-Cloud-Storage-Bucket> with the bucket 
+name you copied earlier.
+
+
+[command]
+gcloud storage cp gs://spls/gsp154/video/train.mp4 gs://<Your-Cloud-Storage-Bucket>
+
+For example:
+gcloud storage cp gs://spls/gsp154/video/train.mp4 gs://mybucketaj17
+
+Copying gs://spls/gsp154/video/train.mp4 to gs://mybucketaj17/train.mp4
+  Completed files 1/1 | 6.3MiB/6.3MiB                                                                                                                 
+
+Now
+From the Navigation menu (Navigation menu), select Vertex AI > Vertex AI Studio > 
+
+Click + Insert Media > Import from Cloud Storage.
+
+Click on your bucket name and then click on the sample video i.e., train.mp4 and click Select.
+
+Generate information about the video by inserting the following prompt 
+and clicking the Submit button.
+  Prompt: Title the video.
+
+--response begins--
+Virgin train passing.
+--response ends--
+
+We can explore many capabilities such as writing stories from images, 
+analyzing videos, and generating multimedia ads. 
+Explore more use cases by clicking Prompt gallery. 
+Check out more information about design multimodal prompts 
+> https://cloud.google.com/vertex-ai/docs/generative-ai/multimodal/design-multimodal-prompts
+
+-------------------------------------
+Task 3. 
+Design text prompts
+Here we can try zero-shot, one-shot, and few-shot prompting.
+
+Prompt design
+You can feed your desired input text, e.g. a question, to the model. 
+The model will then provide a response based on how you structured your prompt. 
+The process of figuring out and designing the best input text (prompt) to 
+get the desired response back from the model is called Prompt Design.
+
+Prompt design methods
+There are three main methods to design prompts:
+
+Zero-shot prompting - This is a method where the LLM is given only a prompt that 
+describes the task and no additional data. 
+For example, if you want the LLM to answer a question, you just prompt 
+"what is prompt design?".
+Note** By default we are using 'gemini-3-pro-preview'
+
+One-shot prompting - This is a method where the LLM is given a single example of 
+the task that it is being asked to perform. 
+For example, if you want the LLM to write a poem, you might give it a single 
+example poem.
+
+Few-shot prompting - This is a method where the LLM is given a small number of 
+examples of the task that it is being asked to perform. 
+For example, if you want the LLM to write a news article, you might give it 
+a few news articles to read.
+
+Parameters
+Temperature and Token limit are two important parameters that you can adjust to 
+influence the model's response.
+
+Temperature controls the randomness in token selection as discussed earlier.
+
+The gemini-2.5-pro model has a temperature range of 0 - 2 and a default of 1.
+Output token limit determines the maximum amount of text output from one prompt.
+A token is approximately four characters.
+
+Zero-shot prompting
+Try zero-shot prompting
+
+Navigate back to the Vertex AI Studio > Name the prompt as Sentiment Analysis.
+On the top right under Model, select the gemini-2.5-pro model.(let default configuration settings be selected)
+
+Copy the following over to the prompt input field:
+  Prompt: What is a prompt gallery?
+Click on the Submit button.
+
+--response begins--
+output generated
+--response ends--
+
+The model will respond to a comprehensive definition of the term prompt gallery.
+
+Adjust the Output Token limit parameter to 1024 and click the SUBMIT button.
+
+--response--
+Look at response now
+--response ends--
+
+Inspect how the responses change as to change the parameters.
+
+----------------------------------------
+One-shot prompting
+You can design prompts in more organized ways. You can provide Context and 
+Examples in their respective input fields. One-shot prompting is a method 
+where the model is given a single example of the task that it is being asked 
+to perform. 
+
+In this section, you will ask the model to complete a sentence.
+
+Click on Chat on left and start new chat..
+
+Inside of the Prompt box, click Add examples. 
+This will open a new window where you can add examples for the prompt.
+
+Add this to the INPUT field:
+The color of the grass is
+
+Add this to the OUTPUT field:
+The color of the grass is green
+
+Click on the Add examples button.
+
+In the prompt > The color of the sky is
+
+Click on the Submit button. You should receive a response from the model
+similar to the following:
+The color of the sky is blue
+
+Instead of completing the sentence, the model gave a full sentence as a response 
+since you provided an example for the model to base its output from. 
+
+Additionally ask model: Explain how did the model answer or auto complete my sentence and did it use the examples.
+---response begins---
+
+The model completed your sentence by leveraging its vast training on text and code, a process that can be understood through two key concepts: 
+its fundamental training and the guidance from your examples.
+
+Fundamental Training and General Knowledge
+At its core, the model operates by predicting the most probable next word in a sequence.1011 It has been trained on a massive dataset of text 
+from the internet, books, and other sources.111 Through this training, it learns patterns, grammar, context, and factual information.19
+
+When you provided the input "the color of the sky is," the model accessed its learned knowledge. The phrase "the color of the sky is blue" is an 
+extremely common and statistically likely sequence of words in its training data. Therefore, based on this pre-existing knowledge, the model predicted "blue" as the most logical and factually correct completion. This ability to perform a task without specific examples is known as zero-shot learning.36
+
+The Role of Your Examples: Few-Shot Learning
+The examples you provided before your actual question also played a crucial role. This technique is called few-shot learning or, more 
+specifically, few-shot prompting.78 By showing the model an "input" and a 
+corresponding "output" (input: The color of the grass is, output: The color of the grass is green), you provided a template for the desired response.
+
+Here's how your examples likely influenced the answer:
+
+Task Understanding: The examples helped the model understand that the task was to complete a sentence with a common color.45
+Format Guidance: It demonstrated the expected output format—a simple, direct completion of the sentence.212
+In essence, the model used a combination of its general knowledge (knowing the sky is blue) and the immediate context provided by 
+your examples (understanding the "complete the sentence with a color" game you initiated). This combination of general knowledge and specific, 
+in-prompt examples allows the model to provide more accurate and relevant responses.4
+
+Grounding Sources
+
+masaischool.com 
+grammarly.com 
+labelbox.com 
+google.com 
+medium.com 
+dev.to 
+devolvedai.com 
+neptune.ai 
+springboard.com 
+coursera.org 
+autogenai.com 
+microsoft.com 
+Google Search Suggestions
+
+---response ends-----
+Clear the responses and prompt.
+
+To change the response to simply complete the sentence, you can adjust
+the example provided in the OUTPUT field.
+
+Click the Examples button in the Prompt box and change the OUTPUT field to: Green
+
+Click on the Add examples button.
+
+Now in prompt : The color of the sky is
+
+Click on the Submit button. You should receive a response from the model 
+similar to the following:
+
+blue
+
+You can see that the model now completes the sentence based on the example
+ you provided. You have successfully influenced the way the model produces response.
+
+-------------------------------------
+Few-shot prompting
+Now we will use the model to perform sentiment analysis on a sentence, 
+such as determining whether a movie review is positive or negative using 
+few-shot prompting.
+
+In the Prompt field, delete your examples from the previous section. 
+To delete your examples, hover over the Examples and click the X (Remove File) button.
+
+Click the Add examples button to add more examples.
+
+Add the following examples:
+Input                             Output
+A well-made and entertaining film	positive
+I fell asleep after 10 minutes	  negative
+The movie was ok	                neutral
+
+Once you have added the examples, click on the Add examples button.
+
+In the Test field, copy the following in the Input field.
+It was a time well spent!
+
+Click on the Submit button.
+
+The model now provides a sentiment for the input text. For the text 
+It was a time well spent!, the sentiment is labeled as positive.
+
+---------------------------------------------
+Task 4. 
+Generate conversations
+Chat mode is a conversational mode that allows you to have a freeform chat with 
+the model. The model uses the conversation history as context for future responses. 
+In this section, you will create a chat prompt and have a conversation with the model.
+
+From the left menu, navigate to Chat to create a new chat prompt.
+Name the prompt as Support Technician Helper
+On the top right under Model, select the gemini-2.5-flash model.
+
+For this section, you will add context to the chat and let the model respond 
+based on the context provided.
+
+Click System instructions and add the following context:
+Your name is Joy.
+You are a support technician of an IT department.
+You only respond with "Have you tried turning it off and on again?" to any queries.
+
+Insert the following prompt:
+  Prompt: My computer is so slow! What should I do?
+click on submit
+
+The model should respond with the following:
+  Have you tried turning it off and on again?
+
+In System instructions, click Clear value.
+
+Click System instructions and add the following context:
+
+Your name is Roy.
+You are a support technician of an IT department.
+You are here to support the users with their queries.
+
+Insert the following prompt:
+  Prompt: My computer is so slow! What should I do?
+
+Click the Submit button.
+The model should now be more helpful in its response to the user query.
+
+Feel free to experiment with different prompts and context to see how the model 
+responds. You can also add more context to the chat prompt to see how the model 
+responds based on the context provided.
+
+For example: 
+try changing instructions to
+Your name is Roy.
+You are a support technician of an IT department but you handle only mailbox queries.
+You are here to support the users with their mailbox queries.
+
+and test with same prompt
+
+response--
+I apologize, but as a mailbox support technician, my expertise is limited to issues related to email accounts and mailboxes. 
+Troubleshooting slow computer performance falls outside of my area.
+
+For assistance with your slow computer, please reach out to the general IT support team. They will be able to provide you with the appropriate guidance.
+
+response ends--
+
+
+
+
+
+
+
