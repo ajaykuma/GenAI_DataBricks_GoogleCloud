@@ -1,4 +1,3 @@
-
 #Hugging Face Transformers library
 
 # Hugging Face Transformers library is a powerful Python library that provides APIs 
@@ -16,6 +15,10 @@ or Profile > settings > Access Tokens
 name: HUGGINGFACEHUB_API_TOKEN
 type: write
 
+>Similarly we can create apikey in OpenAI environment & use .
+[refer sample .env file]
+
+--If Using vitual environment (on local machine) [Can skip this if using cloud environment like Colab]
 Create a folder : Sample_Codes
 > cd Sample_Codes
 --Create a file here as .env
@@ -31,8 +34,10 @@ HUGGINGFACEHUB_API_TOKEN=""
 > (venv) E:\Sample_Codes\venv>pip install langchain langchain-community langchain-core
 > (venv) E:\Sample_Codes\venv>pip list
 
-#Refer: 1-hf_api.py to see how to load .env containing your token and using llms from HF
-#Refer: 2.0-langchain_v1.py to load token directly and use llms from HF
+#Refer: 0.1-hf_api.py(in Sample_Codes) to see how to load .env containing your token and using llms from HF
+#Refer: 0.2-langchain_old.py(in Sample_Codes) to load token directly and use llms from HF
+
+--to install additional packages within virtual environment, while being in virtual environment(directly using pip)
 
 > (venv) E:\Sample_Codes\venv>pip install hf_xet
 > (venv) E:\Sample_Codes\venv>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -40,26 +45,10 @@ HUGGINGFACEHUB_API_TOKEN=""
 --reinstall transformers to be safe (if needed: pip install --upgrade transformers)
 > (venv) E:\Sample_Codes\venv>pip install --upgrade transformers
 
+--or start jupyter-notebook within venv and continue with !pip install xxxx
+
 #Refer: 2.1-transfpipe.py to load models from transformers library
 ---------------------------------------------------------------------------
-#Working with transformers library & langchain
-#Refer: 2.2-langchain.py to use llms and langchain
+# For Working with transformers library, langchain , different LLMs, chaining components
+Refer: other examples in Sample_Codes
 
-#Refer: 2.3-langchain.py for usage of kwargs for llms 
---may show warning such as below
-The class `LLMChain` was deprecated in 
-LangChain 0.1.17 and will be removed in 1.0. Use RunnableSequence
-
-#Woring with more than 1 model
-The LLMChain in LangChain is designed to work with one model at a time, 
-as it requires a single llm instance when initialized
-llm_chain = LLMChain(prompt=prompt, llm=llm)
-
-This means it cannot natively switch between multiple models within the same chain.
-If you want to use different models dynamically:
-#Refer: 2.4-langchain.py
-
-#Use a Router Chain (Advanced)
-If you need automatic model selection based on the input, LangChain provides 
-Router Chains that intelligently choose which model 
-to use based on the question.

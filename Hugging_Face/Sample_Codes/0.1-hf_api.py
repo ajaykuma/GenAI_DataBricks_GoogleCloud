@@ -2,10 +2,12 @@
 # Not every model on the Hub qualifies—even some popular models are unsupported or require Pro. 
 # To find supported ones, search on the Models page and filter by “inference provider” availability, 
 # or query programmatically via the Hub API.
+
 import os
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEndpoint 
 
+#If .env file was setup and contains HUGGINGFACEHUB_API_TOKEN
 load_dotenv()
 hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 

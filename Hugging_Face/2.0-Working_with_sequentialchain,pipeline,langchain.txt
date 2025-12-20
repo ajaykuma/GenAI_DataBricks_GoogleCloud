@@ -1,5 +1,8 @@
-#SequentialChain and langchain
-##With openAI
+!pip install langchain
+!pip install openai
+
+#   SequentialChain and langchain
+##  With openAI
 
 import os
 import textwrap

@@ -832,10 +832,10 @@ def generate_text(seed_text, next_words=10):
 print(generate_text("The deer", next_words=10))
 
 Summary
-✅ Tokenized text into sequences
-✅ Built an LSTM-based RNN model
-✅ Trained it on text data
-✅ Generated new sentences using the trained model
+Tokenized text into sequences
+Built an LSTM-based RNN model
+Trained it on text data
+Generated new sentences using the trained model
 
 Next Steps
 Train on a larger dataset (e.g., books, articles)
