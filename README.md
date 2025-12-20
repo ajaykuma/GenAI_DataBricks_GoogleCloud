@@ -10,7 +10,7 @@ My exploratory work on AI/GenAI
 and integration with distributed search platforms such as ELK, OpenSearch, Vector stores(DBs)
 
 > 🚧 When looking in folders, look in Notes/*.txt files for instructions or explainations and then use *.py/*.ipynb files from Sample_Codes.
-- Remember to install packages to test codes or install packages within your virtual environment to run code examples.
+> Remember to install packages(in main env or virtual env) to test codes examples or use Colab-notebooks from Google Cloud 
 
 Models explored & Used:
 - OpenAI/gpt-3.5-turbo
