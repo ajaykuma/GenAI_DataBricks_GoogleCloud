@@ -4,12 +4,12 @@
 My exploratory work on AI/GenAI 
 - Google AI/APIs
 - Databricks Platform
-- HuggingFace
-- OpenAI
+- HuggingFace/Transformers
+- OpenAI/Azure AI
 
 and integration with distributed search platforms such as ELK, OpenSearch, Vector stores(DBs)
 
-> 🚧 When looking in folders, look in *.txt files for instructions or explainations/code examples and then use *.py files.
+> 🚧 When looking in folders, look in Notes/*.txt files for instructions or explainations and then use *.py/*.ipynb files from Sample_Codes.
 - Remember to install packages to test codes or install packages within your virtual environment to run code examples.
 
 Models explored & Used:
