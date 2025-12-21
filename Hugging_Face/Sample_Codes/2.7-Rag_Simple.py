@@ -4,14 +4,30 @@ import streamlit as st
 #from dotenv import load_dotenv
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
+import torch
+from transformers import pipeline, AutoModelForSeq2SeqLM, AutoTokenizer
+from langchain_huggingface import HuggingFacePipeline
 from langchain.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.schema import Document
 from langchain.chains import RetrievalQA
 
+
+# -----------------------------
+# Load environment variables
+# -----------------------------
+#load_dotenv()
+
+#AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+#AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+#AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+#AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
+
 # -----------------------------
 # Load Excel Data and Build RAG
 # -----------------------------
+
+
 @st.cache_resource
 def build_retriever(file_path: str):
     df = pd.read_excel(file_path)
@@ -22,7 +38,7 @@ def build_retriever(file_path: str):
 
     # embeddings = AzureOpenAIEmbeddings(
     #     model="text-embedding-3-small",
-    #     azure_endpoint="https://singalkaay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
+    #     azure_endpoint="https://singhalkajay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
     #     api_version="2023-12-01-preview",
     #     api_key="mykey",
     # )
@@ -41,13 +57,28 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
 if uploaded_file:
     retriever = build_retriever(uploaded_file)
-    llm = AzureChatOpenAI(
-    azure_deployment="gpt-4.1-mini",         # deployment name from Azure portal
-    azure_endpoint="https://singalkaay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
-    api_version="2023-12-01-preview",
-    api_key="mykey",
-    temperature=0.0
+    model_name = "google/flan-t5-large"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+
+    # Create a text generation pipeline
+    pipe = pipeline("text2text-generation", model=model,
+    tokenizer=tokenizer,
+    torch_dtype=torch.float16,  # Uses lower precision for efficiency
+    device=0 if torch.cuda.is_available() else -1  # Use GPU if available
     )
+
+    llm = HuggingFacePipeline(pipeline=pipe)
+
+    # llm = AzureChatOpenAI(
+    # azure_deployment="gpt-4.1-mini",         # deployment name from Azure portal
+    # azure_endpoint="https://singhalkajay-7416-resource.cognitiveservices.azure.com/",           # your endpoint
+    # api_version="2023-12-01-preview",
+    # api_key="mykey",
+    # temperature=0.0
+    # )
+    
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever,
