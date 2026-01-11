@@ -1,0 +1,197 @@
+Azure OpenAI
+--Create Account
+--Search for azure openai
+--Create Azure foundary resource
+--click on <go to resource>
+--click on go to foundary portal
+
+Should show your default project <proj-default>
+From endpoint and keys
+API Key
+<mykey>
+
+Look into API documentation and select Python as coding language
+& click on Azure OpenAI SDK for Python>
+https://github.com/openai/openai-python?tab=readme-ov-file#openai-python-api-library
+
+Now click on model and deployments from left menu
+Deploy model > choose a base model
+Choose gpt-4.1
+Deployment type: global standard and rest all settings as dfaults
+
+---------------------
+<mykey>
+
+--Install dependencies
+pip install openai
+--------------
+1.Authentication using API Key
+For OpenAI API Endpoints, deploy the Model to generate the endpoint URL and an API key to authenticate against the service. 
+In this sample endpoint and key are strings holding the endpoint URL and the API Key.
+
+--Basic code example
+import os
+from openai import AzureOpenAI
+
+endpoint = "https://myaiwork.cognitiveservices.azure.com/"
+model_name = "gpt-4.1"
+deployment = "gpt-4.1"
+
+subscription_key = "<your-api-key>"
+api_version = "2024-12-01-preview"
+
+client = AzureOpenAI(
+    api_version=api_version,
+    azure_endpoint=endpoint,
+    api_key=subscription_key,
+)
+
+response = client.chat.completions.create(
+    messages=[
+        {
+            "role": "system",
+            "content": "You are a helpful assistant.",
+        },
+        {
+            "role": "user",
+            "content": "I am going to Paris, what should I see?",
+        }
+    ],
+    max_completion_tokens=13107,
+    temperature=1.0,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
+    model=deployment
+)
+
+print(response.choices[0].message.content)
+
+#If using langchain
+
+pip install langchain_openai
+--if issue with lanchain-core version
+pip install --upgrade "langchain>=0.3.29" "langchain-core>=1.0.0" langchain-openai
+or using 
+---code example 1-------
+
+from langchain_openai import AzureOpenAI
+
+llm = AzureOpenAI(
+    azure_endpoint="https://ak7si-mi0k5d0p-eastus2.cognitiveservices.azure.com/",
+    api_key="mykey",
+    api_version="2024-12-01-preview",
+    deployment_name="gpt-5-chat",  # same deployment name
+)
+
+response = llm.invoke("Hello! How are you?")
+print(response)
+
+---------example ends-----------
+
+---code example 2-------
+from langchain_openai import AzureChatOpenAI
+
+llm = AzureChatOpenAI(
+    azure_endpoint="https://ak7si-mi0k5d0p-eastus2.cognitiveservices.azure.com/",
+    api_key=subscription_key,
+    api_version="2024-12-01-preview",
+    deployment_name="YOUR_MODEL_DEPLOYMENT",  # e.g. "gpt-4o-mini"
+)
+
+response = llm.invoke("Hello! How are you?")
+print(response)
+
+---------example ends-----------
+
+--Run a multi-turn conversation
+import os
+from openai import AzureOpenAI
+
+endpoint = "https://myaiwork.cognitiveservices.azure.com/"
+model_name = "gpt-4.1"
+deployment = "gpt-4.1"
+
+subscription_key = "<your-api-key>"
+api_version = "2024-12-01-preview"
+
+client = AzureOpenAI(
+    api_version=api_version,
+    azure_endpoint=endpoint,
+    api_key=subscription_key,
+)
+
+response = client.chat.completions.create(
+    messages=[
+        {
+            "role": "system",
+            "content": "You are a helpful assistant.",
+        },
+        {
+            "role": "user",
+            "content": "I am going to Paris, what should I see?",
+        },
+        {
+            "role": "assistant",
+            "content": "Paris, the capital of France, is known for its stunning architecture, art museums, historical landmarks, and romantic atmosphere. Here are some of the top attractions to see in Paris:\n\n1. The Eiffel Tower: The iconic Eiffel Tower is one of the most recognizable landmarks in the world and offers breathtaking views of the city.\n2. The Louvre Museum: The Louvre is one of the worlds largest and most famous museums, housing an impressive collection of art and artifacts, including the Mona Lisa.\n3. Notre-Dame Cathedral: This beautiful cathedral is one of the most famous landmarks in Paris and is known for its Gothic architecture and stunning stained glass windows.\n\nThese are just a few of the many attractions that Paris has to offer. With so much to see and do, its no wonder that Paris is one of the most popular tourist destinations in the world.",
+        },
+        {
+            "role": "user",
+            "content": "What is so great about #1?",
+        }
+    ],
+    max_completion_tokens=13107,
+    temperature=1.0,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
+    model=deployment
+)
+
+print(response.choices[0].message.content)
+
+--Streaming the output
+import os
+from openai import AzureOpenAI
+
+endpoint = "https://myaiwork.cognitiveservices.azure.com/"
+model_name = "gpt-4.1"
+deployment = "gpt-4.1"
+
+subscription_key = "<your-api-key>"
+api_version = "2024-12-01-preview"
+
+client = AzureOpenAI(
+    api_version=api_version,
+    azure_endpoint=endpoint,
+    api_key=subscription_key,
+)
+
+response = client.chat.completions.create(
+    stream=True,
+    messages=[
+        {
+            "role": "system",
+            "content": "You are a helpful assistant.",
+        },
+        {
+            "role": "user",
+            "content": "I am going to Paris, what should I see?",
+        }
+    ],
+    max_completion_tokens=13107,
+    temperature=1.0,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
+    model=deployment,
+)
+
+for update in response:
+    if update.choices:
+        print(update.choices[0].delta.content or "", end="")
+
+client.close()
+
+
+
