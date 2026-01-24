@@ -76,10 +76,10 @@ Common AI agent types :
 
 	Verifier (optional): checks results
 	Example:
-	Task: “Build a marketing report”
+	Task: “Build a marketing report about usage of llm in different continents”
 	Plan:
 
-	Research market
+	Research market(europe, asia. north america..)...combine..
 	Analyze competitors
 	Create summary
 	Format slides

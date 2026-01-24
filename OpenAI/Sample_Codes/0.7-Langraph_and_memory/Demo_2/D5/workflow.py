@@ -8,27 +8,27 @@ from dataclasses import asdict
 
 def construct_graph():
     """Builds the state graph for inquiry processing."""
-    workflow = StateGraph(InquiryState)  # ✅ Use InquiryState
+    workflow = StateGraph(InquiryState)  # Use InquiryState
 
-    # ✅ Add agent nodes
+    # Add agent nodes
     workflow.add_node("intake", intake_agent)
     workflow.add_node("evaluation", evaluation_agent)
     workflow.add_node("scheduling", scheduling_agent)
     workflow.add_node("crm_update", crm_update_agent)
 
-    # ✅ Add an "end" node as a dummy function
+    # Add an "end" node as a dummy function
     workflow.add_node("end", lambda state: asdict(state))  # No processing, just a pass-through
 
-    # ✅ Define the workflow structure
+    # Define the workflow structure
     workflow.set_entry_point("intake")  
     workflow.add_edge("intake", "evaluation")
     workflow.add_edge("evaluation", "scheduling")
     workflow.add_edge("scheduling", "crm_update")
     
-    # ✅ Connect "crm_update" to the "end" node
+    # Connect "crm_update" to the "end" node
     workflow.add_edge("crm_update", "end")
 
-    # ✅ Mark "end" as the final step
+    # Mark "end" as the final step
     workflow.set_finish_point("end")  
 
     return workflow.compile()
@@ -42,7 +42,7 @@ def visualize_graph():
         ("START", "intake"),
         ("intake", "evaluation"),
         ("evaluation", "scheduling"),
-        ("scheduling", "crm_update")  # ✅ Last node (no outgoing edges)
+        ("scheduling", "crm_update")  # Last node (no outgoing edges)
     ]
     graph.add_edges_from(edges)
     
