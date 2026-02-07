@@ -1,0 +1,46 @@
+AI Application
+-------------
+Input(data/dataset/)
+ : ability to read it
+Transformation
+ : understand it, clean it..prepare it
+ : filtering and choosing if the document is good enuf for summarizing > keep it required input size
+Exploration
+ : searching through content -- matching [happy,excited,positive] 
+ : classifying, categorize, cluserting
+Usage of models
+ : Algorithm (ML)
+ : AI Models (fine tuning.. wth your data)
+    : extra layer (your org specific data will be loaded)
+output specification..
+
+can summarize any 100 words document..: summary of 20 words > testing/validation/accuracy..
+----------------
+#1.LMS
+--jupyter lab(notebooks,terminal)
+  python 
+#2. Python installed on your machine
+     --use an installer
+        --interpreter >> python >>
+        --create a file nameofyourfile.py (<--this will have your code)
+           --python nameofyourfile.py
+           --jupyter
+
+    get an IDE > visual studio
+#3: cloud platform-google cloud/azure..
+------------------------------
+Task: explore a prompt in any web interface like gpt, gemini, claude and ask 3 additiona questions about approach of the model.
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
