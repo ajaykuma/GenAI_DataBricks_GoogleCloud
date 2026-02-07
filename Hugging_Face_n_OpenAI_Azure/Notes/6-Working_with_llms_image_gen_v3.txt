@@ -1,0 +1,252 @@
+#Image Generation with Stable Diffusion Pipeline
+#dependencies
+
+> !pip install diffusers>=0.14.0 transformers torch accelerate
+
+> import torch
+> from diffusers import StableDiffusionPipeline
+
+#Load the Pretrained Model
+#- Define the model identifier (model_id) for the specific Stable Diffusion model you want to use.
+#- Load the pretrained model using StableDiffusionPipeline.from_pretrained, specifying the model ID and 
+#  setting the data type to torch.float16 for efficiency.
+
+> model_id = "dreamlike-art/dreamlike-photoreal-2.0"
+> #pipeline = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16) #if using gpu uncomment this and comment next
+> pipeline = StableDiffusionPipeline.from_pretrained(model_id) #when using cpu
+
+#Move to GPU if Available__
+#- Move the pipeline to GPU using .to("cuda") for faster processing if a GPU is available.
+#- Create a list of textual prompts (image_prompts) that will be used to generate images.
+#- Each prompt describes a scene or concept.
+
+#pipeline = pipeline.to("cuda")
+#OR with cpu
+> pipeline = pipeline.to("cpu")  # or "cuda" if you have a GPU
+
+> image_prompts = ["A serene sunset over a calm lake",
+                 "A bustling cityscape at night",
+                 "A tranquil forest with sunlight filtering through the trees"]
+
+#Initailize List to Store Images__
+#- Create an empty list (generated_images) to store the generated images.
+#- Loop over each prompt in image_prompts.
+#- For each prompt, use the pipeline to generate an image.
+#- The .images[0] accesses the first (and typically only) image in the generated output.
+#- Save each image to the local filesystem with a unique filename (image_{i}.jpg), where i is the index of the prompt.
+#- Append the generated image to the generated_images list for further use or reference.
+
+> generated_images = []
+  for i, prompt in enumerate(image_prompts):
+
+    image = pipeline(prompt).images[0]
+    image.save(f'image_{i}.jpg')
+
+    generated_images.append(image)
+
+---------------------------------------------
+To test our code using both positive and negative prompts (descriptors) in the Stable Diffusion pipeline, 
+we'll need to make use of the negative_prompt parameter, which is supported in most modern versions of diffusers (including 0.14.0).
+
+> Code
+
+# !pip install diffusers==0.14.0 transformers torch accelerate
+
+import torch
+from diffusers import StableDiffusionPipeline
+
+model_id = "dreamlike-art/dreamlike-photoreal-2.0"
+
+# Choose device
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Load pipeline
+pipeline = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16 if device == "cuda" else torch.float32)
+pipeline = pipeline.to(device)
+
+# Prompts and negative prompts
+positive_prompts = [
+    "A serene sunset over a calm lake",
+    "A bustling cityscape at night",
+    "A tranquil forest with sunlight filtering through the trees"
+]
+
+negative_prompts = [
+    "blurry, distorted, low quality",
+    "bad lighting, messy composition, low resolution",
+    "dark, unclear, out of focus"
+]
+
+generated_images = []
+
+for i, (prompt, neg_prompt) in enumerate(zip(positive_prompts, negative_prompts)):
+    image = pipeline(prompt=prompt, negative_prompt=neg_prompt).images[0]
+    image.save(f'image_{i}.jpg')
+    generated_images.append(image)
+
+-----------------------------------------
+#Note**
+#The negative_prompt helps guide the model away from undesired outputs (e.g., "blurry", "low quality").
+#Ensure your version of diffusers supports negative_prompt. The dreamlike-photoreal-2.0 model supports it.
+#If running on CPU, inference will be slow. Consider using torch_dtype=torch.float32 for compatibility.
+
+#Negative prompts guide the model to avoid specific features or artifacts in the generated images. 
+#For instance, if you desire a portrait without a mustache, instead of saying "without mustache" 
+#(which might be misinterpreted), you can use a negative prompt like:
+
+#Positive Prompt: "Portrait photo of a man"
+#Negative Prompt: "mustache"
+
+#This approach effectively instructs the model to exclude mustaches from the generated image.
+
+#Consider the following scenario:
+
+#Positive Prompt Only: "A young woman"
+
+#With Negative Prompt: "A young woman"
+#Negative Prompt: "ugly, deformed, blurry"
+
+#The first prompt might yield an image with unintended artifacts, while the second, with a negative prompt, 
+#produces a clearer and more aesthetically pleasing result.
+
+#To craft negative prompts,  here's a curated list of descriptors that users commonly employ to enhance image quality:
+
+#Quality Issues:
+#lowres, blurry, jpeg artifacts, worst quality, low quality, cropped, out of frame
+
+#Anatomical Errors:
+#extra fingers, mutated hands, poorly drawn hands, poorly drawn face, bad anatomy, bad proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck
+
+#Unwanted Elements:
+#text, error, watermark, signature, username, duplicate, morbid, mutilated, deformed, disfigured, gross proportions
+
+#These descriptors help in steering the model away from generating images with the mentioned issues.
+
+replace negative_prompts in code above and test:
+negative_prompts = [
+    "lowres, blurry, jpeg artifacts, worst quality, low quality, cropped, out of frame",
+    "bad lighting, messy composition, low resolution, text, error, watermark",
+    "dark, unclear, out of focus, deformed, disfigured, gross proportions"
+]
+------------------------------
+
+#Adding contrastive learning to your image generation pipeline (such as with Stable Diffusion) can enhance prompt-image alignment,
+# improve prompt understanding, or guide the model more precisely based on semantic differences. 
+#However, since Stable Diffusion is a pretrained model, integrating contrastive learning requires you to either 
+#fine-tune parts of the model or add a contrastive module externally.
+
+#1. Guidance with CLIP and Contrastive Loss
+#CLIP (Contrastive Language-Image Pretraining) is often used to evaluate and steer generated images via contrastive learning 
+#between image and text embeddings.
+
+--Generate multiple images for a prompt.
+--Encode prompt and images using CLIP.
+--Compute cosine similarity.
+--Select image(s) with highest alignment score.
+
+#Optional: Fine-tune or re-rank images using contrastive loss.
+
+#code:
+> 
+from PIL import Image
+import torch
+from transformers import CLIPProcessor, CLIPModel
+
+clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+def rank_images_by_clip(prompt, images):
+    inputs = clip_processor(text=[prompt], images=images, return_tensors="pt", padding=True)
+    with torch.no_grad():
+        outputs = clip_model(**inputs)
+    scores = outputs.logits_per_text.softmax(dim=1).squeeze()
+    return sorted(zip(images, scores), key=lambda x: -x[1])  # Highest score first
+
+#2. Prompt Editing via Contrastive Differences
+You can generate two prompts, e.g., "a man with a beard" and "a man without a beard", and use CLIP to ensure 
+that the difference in generated images reflects the semantic difference in text. This is called Contrastive Prompt Tuning.
+
+#3.Use a Contrastive Loss in Fine-Tuning (Advanced)
+If you're training your own model or fine-tuning Stable Diffusion (not trivial), you can add a contrastive loss 
+between the CLIP embedding of the prompt and the generated image to enforce tighter alignment.
+
+# Assume e_text and e_image are CLIP embeddings of text and generated image
+> cosine_sim = torch.nn.functional.cosine_similarity(e_text, e_image)
+> contrastive_loss = 1 - cosine_sim.mean()
+
+------------------------
+
+#To modify our current Stable Diffusion pipeline to incorporate Contrastive Prompt Tuning (CPT)
+--Generate images using different prompts (with controlled variations).
+--Use CLIP to embed both prompts and generated images.
+--Apply a contrastive loss or use embedding distance to ensure the visual difference aligns with the semantic change in the prompt.
+
+#simulate CPT by re-ranking or analyzing how well the generated image reflects the semantic contrast between prompt pairs.
+
+#For evaluation
+Generate images for positive and contrastive (negated) prompts.
+Use CLIP to evaluate how aligned the visual outputs are with their prompts.
+Simulate CPT-style control.
+
+#Install CLIP and dependencies
+> pip install transformers torch torchvision
+
+>
+import torch
+from diffusers import StableDiffusionPipeline
+from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
+import os
+
+# Load Stable Diffusion
+model_id = "dreamlike-art/dreamlike-photoreal-2.0"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+pipeline = StableDiffusionPipeline.from_pretrained(
+    model_id,
+    torch_dtype=torch.float16 if device == "cuda" else torch.float32
+).to(device)
+
+# Load CLIP model
+clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+# Pairs of prompts with contrasting semantics
+prompt_pairs = [
+    ("A man with a beard", "A man without a beard"),
+    ("A bright sunny beach", "A dark stormy beach"),
+    ("A cat sitting on a sofa", "A dog sitting on a sofa"),
+]
+
+os.makedirs("contrastive_outputs", exist_ok=True)
+
+def get_clip_similarity(image: Image.Image, text: str) -> float:
+    inputs = clip_processor(text=[text], images=image, return_tensors="pt", padding=True).to(device)
+    with torch.no_grad():
+        outputs = clip_model(**inputs)
+        similarity = outputs.logits_per_text.softmax(dim=1).squeeze().item()
+    return similarity
+
+for i, (positive_prompt, contrast_prompt) in enumerate(prompt_pairs):
+    # Generate images
+    pos_img = pipeline(prompt=positive_prompt).images[0]
+    neg_img = pipeline(prompt=contrast_prompt).images[0]
+
+    # Save images
+    pos_img.save(f"contrastive_outputs/pos_{i}.jpg")
+    neg_img.save(f"contrastive_outputs/neg_{i}.jpg")
+
+    # CLIP similarity
+    sim_pos = get_clip_similarity(pos_img, positive_prompt)
+    sim_neg = get_clip_similarity(neg_img, contrast_prompt)
+
+    print(f"\nPrompt Pair {i+1}:")
+    print(f"  {positive_prompt} -> CLIP Score: {sim_pos:.4f}")
+    print(f"  {contrast_prompt} -> CLIP Score: {sim_neg:.4f}")
+
+------------------------------------
+
+
+
+
+

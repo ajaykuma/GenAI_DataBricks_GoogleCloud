@@ -1,0 +1,49 @@
+#Shared embedding space
+
+#In a shared embedding space:
+
+#--Text (e.g., "a cat") and Images (e.g., a picture of a cat) are mapped to vectors in the same space.
+#--The cosine similarity (or other distance) between these vectors indicates how closely related they are.
+#--This is a core idea behind CLIP (Contrastive Language–Image Pretraining).
+
+>
+from PIL import Image
+import requests
+import torch
+from transformers import CLIPProcessor, CLIPModel
+
+# Load model
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+# Example image and text
+image_url = "https://raw.githubusercontent.com/openai/CLIP/main/CLIP.png"
+image = Image.open(requests.get(image_url, stream=True).raw)
+
+texts = ["A screenshot of CLIP architecture", "A photo of a cat", "A painting of a mountain"]
+
+# Preprocess inputs
+inputs = processor(text=texts, images=image, return_tensors="pt", padding=True)
+
+# Get embeddings
+with torch.no_grad():
+    outputs = model(**inputs)
+    image_embeds = outputs.image_embeds  # shape: (1, 512)
+    text_embeds = outputs.text_embeds    # shape: (3, 512)
+
+# Cosine similarity
+cos_sim = torch.nn.functional.cosine_similarity(image_embeds, text_embeds)
+for text, sim in zip(texts, cos_sim):
+    print(f"Similarity to '{text}': {sim.item():.4f}")
+
+---------Sample output--------------
+Similarity to 'A screenshot of CLIP architecture': 0.98
+Similarity to 'A photo of a cat': 0.45
+Similarity to 'A painting of a mountain': 0.32
+----------output ends----------------
+
+#Note**This shows that the image (CLIP architecture) is closest in embedding space to the matching text description.
+
+---more examples to be added..
+
+

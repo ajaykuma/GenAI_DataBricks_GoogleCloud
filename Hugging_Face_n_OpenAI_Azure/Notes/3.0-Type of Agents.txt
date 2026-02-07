@@ -1,0 +1,221 @@
+Common AI agent types :
+
+#1️: Single (Basic) Agent
+
+	One model, one goal, no special structure.
+	You give a prompt → it responds.
+
+	Example:
+	“Summarize this article.”
+
+	Use cases:
+	--Q&A
+	--Writing
+	--Simple analysis
+
+	Limitation:
+	No planning, no memory, no tool coordination.
+
+#2: ReAct Agent (Reason + Act)
+
+	An agent that thinks step by step and uses tools while reasoning.
+	ReAct = Reasoning + Acting
+
+	(loop):
+	Think: What should I do next?
+	Act: Call a tool (search, calculator, API, DB)
+	Observe result
+	Repeat until done
+
+	Simple example:
+	Task: “What’s the weather in Paris and should I carry an umbrella?”
+
+	Agent:
+	Think: I need weather data
+	Act: Call weather API
+	Observe: “Rain expected”
+	Think: Answer user
+	Act: Respond
+
+	Use cases:
+	--Web search agents
+	--Data lookup
+	--Tool-heavy tasks
+
+	Strength:
+	Handles real-world info
+	Weakness:
+	Slower, can loop if poorly designed
+
+#3: Tool-Using Agent
+
+	An agent with access to external tools, but not necessarily full ReAct reasoning.
+	Examples of tools:
+	Calculator
+	Code interpreter
+	Search engine
+	File system
+	APIs
+
+	Example:
+	“Analyze this CSV and plot a chart.”
+	The agent:
+	Loads file
+	Runs code
+	Produces output
+
+	Difference from ReAct:
+	Tool-using ≠ step-by-step reasoning loop
+	ReAct is a structured pattern of tool usage
+
+#4: Planner–Executor Agent
+
+	The agent splits work into planning and execution.
+	Planner: creates a plan
+	Executor: carries out steps
+
+	Verifier (optional): checks results
+	Example:
+	Task: “Build a marketing report about usage of llm in different continents”
+	Plan:
+
+	Research market(europe, asia. north america..)...combine..
+	Analyze competitors
+	Create summary
+	Format slides
+
+	Executor runs each step.
+
+	Use cases:
+	--Long tasks
+	--Projects with dependencies
+	--Business workflows
+
+	Strength:
+	More reliable on complex tasks
+	Weakness:
+	More overhead
+
+#5: Reflex Agent
+
+	Acts immediately based on rules or patterns, no deep reasoning.
+	Example:
+	If email contains “urgent” → notify user
+	If server CPU > 90% → restart service
+
+	Use cases:
+	--Monitoring
+	--Alerts
+	--Simple automation
+
+	Strength:
+	Fast
+	Weakness:
+	Not flexible or intelligent
+
+#6: Memory-Augmented Agent
+
+	An agent that can store and retrieve memory beyond the token limit.
+	Types of memory:
+	Short-term (current context)
+	Long-term (vector DB, files, notes)
+
+	Example:
+	Remembers your preferences
+	Remembers project decisions
+	Retrieves past conversations
+
+	Use cases:
+	--Personal assistants
+	--Long projects
+	--Customer support bots
+
+	Key benefit:
+	Avoids “forgetting” in long tasks
+
+#7: Multi-Agent System
+
+	Multiple agents, each with a role, working together.
+	Common roles:
+	Planner
+	Researcher
+	Coder
+	Critic / Reviewer
+	Manager / Coordinator
+
+	Example:
+	Task: “Write a research paper”
+
+	Agent 1: Research sources
+	Agent 2: Draft content
+	Agent 3: Check facts
+	Agent 4: Edit and polish
+	They communicate with each other.
+
+	Use cases:
+	--Complex reasoning
+	--Large projects
+	--Simulating teams
+
+	Strength:
+	Higher quality, specialization
+	Weakness:
+	Costly, coordination complexity
+
+#8: Hierarchical Agents
+
+	A boss agent that controls worker agents.
+	Structure:
+	Manager agent → assigns tasks
+	Worker agents → execute
+	Manager → reviews & combines results
+
+	Example:
+	Manager:
+	“Research, coding, testing needed”
+	Workers:
+	Research agent
+	Coding agent
+	Testing agent
+
+	Difference from multi-agent:
+	Clear chain of command
+	Less peer-to-peer chaos
+
+#9: Autonomous Agent
+
+	An agent that:
+	Sets sub-goals
+	Executes repeatedly
+	Runs until stopped
+
+	Example:
+	“Improve my website SEO every day.”
+
+	Agent:
+	Analyzes site
+	Proposes changes
+	Implements updates
+	Repeats
+
+	Use cases:
+	--Continuous optimization
+	--Monitoring systems
+	Risk:
+	Needs strong constraints to avoid runaway behavior.
+
+#10: Human-in-the-Loop Agent
+
+	An agent that asks for human approval at key steps.
+	Example:
+	Agent drafts email
+	Human approves before sending
+	
+	Use cases:
+	--Legal
+	--Finance
+	--Healthcare
+	--High-risk automation
+
+	Strength:
+	Safe and controllable
