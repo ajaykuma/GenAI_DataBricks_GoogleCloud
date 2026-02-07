@@ -1,5 +1,34 @@
 # Integrating with memory safely in LangGraph + Streamlit
+'''
+LangGraph for orchestration only
 
+Memory at application level, not graph level
+LLM called only when a product is new
+Reuse cached results otherwise
+Mix AzureChatOpenAI and AzureOpenAI intentionally
+Runnable Streamlit app (no hidden globals breaking things)
+
+1#Memory moves to Streamlit session
+
+One dictionary: PRODUCT_MEMORY
+Keyed by product name
+Stores full results
+
+2#LangGraph becomes stateless
+
+No conversational memory
+No global session buffers
+No hidden side effects
+
+3#LLM calls are conditional
+If product exists → skip graph
+If product is new → run graph once
+
+4#Mixing AzureChatOpenAI + AzureOpenAI
+Some nodes use AzureChatOpenAI
+One node uses raw AzureOpenAI
+This is explicit and deterministic
+'''
 import os
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -10,8 +39,8 @@ from langgraph.graph import StateGraph, START, END
 from openai import AzureOpenAI
 from dotenv import load_dotenv
 
-from langchain.chat_models import AzureChatOpenAI
-from langchain.schema import HumanMessage
+from langchain_community.chat_models import AzureChatOpenAI
+from langchain_core.messages import HumanMessage, BaseMessage, AIMessage
 
 # -------------------------------------------------------------------
 # Environment setup
