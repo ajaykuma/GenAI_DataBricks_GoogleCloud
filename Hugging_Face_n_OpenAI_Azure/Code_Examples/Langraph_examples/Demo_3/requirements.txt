@@ -1,0 +1,11 @@
+streamlit==1.30.0  
+pytesseract==0.3.10  
+pdf2image==1.16.3  
+pyautogen==0.7.6
+openai==1.64.0
+matplotlib==3.8.2
+matplotlib==3.8.2
+python-dotenv==1.0.1
+langchain==0.3.19  
+langgraph==0.3.0
+
