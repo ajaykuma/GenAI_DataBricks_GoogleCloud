@@ -7,6 +7,7 @@ https://gluebenchmark.com/
 https://github.com/google/BIG-bench
 https://crfm.stanford.edu/helm/
 https://super.gluebenchmark.com/
+https://github.com/microsoft/autogen
 
 Explore AI solutions/websites
 -----------------
