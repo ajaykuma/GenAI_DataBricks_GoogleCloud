@@ -1,0 +1,45 @@
+{
+  "metrics_per_file": [
+    {
+      "file": "sample_audio\\F1.mp3",
+      "status": "success",
+      "max_workers": 4,
+      "pool_type": "ThreadPoolExecutor",
+      "transcription_start": "2025-08-13 01:29:51",
+      "transcription_end": "2025-08-13 01:31:00",
+      "transcription_time": 69.42,
+      "analysis_start": "2025-08-13 01:31:00",
+      "analysis_end": "2025-08-13 01:32:56",
+      "analysis_time": 116.08,
+      "evaluation_start": "2025-08-13 01:32:56",
+      "evaluation_end": "2025-08-13 01:32:58",
+      "evaluation_time": 1.76
+    },
+    {
+      "file": "sample_audio\\audio-test.mp3",
+      "status": "success",
+      "max_workers": 4,
+      "pool_type": "ThreadPoolExecutor",
+      "transcription_start": "2025-08-13 01:29:51",
+      "transcription_end": "2025-08-13 01:30:11",
+      "transcription_time": 20.68,
+      "analysis_start": "2025-08-13 01:31:00",
+      "analysis_end": "2025-08-13 01:31:25",
+      "analysis_time": 24.92,
+      "evaluation_start": "2025-08-13 01:32:56",
+      "evaluation_end": "2025-08-13 01:32:58",
+      "evaluation_time": 1.8
+    }
+  ],
+  "summary": {
+    "total_files": 2,
+    "max_workers": 4,
+    "pool_type": "ThreadPoolExecutor",
+    "pipeline_start": "2025-08-13 01:29:51",
+    "pipeline_end": "2025-08-13 01:32:58",
+    "total_pipeline_time": 187.33,
+    "transcription_stage_time": 69.43,
+    "analysis_stage_time": 116.08,
+    "evaluation_stage_time": 1.81
+  }
+}

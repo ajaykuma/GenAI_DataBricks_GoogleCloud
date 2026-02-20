@@ -1,0 +1,9 @@
+{
+  "1.1": "Did the agent greet the customer professionally?",
+  "1.2": "Did the agent verify the customer's identity when appropriate?",
+  "1.3": "Did the agent demonstrate empathy toward the customer's situation?",
+  "1.4": "Did the agent provide accurate information and avoid misleading statements?",
+  "1.5": "Did the agent take ownership and move towards resolution?",
+  "1.6": "Did the agent adhere to compliance/mandatory disclosures?",
+  "1.7": "Did the agent summarize next steps or resolution at the end?"
+}

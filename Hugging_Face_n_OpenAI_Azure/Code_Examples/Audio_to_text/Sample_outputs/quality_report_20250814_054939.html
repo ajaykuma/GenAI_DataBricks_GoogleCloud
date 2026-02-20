@@ -1,0 +1,205 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Customer Service Quality Assessment Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                .header { text-align: center; color: #333; background-color: #f8f9fa; padding: 20px; border-radius: 10px; }
+                .summary { background-color: #e9ecef; padding: 20px; margin: 20px 0; border-radius: 8px; }
+                .question { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background-color: #f8f9fa; }
+                .yes { border-left-color: #28a745; }
+                .no { border-left-color: #dc3545; }
+                .unclear { border-left-color: #ffc107; }
+                .score { font-weight: bold; font-size: 1.2em; }
+                .evidence { background-color: #fff; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-style: italic; }
+                .confidence { color: #666; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f2f2f2; }
+                .metric { display: inline-block; margin: 10px 20px; text-align: center; }
+                .metric-value { font-size: 2em; font-weight: bold; color: #007bff; }
+                .metric-label { font-size: 0.9em; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Customer Service Quality Assessment Report</h1>
+                <p>Generated on 2025-08-14T05:49:52</p>
+                <p>Transcript: transcriptions/F1.json</p>
+            </div>
+            
+            <div class="summary">
+                <h2>Summary Metrics</h2>
+                <div class="metric">
+                    <div class="metric-value">0.26</div>
+                    <div class="metric-label">Overall Score</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">40.0%</div>
+                    <div class="metric-label">Positive Responses</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">4/10</div>
+                    <div class="metric-label">Questions Passed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">0.5</div>
+                    <div class="metric-label">Avg Confidence</div>
+                </div>
+            </div>
+            
+            <h2>Detailed Evaluation Results</h2>
+        
+            <div class="question yes">
+                <h3>Question 1.1: Did the agent use a simple and professional greeting?</h3>
+                <p><strong>Answer:</strong> <span class="score">YES</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.9,
+  "evidence": "Hello, thank you for calling Metro by T Mobile. My name is Natalie, id 33165. Tell me, how can I help you today?",
+  "explanation": "Th...</p>
+            </div>
+            
+            <div class="question yes">
+                <h3>Question 1.2: Did the agent ask for the name and phone number on the account?</h3>
+                <p><strong>Answer:</strong> <span class="score">YES</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.95,
+  "evidence": [
+    "Could you please provide to me the phone number. 610-333-3990.",
+    "Okay, so could you please provide to me the full name of t...</p>
+            </div>
+            
+            <div class="question yes">
+                <h3>Question 1.3: Did the agent mention sending a one time pin or security code?</h3>
+                <p><strong>Answer:</strong> <span class="score">YES</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.95,
+  "evidence": "Well, in order that I can help you out, I need to send to you a verification code in your text messages.",
+  "explanation": "The agent...</p>
+            </div>
+            
+            <div class="question yes">
+                <h3>Question 1.4: Was the customer's account accessed?</h3>
+                <p><strong>Answer:</strong> <span class="score">YES</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.95,
+  "evidence": "The representative asked for the customer's phone number, full name, and verification code, and confirmed the account details before p...</p>
+            </div>
+            
+            <div class="question no">
+                <h3>Question 1.5: Did the agent put the customer's needs first before verifying the account?</h3>
+                <p><strong>Answer:</strong> <span class="score">NO</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "NO",
+  "confidence": 0.8,
+  "evidence": "The agent asked for the customer's phone number and account details before confirming the customer's needs regarding switching phones.",...</p>
+            </div>
+            
+            <div class="question unclear">
+                <h3>Question 1.6: Did the agent provide a reassuring ownership statement using natural language?</h3>
+                <p><strong>Answer:</strong> <span class="score">UNCLEAR</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.85,
+  "evidence": "Well, Russell, thank you so much for being part of mesopotamobile family.",
+  "explanation": "The agent, Natalie, provides a reassurin...</p>
+            </div>
+            
+            <div class="question no">
+                <h3>Question 1.7: Did the agent connect with the customer naturally and pick up on customer cues?</h3>
+                <p><strong>Answer:</strong> <span class="score">NO</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "NO",
+  "confidence": 0.7,
+  "evidence": "The agent frequently asked for information in a mechanical manner and did not engage in any small talk or empathetic responses. For exam...</p>
+            </div>
+            
+            <div class="question no">
+                <h3>Question 1.8: Did the agent actively listen, verbally acknowledge, and act upon ALL concerns expressed by the customer?</h3>
+                <p><strong>Answer:</strong> <span class="score">NO</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "NO",
+  "confidence": 0.8,
+  "evidence": [
+    "I see here that in this line you have the insurance of $6. Correct. Do you want to keep it?",
+    "I want to see what."
+  ],
+  "ex...</p>
+            </div>
+            
+            <div class="question unclear">
+                <h3>Question 1.9: Did the agent respond to customer effort during the call?</h3>
+                <p><strong>Answer:</strong> <span class="score">UNCLEAR</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "YES",
+  "confidence": 0.85,
+  "evidence": "The agent actively engaged with the customer by confirming information and asking for necessary details, such as the phone number, IME...</p>
+            </div>
+            
+            <div class="question no">
+                <h3>Question 1.10: Did the agent express an empathy statement when needed?</h3>
+                <p><strong>Answer:</strong> <span class="score">NO</span> 
+                   <span class="confidence">(Confidence: 0.5)</span></p>
+                
+                
+                
+                <p><strong>Explanation:</strong> ```json
+{
+  "answer": "NO",
+  "confidence": 0.8,
+  "evidence": "The agent did not express any empathy statements throughout the conversation, despite the customer mentioning they were switching phones...</p>
+            </div>
+            
+        </body>
+        </html>
+        

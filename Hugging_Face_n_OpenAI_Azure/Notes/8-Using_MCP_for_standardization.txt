@@ -1,0 +1,92 @@
+#Using MCP
+pip install serpapi mcp
+pip install google-search-results
+
+export SERPAPI_API_KEY="your_key_here"
+
+#Create an MCP Server That Wraps SerpApi
+# mcp_server.py
+
+import os
+from serpapi import GoogleSearch
+from mcp.server import Server
+
+server = Server(name="serpapi-server")
+
+@server.tool()
+def google_search(query: str) -> str:
+    """
+    Search Google and return top 3 results.
+    """
+
+    params = {
+        "q": query,
+        "api_key": os.environ["SERPAPI_API_KEY"],
+        "engine": "google",
+        "num": 3
+    }
+
+    search = GoogleSearch(params)
+    results = search.get_dict()
+
+    output = []
+
+    for result in results.get("organic_results", [])[:3]:
+        title = result.get("title")
+        link = result.get("link")
+        snippet = result.get("snippet")
+        output.append(f"{title}\n{link}\n{snippet}\n")
+
+    return "\n".join(output)
+
+
+if __name__ == "__main__":
+    server.run(host="0.0.0.0", port=8000)
+
+
+@server.tool() registers google_search
+MCP exposes tool metadata automatically
+Any MCP client can now discover it dynamically
+SerpApi is safely hidden behind your MCP layer
+so, API key never touches the agent.
+
+#Using in langchain
+# langchain_app.py
+
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent
+from langchain_mcp import MCPToolkit
+
+# Connect to MCP server
+toolkit = MCPToolkit(server_url="http://localhost:8000")
+tools = toolkit.get_tools()
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent="openai-functions",
+    verbose=True,
+)
+
+response = agent.run(
+    "Who is the current CEO of NVIDIA and what is the latest news about them?"
+)
+
+print(response)
+
+#Similarly working with autogen
+from autogen import AssistantAgent
+from mcp.client import MCPClient
+
+mcp = MCPClient("http://localhost:8000")
+
+assistant = AssistantAgent(
+    name="researcher",
+    tools=mcp.list_tools()
+)
+
+assistant.run("Latest AI regulation news in the EU")
+
+#

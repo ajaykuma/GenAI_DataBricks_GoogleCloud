@@ -1,0 +1,10 @@
+assemblyai
+langchain-openai
+python-dotenv
+pandas
+numpy
+matplotlib
+seaborn
+textstat
+requests
+glob2

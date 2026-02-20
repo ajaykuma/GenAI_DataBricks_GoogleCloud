@@ -1,0 +1,60 @@
+Question_ID,Question,Answer,Confidence,Score,Evidence,Explanation
+1.1,Did the agent use a simple and professional greeting?,YES,0.5,0.5,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.9,
+  ""evidence"": ""Hello, thank you for calling Metro by T Mobile. My name is Natalie, id 33165. Tell me, how can I help you today?"",
+  ""explanation"": ""Th..."
+1.2,Did the agent ask for the name and phone number on the account?,YES,0.5,0.5,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.95,
+  ""evidence"": [
+    ""Could you please provide to me the phone number. 610-333-3990."",
+    ""Okay, so could you please provide to me the full name of t..."
+1.3,Did the agent mention sending a one time pin or security code?,YES,0.5,0.5,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.95,
+  ""evidence"": ""Well, in order that I can help you out, I need to send to you a verification code in your text messages."",
+  ""explanation"": ""The agent..."
+1.4,Was the customer's account accessed?,YES,0.5,0.5,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.95,
+  ""evidence"": ""The representative asked for the customer's phone number, full name, and verification code, and confirmed the account details before p..."
+1.5,Did the agent put the customer's needs first before verifying the account?,NO,0.5,0.0,,"```json
+{
+  ""answer"": ""NO"",
+  ""confidence"": 0.8,
+  ""evidence"": ""The agent asked for the customer's phone number and account details before confirming the customer's needs regarding switching phones."",..."
+1.6,Did the agent provide a reassuring ownership statement using natural language?,UNCLEAR,0.5,0.3,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.85,
+  ""evidence"": ""Well, Russell, thank you so much for being part of mesopotamobile family."",
+  ""explanation"": ""The agent, Natalie, provides a reassurin..."
+1.7,Did the agent connect with the customer naturally and pick up on customer cues?,NO,0.5,0.0,,"```json
+{
+  ""answer"": ""NO"",
+  ""confidence"": 0.7,
+  ""evidence"": ""The agent frequently asked for information in a mechanical manner and did not engage in any small talk or empathetic responses. For exam..."
+1.8,"Did the agent actively listen, verbally acknowledge, and act upon ALL concerns expressed by the customer?",NO,0.5,0.0,,"```json
+{
+  ""answer"": ""NO"",
+  ""confidence"": 0.8,
+  ""evidence"": [
+    ""I see here that in this line you have the insurance of $6. Correct. Do you want to keep it?"",
+    ""I want to see what.""
+  ],
+  ""ex..."
+1.9,Did the agent respond to customer effort during the call?,UNCLEAR,0.5,0.3,,"```json
+{
+  ""answer"": ""YES"",
+  ""confidence"": 0.85,
+  ""evidence"": ""The agent actively engaged with the customer by confirming information and asking for necessary details, such as the phone number, IME..."
+1.10,Did the agent express an empathy statement when needed?,NO,0.5,0.0,,"```json
+{
+  ""answer"": ""NO"",
+  ""confidence"": 0.8,
+  ""evidence"": ""The agent did not express any empathy statements throughout the conversation, despite the customer mentioning they were switching phones..."
