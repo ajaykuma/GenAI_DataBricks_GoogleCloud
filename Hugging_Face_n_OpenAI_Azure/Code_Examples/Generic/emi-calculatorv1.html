@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #151518;
+    --surface2: #1c1c21;
+    --border: #252530;
+    --border2: #2e2e3a;
+    --accent: #c8a96e;
+    --accent-glow: rgba(200,169,110,0.12);
+    --text: #e8e4dc;
+    --muted: #6b6870;
+    --green: #5dbe8a;
+    --red: #e07060;
+    --blue: #6ea8c8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 2rem;
+  }
+
+  .container { width: 100%; max-width: 960px; }
+
+  header {
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left { border-left: 3px solid var(--accent); padding-left: 1.5rem; }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  header p { color: var(--muted); font-size: 0.75rem; margin-top: 0.4rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .tab {
+    padding: 0.45rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab:hover { border-color: var(--accent); color: var(--text); }
+  .tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+  }
+
+  .card-title {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .field { margin-bottom: 1.6rem; }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.85rem;
+  }
+
+  .field label .val {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    text-transform: none;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .num-input {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    width: 130px;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: right;
+  }
+
+  .num-input:focus { border-color: var(--accent); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent) var(--pct, 0%), var(--border) var(--pct, 0%));
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s;
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-row:last-of-type { border-bottom: none; }
+
+  .result-label { font-size: 0.63rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  .result-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s;
+  }
+
+  .result-value.emi { color: var(--accent); }
+  .result-value.total { color: var(--text); font-size: 1.15rem; }
+  .result-value.interest { color: var(--red); }
+
+  .bar-container { margin-top: 1.5rem; }
+
+  .bar-label { display: flex; justify-content: space-between; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+
+  .bar-wrap { height: 8px; background: var(--border); overflow: hidden; display: flex; }
+
+  .bar-p { height: 100%; background: var(--green); transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .bar-i { height: 100%; background: var(--red); transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+
+  .legend { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.principal { background: var(--green); }
+  .dot.interest-dot { background: var(--red); }
+
+  /* Floating rate */
+  .float-panel {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem 1.2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--blue);
+    animation: fadeIn 0.25s ease;
+  }
+
+  .float-panel.show { display: block; }
+
+  .float-panel p { font-size: 0.67rem; color: var(--muted); line-height: 1.7; margin-bottom: 0.8rem; }
+
+  .float-inputs { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+
+  .mini-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .mini-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  .mini-input {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+    width: 90px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .mini-input:focus { border-color: var(--blue); }
+
+  .btn-calc {
+    padding: 0.4rem 1rem;
+    background: var(--blue);
+    border: none;
+    color: #0d0d0f;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    align-self: flex-end;
+  }
+
+  .btn-calc:hover { opacity: 0.85; }
+
+  .float-result { margin-top: 0.9rem; font-size: 0.72rem; color: var(--text); line-height: 1.8; }
+
+  /* Schedule */
+  .schedule-toggle {
+    display: block; width: 100%; margin-top: 1.5rem;
+    padding: 0.85rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .schedule-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .schedule { display: none; margin-top: 1.5rem; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .schedule.open { display: block; }
+
+  .schedule table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+
+  .schedule th {
+    font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid var(--border); text-align: right;
+    position: sticky; top: 0; background: var(--surface);
+  }
+
+  .schedule th:first-child { text-align: left; }
+  .schedule td { padding: 0.42rem 0.5rem; border-bottom: 1px solid #1a1a20; text-align: right; color: var(--muted); }
+  .schedule td:first-child { text-align: left; color: var(--text); }
+  .schedule tr:hover td { background: #1a1a22; }
+
+  /* ── Remark Card ── */
+  .remark-card {
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .remark-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--blue), transparent);
+  }
+
+  .remark-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    flex-wrap: wrap;
+  }
+
+  .remark-header-left h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+
+  .remark-header-left p {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+    max-width: 440px;
+  }
+
+  .badge {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  .chip {
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    padding: 0.32rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Mono', monospace;
+    border-radius: 20px;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  textarea.remark-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    padding: 1rem;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    line-height: 1.7;
+    transition: border-color 0.2s;
+  }
+
+  textarea.remark-input::placeholder { color: var(--muted); }
+  textarea.remark-input:focus { border-color: var(--accent); }
+
+  .remark-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .char-count { font-size: 0.6rem; color: var(--muted); }
+
+  .btn-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.4rem;
+    background: var(--accent);
+    border: none;
+    color: #0d0d0f;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    font-weight: 500;
+  }
+
+  .btn-submit:hover { background: #e8c98e; transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Ask AI button — slightly different style, purple-ish */
+  .btn-ask-ai {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.4rem;
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    font-weight: 500;
+  }
+
+  .btn-ask-ai:hover { background: rgba(110,168,200,0.1); transform: translateY(-1px); }
+  .btn-ask-ai:active { transform: translateY(0); }
+  .btn-ask-ai:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* AI response */
+  .ai-response {
+    display: none;
+    margin-top: 1.2rem;
+    padding: 1.2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--blue);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .ai-response.show { display: block; }
+
+  .ai-response-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+
+  .ai-response-body { font-size: 0.78rem; color: var(--text); line-height: 1.8; }
+  .ai-response-body strong { color: var(--accent); font-weight: 500; }
+
+  /* Typing indicator */
+  .typing-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: blink 0.9s infinite;
+    margin: 0 2px;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Submitted remarks */
+  .remarks-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .remark-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--muted);
+    animation: fadeIn 0.25s ease;
+  }
+
+  .remark-item-ts { font-size: 0.58rem; color: #444; white-space: nowrap; margin-top: 2px; }
+  .remark-item-text { flex: 1; line-height: 1.6; }
+
+  /* Tooltip */
+  .tip { position: relative; display: inline-block; }
+  .tip-body {
+    visibility: hidden; opacity: 0;
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    background: #2a2a35; border: 1px solid var(--border2);
+    color: var(--text); font-size: 0.62rem;
+    padding: 0.4rem 0.7rem; white-space: nowrap;
+    pointer-events: none; transition: opacity 0.2s; z-index: 10;
+  }
+
+  .tip:hover .tip-body { visibility: visible; opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header + Loan type tabs -->
+  <header>
+    <div class="header-left">
+      <h1>EMI<br>Calculator</h1>
+      <p>Equated Monthly Instalment</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="setLoanType(this,'home')">Home Loan</button>
+      <button class="tab" onclick="setLoanType(this,'car')">Car Loan</button>
+      <button class="tab" onclick="setLoanType(this,'personal')">Personal</button>
+      <button class="tab" onclick="setLoanType(this,'education')">Education</button>
+    </div>
+  </header>
+
+  <!-- Main grid -->
+  <div class="grid">
+    <!-- Inputs -->
+    <div class="card">
+      <div class="card-title">Loan Parameters</div>
+
+      <div class="field">
+        <label>Loan Amount <span class="val" id="lbl-amount">₹10,00,000</span></label>
+        <div class="input-row">
+          <input type="number" class="num-input" id="num-amount" value="1000000" min="50000" max="10000000" step="50000">
+          <span style="font-size:0.65rem;color:var(--muted)">₹</span>
+        </div>
+        <input type="range" id="amount" min="50000" max="10000000" step="50000" value="1000000">
+      </div>
+
+      <div class="field">
+        <label>
+          <span>Interest Rate
+            <span class="tip" style="margin-left:4px">
+              <span style="color:var(--accent);cursor:help;font-size:0.75rem">ⓘ</span>
+              <span class="tip-body">Annual rate on outstanding balance</span>
+            </span>
+          </span>
+          <span class="val" id="lbl-rate">8.5%</span>
+        </label>
+        <div class="input-row">
+          <input type="number" class="num-input" id="num-rate" value="8.5" min="1" max="30" step="0.1">
+          <span style="font-size:0.65rem;color:var(--muted)">% p.a.</span>
+        </div>
+        <input type="range" id="rate" min="1" max="30" step="0.1" value="8.5">
+      </div>
+
+      <div class="field">
+        <label>Loan Tenure <span class="val" id="lbl-tenure">20 yrs</span></label>
+        <div class="input-row">
+          <input type="number" class="num-input" id="num-tenure" value="20" min="1" max="30" step="1">
+          <span style="font-size:0.65rem;color:var(--muted)">years</span>
+        </div>
+        <input type="range" id="tenure" min="1" max="30" step="1" value="20">
+      </div>
+
+      <!-- Floating rate comparison -->
+      <button class="tab" id="float-toggle-btn" onclick="toggleFloat()" style="width:100%;text-align:center;margin-top:0.25rem">
+        + Compare Floating Rate
+      </button>
+      <div class="float-panel" id="float-panel">
+        <p>Floating rates reset periodically. Enter the projected new rate and the year it kicks in to see your new EMI.</p>
+        <div class="float-inputs">
+          <div class="mini-field">
+            <span class="mini-label">New Rate (%)</span>
+            <input type="number" class="mini-input" id="f-rate" value="9.5" min="1" max="30" step="0.1">
+          </div>
+          <div class="mini-field">
+            <span class="mini-label">From Year</span>
+            <input type="number" class="mini-input" id="f-year" value="5" min="1" max="29" step="1">
+          </div>
+          <button class="btn-calc" onclick="calcFloat()">Calculate →</button>
+        </div>
+        <div class="float-result" id="float-result"></div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+      <div class="card-title">Breakdown</div>
+
+      <div class="result-row">
+        <div class="result-label">Monthly EMI</div>
+        <div class="result-value emi" id="emi">—</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Principal Amount</div>
+        <div class="result-value total" id="principal-disp">—</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Total Interest</div>
+        <div class="result-value interest" id="interest">—</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Total Payment</div>
+        <div class="result-value total" id="total">—</div>
+      </div>
+
+      <div class="bar-container">
+        <div class="bar-label">
+          <span style="color:var(--green)">Principal</span>
+          <span style="color:var(--red)">Interest</span>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-p" id="bar-p" style="width:50%"></div>
+          <div class="bar-i" id="bar-i" style="width:50%"></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="dot principal"></div><span id="pct-p">—</span></div>
+          <div class="legend-item"><div class="dot interest-dot"></div><span id="pct-i">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amortization -->
+  <div class="card" style="margin-top:1.5rem">
+    <div class="card-title">Amortization Schedule</div>
+    <button class="schedule-toggle" onclick="toggleSchedule()">Show Full Schedule ↓</button>
+    <div class="schedule" id="schedule">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Remark + Ask AI ── -->
+  <div class="remark-card">
+    <div class="remark-header">
+      <div class="remark-header-left">
+        <h3>Something not covered here?</h3>
+        <p>Tell us what you're looking for — fixed vs. floating rates, step-up EMIs, prepayment impact, balloon payments, tax savings, or anything else. Use <em style="color:var(--accent)">Submit Remark</em> to log it for our team, or <em style="color:var(--blue)">Ask AI</em> to get an instant calculation for your specific scenario.</p>
+      </div>
+      <span class="badge">✦ Feedback & AI</span>
+    </div>
+
+    <!-- Quick-pick chips -->
+    <div class="chips">
+      <button class="chip" onclick="addChip(this,'Fixed vs Floating Rate')">Fixed vs Floating Rate</button>
+      <button class="chip" onclick="addChip(this,'Step-up EMI')">Step-up EMI</button>
+      <button class="chip" onclick="addChip(this,'Prepayment / Part-payment')">Prepayment / Part-payment</button>
+      <button class="chip" onclick="addChip(this,'Balloon Payment')">Balloon Payment</button>
+      <button class="chip" onclick="addChip(this,'Loan comparison')">Loan Comparison</button>
+      <button class="chip" onclick="addChip(this,'Tax benefit 80C / 24b')">Tax Benefit (80C / 24b)</button>
+    </div>
+
+    <textarea class="remark-input" id="remark-text" maxlength="600"
+      placeholder="e.g. I want to see how my EMI changes if the floating rate resets from 8% to 10% after 3 years, or what if I prepay ₹2L in year 4…"
+      oninput="updateCount()"></textarea>
+
+    <div class="remark-footer">
+      <span class="char-count" id="char-count">0 / 600</span>
+      <div class="btn-group">
+        <button class="btn-submit" id="submit-btn" onclick="submitRemark()">
+          Submit Remark
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="btn-ask-ai" id="ask-btn" onclick="askAI()">
+          ✦ Ask AI
+        </button>
+      </div>
+    </div>
+
+    <!-- AI response -->
+    <div class="ai-response" id="ai-response">
+      <div class="ai-response-header">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--blue)"><circle cx="12" cy="12" r="10"/></svg>
+        AI Response
+      </div>
+      <div class="ai-response-body" id="ai-response-body"></div>
+    </div>
+
+    <!-- Submitted remarks log -->
+    <div class="remarks-list" id="remarks-list"></div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+
+  /* ── Loan type presets ── */
+  const presets = {
+    home:      { amount: 3000000, rate: 8.5,  tenure: 20 },
+    car:       { amount: 800000,  rate: 9.0,  tenure: 7  },
+    personal:  { amount: 500000,  rate: 13.5, tenure: 5  },
+    education: { amount: 1500000, rate: 10.5, tenure: 10 },
+  };
+
+  function setLoanType(btn, type) {
+    document.querySelectorAll('header .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const p = presets[type];
+    setVal('amount', p.amount);
+    setVal('rate', p.rate);
+    setVal('tenure', p.tenure);
+    calculate();
+  }
+
+  function setVal(id, v) {
+    document.getElementById(id).value = v;
+    document.getElementById('num-' + id).value = v;
+    updateThumb(id);
+  }
+
+  /* ── Sync range ↔ number inputs ── */
+  function syncRange(id) {
+    const range = document.getElementById(id);
+    const num   = document.getElementById('num-' + id);
+    range.addEventListener('input', () => { num.value = range.value; updateThumb(id); calculate(); });
+    num.addEventListener('change', () => {
+      const v = Math.min(+range.max, Math.max(+range.min, +num.value || +range.min));
+      range.value = v; num.value = v; updateThumb(id); calculate();
+    });
+  }
+
+  function updateThumb(id) {
+    const el = document.getElementById(id);
+    const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+    el.style.setProperty('--pct', pct + '%');
+  }
+
+  ['amount','rate','tenure'].forEach(id => { syncRange(id); updateThumb(id); });
+
+  /* ── Calculate EMI ── */
+  function calculate() {
+    const P = +document.getElementById('amount').value;
+    const ar = +document.getElementById('rate').value;
+    const yr = +document.getElementById('tenure').value;
+    const r  = ar / 12 / 100;
+    const n  = yr * 12;
+
+    const emi   = r === 0 ? P / n : P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+    const total = emi * n;
+    const intr  = total - P;
+
+    document.getElementById('lbl-amount').textContent = fmt(P);
+    document.getElementById('lbl-rate').textContent   = ar + '%';
+    document.getElementById('lbl-tenure').textContent = yr + (yr === 1 ? ' yr' : ' yrs');
+    document.getElementById('num-amount').value = P;
+    document.getElementById('num-rate').value   = ar;
+    document.getElementById('num-tenure').value = yr;
+
+    document.getElementById('emi').textContent           = fmt(emi);
+    document.getElementById('principal-disp').textContent = fmt(P);
+    document.getElementById('total').textContent          = fmt(total);
+    document.getElementById('interest').textContent       = fmt(intr);
+
+    const pPct = (P / total * 100).toFixed(1);
+    const iPct = (100 - +pPct).toFixed(1);
+    document.getElementById('bar-p').style.width  = pPct + '%';
+    document.getElementById('bar-i').style.width  = iPct + '%';
+    document.getElementById('pct-p').textContent  = pPct + '% principal';
+    document.getElementById('pct-i').textContent  = iPct + '% interest';
+
+    // Schedule
+    const tbody = document.getElementById('schedule-body');
+    tbody.innerHTML = '';
+    let bal = P;
+    for (let i = 1; i <= n; i++) {
+      const iAmt = bal * r;
+      const pAmt = emi - iAmt;
+      bal -= pAmt;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i}</td><td>${fmt(emi)}</td><td>${fmt(pAmt)}</td><td>${fmt(iAmt)}</td><td>${fmt(Math.max(0,bal))}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function toggleSchedule() {
+    const s = document.getElementById('schedule');
+    const b = document.querySelector('.schedule-toggle');
+    s.classList.toggle('open');
+    b.textContent = s.classList.contains('open') ? 'Hide Schedule ↑' : 'Show Full Schedule ↓';
+  }
+
+  /* ── Floating rate panel ── */
+  let floatOpen = false;
+
+  function toggleFloat() {
+    floatOpen = !floatOpen;
+    document.getElementById('float-panel').classList.toggle('show', floatOpen);
+    const btn = document.getElementById('float-toggle-btn');
+    btn.classList.toggle('active', floatOpen);
+    btn.textContent = floatOpen ? '− Hide Floating Rate' : '+ Compare Floating Rate';
+  }
+
+  function calcFloat() {
+    const P   = +document.getElementById('amount').value;
+    const r1  = +document.getElementById('rate').value / 12 / 100;
+    const tot = +document.getElementById('tenure').value;
+    const r2  = +document.getElementById('f-rate').value / 12 / 100;
+    const sw  = +document.getElementById('f-year').value;
+
+    if (sw >= tot) {
+      document.getElementById('float-result').textContent = '⚠ Switch year must be less than loan tenure.';
+      return;
+    }
+
+    const nTot = tot * 12;
+    const n1   = sw * 12;
+    const emi1 = r1 === 0 ? P / nTot : P * r1 * Math.pow(1+r1,nTot) / (Math.pow(1+r1,nTot) - 1);
+
+    let bal = P;
+    for (let i = 0; i < n1; i++) { bal -= (emi1 - bal * r1); }
+
+    const n2   = nTot - n1;
+    const emi2 = r2 === 0 ? bal / n2 : bal * r2 * Math.pow(1+r2,n2) / (Math.pow(1+r2,n2) - 1);
+    const diff = emi2 - emi1;
+    const col  = diff > 0 ? 'var(--red)' : 'var(--green)';
+
+    document.getElementById('float-result').innerHTML =
+      `Fixed EMI (first ${sw} yrs)&nbsp; → <strong style="color:var(--accent)">${fmt(emi1)}/mo</strong><br>
+       New EMI after rate resets&nbsp; → <strong style="color:${col}">${fmt(emi2)}/mo</strong><br>
+       Monthly change&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → <strong style="color:${col}">${diff>0?'+':''}${fmt(diff)}/mo</strong>`;
+  }
+
+  /* ── Chips ── */
+  function addChip(btn, text) {
+    btn.classList.toggle('selected');
+    const ta = document.getElementById('remark-text');
+    if (btn.classList.contains('selected')) {
+      ta.value = ta.value ? ta.value.trimEnd() + ', ' + text : text;
+    } else {
+      ta.value = ta.value.split(', ').filter(p => p.trim() !== text).join(', ');
+    }
+    updateCount();
+  }
+
+  function updateCount() {
+    const len = document.getElementById('remark-text').value.length;
+    document.getElementById('char-count').textContent = len + ' / 600';
+  }
+
+  /* ── Submit Remark ── */
+  const submitted = [];
+
+  function submitRemark() {
+    const text = document.getElementById('remark-text').value.trim();
+    if (!text) { document.getElementById('remark-text').focus(); return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = 'Sending <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+    setTimeout(() => {
+      const ts = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      submitted.unshift({ text, ts });
+      renderRemarks();
+
+      btn.disabled = false;
+      btn.innerHTML = 'Submit Remark <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+
+      document.getElementById('remark-text').value = '';
+      updateCount();
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+
+      // Hide AI panel if open from previous ask
+      document.getElementById('ai-response').classList.remove('show');
+    }, 900);
+  }
+
+  function renderRemarks() {
+    const list = document.getElementById('remarks-list');
+    list.innerHTML = submitted.map(r => `
+      <div class="remark-item">
+        <span style="color:var(--accent);margin-top:2px">✦</span>
+        <div>
+          <div class="remark-item-text">${r.text}</div>
+          <div class="remark-item-ts">Logged at ${r.ts} · Under review</div>
+        </div>
+      </div>`).join('');
+  }
+
+  /* ── Ask AI ── */
+  function askAI() {
+    const text = document.getElementById('remark-text').value.trim();
+    if (!text) { document.getElementById('remark-text').focus(); return; }
+
+    const P  = +document.getElementById('amount').value;
+    const ar = +document.getElementById('rate').value;
+    const yr = +document.getElementById('tenure').value;
+    const r  = ar / 12 / 100;
+    const n  = yr * 12;
+    const emi = r === 0 ? P / n : P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+
+    const btn = document.getElementById('ask-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+    const responseEl = document.getElementById('ai-response');
+    const bodyEl     = document.getElementById('ai-response-body');
+    responseEl.classList.remove('show');
+
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '✦ Ask AI';
+
+      // Build contextual response based on keywords in the query
+      const q = text.toLowerCase();
+      let reply = '';
+
+      if (q.includes('fixed') && q.includes('float')) {
+        reply = `<strong>Fixed vs Floating Rate</strong><br><br>
+          With your current loan of <strong>${fmt(P)}</strong> at <strong>${ar}%</strong> for <strong>${yr} years</strong>, your EMI is <strong>${fmt(emi)}/mo</strong>.<br><br>
+          • <strong>Fixed rate</strong>: EMI stays constant at ${fmt(emi)}/mo for the entire tenure. Predictable, but usually 0.5–1% higher than floating at the time of signing.<br>
+          • <strong>Floating rate</strong>: EMI changes when the benchmark rate (MCLR/repo) changes. If the rate drops to ${(ar-1).toFixed(1)}%, your EMI falls to <strong>${fmt(calcEMI(P, ar-1, yr))}/mo</strong>. If it rises to ${(ar+1).toFixed(1)}%, it becomes <strong>${fmt(calcEMI(P, ar+1, yr))}/mo</strong>.<br><br>
+          Use the <em>"Compare Floating Rate"</em> panel above to model specific rate-reset scenarios.`;
+      } else if (q.includes('prepay') || q.includes('part pay') || q.includes('part-pay')) {
+        const prepay = 200000;
+        const monthsIn = 24;
+        let bal = P;
+        for (let i = 0; i < monthsIn; i++) bal -= (emi - bal * r);
+        const newBal = Math.max(0, bal - prepay);
+        const newEMI = calcEMI(newBal, ar, yr - monthsIn/12);
+        reply = `<strong>Prepayment Scenario</strong><br><br>
+          If you prepay <strong>₹2,00,000</strong> at the end of Year 2 (24 months in):<br><br>
+          • Outstanding balance at that point: <strong>${fmt(bal)}</strong><br>
+          • Balance after prepayment: <strong>${fmt(newBal)}</strong><br>
+          • New EMI (same remaining tenure): <strong>${fmt(newEMI)}/mo</strong> — saving <strong>${fmt(emi - newEMI)}/mo</strong><br><br>
+          Alternatively, keep the EMI the same and reduce tenure instead. Most lenders allow up to 1–2 prepayments/year penalty-free. For a custom scenario, adjust the values in the remark below and ask again.`;
+      } else if (q.includes('step') || q.includes('step-up')) {
+        const emi2 = emi * 1.15;
+        reply = `<strong>Step-up EMI</strong><br><br>
+          In a step-up plan, your EMI starts lower and increases annually as your income grows.<br><br>
+          For your loan of <strong>${fmt(P)}</strong>:<br>
+          • Year 1–3 EMI: ~<strong>${fmt(emi * 0.85)}/mo</strong><br>
+          • Year 4–7 EMI: ~<strong>${fmt(emi)}/mo</strong><br>
+          • Year 8+ EMI:  ~<strong>${fmt(emi2)}/mo</strong><br><br>
+          Step-up EMIs help younger borrowers qualify for larger loans. Total interest paid is slightly higher than a flat EMI plan. A full step-up calculator is on our roadmap — your request has been noted!`;
+      } else if (q.includes('balloon')) {
+        const balEMI = emi * 0.7;
+        reply = `<strong>Balloon Payment</strong><br><br>
+          A balloon loan has <em>lower monthly EMIs</em> with a large lump sum due at the end.<br><br>
+          Example for your loan of <strong>${fmt(P)}</strong> at ${ar}%:<br>
+          • Monthly EMI: ~<strong>${fmt(balEMI)}/mo</strong> (vs ${fmt(emi)} regular)<br>
+          • Balloon payment at end of tenure: ~<strong>${fmt(P * 0.35)}</strong><br><br>
+          Balloon structures are common for commercial/vehicle loans. Ensure you have a plan to meet the final lump sum. This feature is on our calculator roadmap!`;
+      } else if (q.includes('tax') || q.includes('80c') || q.includes('24b')) {
+        reply = `<strong>Tax Benefit on Home Loans</strong> (India)<br><br>
+          For your loan of <strong>${fmt(P)}</strong>:<br>
+          • <strong>Section 80C</strong>: Principal repayment up to ₹1.5L/yr is deductible (shared with PF, PPF, etc.)<br>
+          • <strong>Section 24b</strong>: Interest paid up to ₹2L/yr deductible for self-occupied property<br><br>
+          Your estimated annual interest in Year 1: ~<strong>${fmt((P * r) * 12)}</strong>. If above ₹2L, only ₹2L is deductible under 24b. For let-out property, there is no cap on 24b deduction. Consult a CA for your specific situation.`;
+      } else {
+        reply = `I noted your query: <em>"${text.slice(0,100)}${text.length>100?'…':''}"</em><br><br>
+          For your current setup — <strong>${fmt(P)} loan</strong> at <strong>${ar}%</strong> for <strong>${yr} years</strong> — your EMI is <strong>${fmt(emi)}/mo</strong>.<br><br>
+          Your specific scenario is a bit outside what I can calculate instantly, but I've flagged it for the team. Try the <em>"Compare Floating Rate"</em> panel for rate-change scenarios, or reword your query with specific numbers (e.g. "what if I prepay ₹3L in year 2?") and I'll do my best!`;
+      }
+
+      bodyEl.innerHTML = reply;
+      responseEl.classList.add('show');
+    }, 1300);
+  }
+
+  function calcEMI(P, ar, yr) {
+    const r = ar / 12 / 100;
+    const n = yr * 12;
+    return r === 0 ? P / n : P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+  }
+
+  calculate();
+</script>
+</body>
+</html>

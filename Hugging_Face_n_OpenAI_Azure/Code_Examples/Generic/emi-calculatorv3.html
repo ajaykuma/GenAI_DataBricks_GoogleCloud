@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:           #0b0b0e;
+    --surface:      #131317;
+    --surface2:     #1a1a20;
+    --border:       #222228;
+    --border2:      #2c2c36;
+    --accent:       #c8a96e;
+    --accent-light: #e8c98e;
+    --accent-glow:  rgba(200,169,110,0.10);
+    --text:         #e6e2da;
+    --muted:        #68656e;
+    --green:        #5dbe8a;
+    --red:          #e07060;
+    --blue:         #7ab8d4;
+    --blue-glow:    rgba(122,184,212,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 3rem 1.5rem 5rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container { width: 100%; max-width: 980px; }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left { border-left: 3px solid var(--accent); padding-left: 1.5rem; }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  header p { color: var(--muted); font-size: 0.68rem; margin-top: 0.5rem; letter-spacing: 0.18em; text-transform: uppercase; }
+
+  .loan-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; align-self: flex-start; }
+
+  .ltab {
+    padding: 0.45rem 1.1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.13em; text-transform: uppercase;
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .ltab:hover { border-color: var(--accent); color: var(--text); }
+  .ltab.on    { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  /* ── Grid ── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 660px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); padding: 1.8rem 2rem; }
+
+  .ctitle {
+    font-size: 0.58rem; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.8rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .ctitle::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 1.6rem; }
+
+  .flabel {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 0.7rem;
+  }
+
+  .fval {
+    font-family: 'Playfair Display', serif; font-size: 1rem;
+    color: var(--accent); letter-spacing: 0; text-transform: none;
+  }
+
+  .frow { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
+
+  .ninput {
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.82rem; padding: 0.3rem 0.65rem; width: 130px;
+    outline: none; text-align: right; transition: border-color 0.2s;
+  }
+  .ninput:focus { border-color: var(--accent); }
+  .funit { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--accent) var(--pct,0%), var(--border2) var(--pct,0%));
+    outline: none; cursor: pointer; margin-top: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    background: var(--accent); border-radius: 50%; cursor: pointer;
+    transition: transform 0.15s; box-shadow: 0 0 0 4px var(--accent-glow);
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.45); }
+
+  /* Floating rate */
+  .ftoggle {
+    width: 100%; margin-top: 0.5rem; padding: 0.55rem 1rem;
+    background: transparent; border: 1px dashed var(--border2);
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; text-align: left;
+  }
+  .ftoggle:hover { border-color: var(--blue); color: var(--blue); }
+  .ftoggle.open  { border-color: var(--blue); color: var(--blue); border-style: solid; }
+
+  .fpanel {
+    display: none; margin-top: 0.75rem; padding: 1rem 1.2rem;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-left: 3px solid var(--blue); animation: slideDown 0.2s ease;
+  }
+  .fpanel.open { display: block; }
+  .fpanel-desc { font-size: 0.64rem; color: var(--muted); line-height: 1.7; margin-bottom: 0.9rem; }
+
+  .finputs { display: flex; gap: 0.7rem; flex-wrap: wrap; align-items: flex-end; }
+  .minifield { display: flex; flex-direction: column; gap: 0.3rem; }
+  .minilabel { font-size: 0.57rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .miniinput {
+    background: var(--surface); border: 1px solid var(--border2);
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.78rem; padding: 0.32rem 0.6rem; width: 88px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .miniinput:focus { border-color: var(--blue); }
+
+  .btn-calc {
+    padding: 0.36rem 0.9rem; background: var(--blue); border: none;
+    color: #0b0b0e; font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; align-self: flex-end; transition: opacity 0.2s;
+  }
+  .btn-calc:hover { opacity: 0.85; }
+
+  .fresult { margin-top: 0.9rem; font-size: 0.7rem; line-height: 1.9; color: var(--text); display: none; }
+  .fresult.show { display: block; }
+
+  /* ── Results ── */
+  .rrow {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem 0; border-bottom: 1px solid var(--border);
+  }
+  .rrow:last-of-type { border-bottom: none; }
+  .rlabel { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .rval { font-family: 'Playfair Display', serif; font-weight: 700; transition: all 0.3s; }
+  .rval.big   { font-size: 1.7rem; color: var(--accent); }
+  .rval.med   { font-size: 1.15rem; color: var(--text); }
+  .rval.warn  { font-size: 1.15rem; color: var(--red); }
+
+  .barwrap { height: 7px; background: var(--border); overflow: hidden; display: flex; margin-top: 1.2rem; }
+  .barp { height: 100%; background: var(--green); transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+  .bari { height: 100%; background: var(--red);   transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+  .barlegend { display: flex; gap: 1.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
+  .bleg { display: flex; align-items: center; gap: 0.45rem; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .dp { background: var(--green); }
+  .di { background: var(--red); }
+
+  /* ── Schedule ── */
+  .sched-btn {
+    width: 100%; padding: 0.8rem; background: transparent;
+    border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sched-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sched-table { display: none; max-height: 270px; overflow-y: auto; margin-top: 1rem; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+  .sched-table.open { display: block; }
+  .sched-table table { width: 100%; border-collapse: collapse; font-size: 0.66rem; }
+  .sched-table th {
+    font-size: 0.56rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--accent); padding: 0.5rem; border-bottom: 1px solid var(--border);
+    text-align: right; position: sticky; top: 0; background: var(--surface);
+  }
+  .sched-table th:first-child { text-align: left; }
+  .sched-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #181820; text-align: right; color: var(--muted); }
+  .sched-table td:first-child { text-align: left; color: var(--text); }
+  .sched-table tr:hover td { background: #16161e; }
+
+  /* ── AI Card ── */
+  .ai-card {
+    margin-top: 1.5rem; background: var(--surface);
+    border: 1px solid var(--border); padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .ai-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--accent), transparent 70%);
+  }
+
+  .ai-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap;
+  }
+  .ai-header-left h3 {
+    font-family: 'Playfair Display', serif; font-size: 1.15rem;
+    font-weight: 400; color: var(--text); margin-bottom: 0.35rem;
+  }
+  .ai-header-left p { font-size: 0.63rem; color: var(--muted); line-height: 1.75; max-width: 460px; }
+
+  .ai-badge {
+    font-size: 0.56rem; letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 0.28rem 0.75rem; border: 1px solid var(--blue);
+    color: var(--blue); white-space: nowrap; align-self: flex-start;
+  }
+
+  .chips { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .chip {
+    font-size: 0.58rem; letter-spacing: 0.06em;
+    padding: 0.3rem 0.8rem; background: transparent;
+    border: 1px solid var(--border2); color: var(--muted);
+    cursor: pointer; font-family: 'DM Mono', monospace;
+    border-radius: 30px; transition: all 0.2s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.on    { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  textarea.ainput {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 0.76rem; padding: 1rem 1.1rem; resize: vertical;
+    min-height: 88px; outline: none; line-height: 1.75; transition: border-color 0.2s;
+  }
+  textarea.ainput::placeholder { color: var(--muted); }
+  textarea.ainput:focus { border-color: var(--accent); }
+
+  .ai-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 0.7rem; flex-wrap: wrap; gap: 0.7rem;
+  }
+  .char-ct { font-size: 0.58rem; color: var(--muted); }
+  .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .btn-remark {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.3rem; background: transparent;
+    border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.63rem;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-remark:hover { background: var(--accent-glow); }
+  .btn-remark:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-ask {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 1.3rem; background: var(--blue); border: none;
+    color: #0b0b0e; font-family: 'DM Mono', monospace;
+    font-size: 0.63rem; letter-spacing: 0.13em; text-transform: uppercase;
+    cursor: pointer; font-weight: 500; transition: all 0.2s;
+  }
+  .btn-ask:hover { background: #9ad0e8; transform: translateY(-1px); }
+  .btn-ask:active { transform: translateY(0); }
+  .btn-ask:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* AI reply box */
+  .ai-reply {
+    display: none; margin-top: 1.2rem;
+    border: 1px solid var(--border2); border-left: 3px solid var(--blue);
+    animation: fadeUp 0.3s ease; overflow: hidden;
+  }
+  .ai-reply.show { display: block; }
+
+  .air-head {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.7rem 1rem; background: var(--surface2);
+    border-bottom: 1px solid var(--border2);
+    font-size: 0.57rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue);
+  }
+  .air-pulse {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--blue);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+  .air-body {
+    padding: 1.1rem 1.2rem; font-size: 0.76rem;
+    line-height: 1.9; color: var(--text);
+  }
+  .air-body strong { color: var(--accent); font-weight: 500; }
+  .air-body p { margin-bottom: 0.7rem; }
+  .air-body p:last-child { margin-bottom: 0; }
+
+  /* Loading */
+  .ldots { display: inline-flex; gap: 3px; align-items: center; }
+  .ldot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); animation: blink 1s infinite; }
+  .ldot:nth-child(2) { animation-delay: 0.2s; }
+  .ldot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.15} 40%{opacity:1} }
+
+  /* Remarks log */
+  .remarks-log { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.55rem; }
+  .rlog-item {
+    display: flex; align-items: flex-start; gap: 0.7rem;
+    padding: 0.7rem 1rem; background: var(--surface2);
+    border: 1px solid var(--border); font-size: 0.7rem;
+    animation: fadeUp 0.25s ease;
+  }
+  .rlog-icon { color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+  .rlog-text { color: var(--muted); line-height: 1.6; flex: 1; }
+  .rlog-meta { font-size: 0.56rem; color: #3a3a46; margin-top: 3px; }
+
+  @keyframes fadeUp    { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-left">
+      <h1>EMI<br>Calculator</h1>
+      <p>Equated Monthly Instalment · India</p>
+    </div>
+    <div class="loan-tabs">
+      <button class="ltab on" onclick="setPreset(this,'home')">Home Loan</button>
+      <button class="ltab"    onclick="setPreset(this,'car')">Car Loan</button>
+      <button class="ltab"    onclick="setPreset(this,'personal')">Personal</button>
+      <button class="ltab"    onclick="setPreset(this,'education')">Education</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Inputs -->
+    <div class="card">
+      <div class="ctitle">Loan Parameters</div>
+
+      <div class="field">
+        <div class="flabel">Loan Amount <span class="fval" id="lbl-amt">₹30,00,000</span></div>
+        <div class="frow">
+          <input type="number" class="ninput" id="n-amt" value="3000000" min="50000" max="50000000" step="50000">
+          <span class="funit">₹</span>
+        </div>
+        <input type="range" id="r-amt" min="50000" max="50000000" step="50000" value="3000000">
+      </div>
+
+      <div class="field">
+        <div class="flabel">Annual Interest Rate <span class="fval" id="lbl-rate">8.5%</span></div>
+        <div class="frow">
+          <input type="number" class="ninput" id="n-rate" value="8.5" min="1" max="36" step="0.05">
+          <span class="funit">% p.a.</span>
+        </div>
+        <input type="range" id="r-rate" min="1" max="36" step="0.05" value="8.5">
+      </div>
+
+      <div class="field">
+        <div class="flabel">Loan Tenure <span class="fval" id="lbl-ten">20 yrs</span></div>
+        <div class="frow">
+          <input type="number" class="ninput" id="n-ten" value="20" min="1" max="30" step="1">
+          <span class="funit">years</span>
+        </div>
+        <input type="range" id="r-ten" min="1" max="30" step="1" value="20">
+      </div>
+
+      <button class="ftoggle" id="ft-btn" onclick="toggleFloat()">↓ &nbsp;Compare Floating Rate</button>
+      <div class="fpanel" id="fpanel">
+        <div class="fpanel-desc">Enter the projected new rate and the year it kicks in — we'll recalculate your EMI from that point on the remaining balance.</div>
+        <div class="finputs">
+          <div class="minifield">
+            <span class="minilabel">New Rate %</span>
+            <input type="number" class="miniinput" id="f-rate" value="9.5" min="1" max="36" step="0.1">
+          </div>
+          <div class="minifield">
+            <span class="minilabel">From Year</span>
+            <input type="number" class="miniinput" id="f-yr" value="5" min="1" max="29" step="1">
+          </div>
+          <button class="btn-calc" onclick="calcFloat()">Calculate →</button>
+        </div>
+        <div class="fresult" id="fresult"></div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+      <div class="ctitle">Breakdown</div>
+      <div class="rrow">
+        <div class="rlabel">Monthly EMI</div>
+        <div class="rval big" id="r-emi">—</div>
+      </div>
+      <div class="rrow">
+        <div class="rlabel">Principal Amount</div>
+        <div class="rval med" id="r-prin">—</div>
+      </div>
+      <div class="rrow">
+        <div class="rlabel">Total Interest</div>
+        <div class="rval warn" id="r-int">—</div>
+      </div>
+      <div class="rrow">
+        <div class="rlabel">Total Payment</div>
+        <div class="rval med" id="r-tot">—</div>
+      </div>
+
+      <div class="barwrap">
+        <div class="barp" id="barp" style="width:50%"></div>
+        <div class="bari" id="bari" style="width:50%"></div>
+      </div>
+      <div class="barlegend">
+        <div class="bleg"><div class="dot dp"></div><span id="pct-p">—</span></div>
+        <div class="bleg"><div class="dot di"></div><span id="pct-i">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amortization -->
+  <div class="card" style="margin-top:1.5rem">
+    <div class="ctitle">Amortization Schedule</div>
+    <button class="sched-btn" onclick="toggleSched(this)">Show Full Schedule ↓</button>
+    <div class="sched-table" id="sched">
+      <table>
+        <thead><tr>
+          <th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th>
+        </tr></thead>
+        <tbody id="sched-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AI / Remarks -->
+  <div class="ai-card">
+    <div class="ai-header">
+      <div class="ai-header-left">
+        <h3>Ask AI or Leave a Remark</h3>
+        <p>Ask any loan or personal finance question — prepayment impact, fixed vs floating, step-up EMIs, tax savings under 80C / 24b, short tenure strategies, investing surplus — and get answers grounded in your actual loan numbers. Off-topic questions receive a polite redirect. Use <span style="color:var(--accent)">Submit Remark</span> to log feature requests for our team.</p>
+      </div>
+      <span class="ai-badge">✦ AI-Powered</span>
+    </div>
+
+    <div class="chips">
+      <button class="chip" onclick="chip(this,'Fixed vs floating rate — which is better for me?')">Fixed vs Floating</button>
+      <button class="chip" onclick="chip(this,'What happens if I prepay a lump sum?')">Prepayment Impact</button>
+      <button class="chip" onclick="chip(this,'Explain step-up EMI and how it works')">Step-up EMI</button>
+      <button class="chip" onclick="chip(this,'Tax benefits under Section 80C and 24b for home loan')">Tax Benefits</button>
+      <button class="chip" onclick="chip(this,'Should I take a shorter tenure loan and invest the surplus in stocks?')">Short Tenure + Invest</button>
+      <button class="chip" onclick="chip(this,'Compare two loan options for me')">Loan Comparison</button>
+    </div>
+
+    <textarea class="ainput" id="ai-txt" maxlength="700"
+      placeholder="e.g. If I take a 10-year loan instead of 20 years and invest the difference in an index fund, will I be better off? Or: what happens if I prepay ₹5L in year 3?"
+      oninput="updCount()"></textarea>
+
+    <div class="ai-footer">
+      <span class="char-ct" id="char-ct">0 / 700</span>
+      <div class="btn-row">
+        <button class="btn-remark" id="btn-rem" onclick="submitRemark()">Submit Remark ✦</button>
+        <button class="btn-ask"    id="btn-ask" onclick="askAI()">Ask AI →</button>
+      </div>
+    </div>
+
+    <div class="ai-reply" id="ai-reply">
+      <div class="air-head">
+        <div class="air-pulse"></div>
+        AI Response · Powered by Claude
+      </div>
+      <div class="air-body" id="air-body"></div>
+    </div>
+
+    <div class="remarks-log" id="remarks-log"></div>
+  </div>
+
+</div>
+
+<script>
+  /* ── Formatting ── */
+  const fmt = n => '₹' + Math.round(Math.abs(n)).toLocaleString('en-IN');
+
+  /* ── Presets ── */
+  const PRESETS = {
+    home:      { amt: 3000000, rate: 8.5,  ten: 20 },
+    car:       { amt: 800000,  rate: 9.0,  ten: 7  },
+    personal:  { amt: 500000,  rate: 13.5, ten: 5  },
+    education: { amt: 1500000, rate: 10.5, ten: 10 },
+  };
+
+  function setPreset(btn, key) {
+    document.querySelectorAll('.ltab').forEach(t => t.classList.remove('on'));
+    btn.classList.add('on');
+    const p = PRESETS[key];
+    sync('amt', p.amt); sync('rate', p.rate); sync('ten', p.ten);
+    calculate();
+  }
+
+  function sync(id, val) {
+    document.getElementById('r-'+id).value = val;
+    document.getElementById('n-'+id).value = val;
+    thumb(id);
+  }
+
+  function thumb(id) {
+    const el = document.getElementById('r-'+id);
+    const p  = ((el.value - el.min) / (el.max - el.min)) * 100;
+    el.style.setProperty('--pct', p + '%');
+  }
+
+  function wireInput(id) {
+    const range = document.getElementById('r-'+id);
+    const num   = document.getElementById('n-'+id);
+    range.addEventListener('input', () => { num.value = range.value; thumb(id); calculate(); });
+    num.addEventListener('change', () => {
+      const v = Math.min(+range.max, Math.max(+range.min, +num.value || +range.min));
+      range.value = v; num.value = v; thumb(id); calculate();
+    });
+  }
+
+  ['amt','rate','ten'].forEach(id => { wireInput(id); thumb(id); });
+
+  /* ── EMI math ── */
+  function emiCalc(P, ar, yr) {
+    const r = ar / 12 / 100;
+    const n = Math.round(yr * 12);
+    if (r === 0) return P / n;
+    return P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+  }
+
+  function calculate() {
+    const P  = +document.getElementById('r-amt').value;
+    const ar = +document.getElementById('r-rate').value;
+    const yr = +document.getElementById('r-ten').value;
+    const r  = ar / 12 / 100;
+    const n  = Math.round(yr * 12);
+    const emi   = emiCalc(P, ar, yr);
+    const total = emi * n;
+    const intr  = total - P;
+
+    document.getElementById('lbl-amt').textContent  = fmt(P);
+    document.getElementById('lbl-rate').textContent = ar + '%';
+    document.getElementById('lbl-ten').textContent  = yr + (yr === 1 ? ' yr' : ' yrs');
+    document.getElementById('n-amt').value  = P;
+    document.getElementById('n-rate').value = ar;
+    document.getElementById('n-ten').value  = yr;
+
+    document.getElementById('r-emi').textContent  = fmt(emi);
+    document.getElementById('r-prin').textContent = fmt(P);
+    document.getElementById('r-int').textContent  = fmt(intr);
+    document.getElementById('r-tot').textContent  = fmt(total);
+
+    const pp = (P / total * 100).toFixed(1);
+    const ip = (100 - +pp).toFixed(1);
+    document.getElementById('barp').style.width = pp + '%';
+    document.getElementById('bari').style.width = ip + '%';
+    document.getElementById('pct-p').textContent = pp + '% principal';
+    document.getElementById('pct-i').textContent = ip + '% interest';
+
+    const tbody = document.getElementById('sched-body');
+    tbody.innerHTML = '';
+    let bal = P;
+    for (let i = 1; i <= n; i++) {
+      const iAmt = bal * r;
+      const pAmt = emi - iAmt;
+      bal -= pAmt;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i}</td><td>${fmt(emi)}</td><td>${fmt(pAmt)}</td><td>${fmt(iAmt)}</td><td>${fmt(Math.max(0,bal))}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function toggleSched(btn) {
+    const el = document.getElementById('sched');
+    el.classList.toggle('open');
+    btn.textContent = el.classList.contains('open') ? 'Hide Schedule ↑' : 'Show Full Schedule ↓';
+  }
+
+  /* ── Floating rate ── */
+  let floatOpen = false;
+
+  function toggleFloat() {
+    floatOpen = !floatOpen;
+    document.getElementById('fpanel').classList.toggle('open', floatOpen);
+    const btn = document.getElementById('ft-btn');
+    btn.classList.toggle('open', floatOpen);
+    btn.textContent = floatOpen ? '↑ \u00a0Hide Floating Rate' : '↓ \u00a0Compare Floating Rate';
+  }
+
+  function calcFloat() {
+    const P  = +document.getElementById('r-amt').value;
+    const ar = +document.getElementById('r-rate').value;
+    const yr = +document.getElementById('r-ten').value;
+    const r2 = +document.getElementById('f-rate').value;
+    const sw = +document.getElementById('f-yr').value;
+    const el = document.getElementById('fresult');
+
+    if (sw >= yr) { el.innerHTML = '⚠ Switch year must be less than tenure.'; el.classList.add('show'); return; }
+
+    const r1   = ar / 12 / 100;
+    const nTot = Math.round(yr * 12);
+    const emi1 = emiCalc(P, ar, yr);
+
+    let bal = P;
+    for (let i = 0; i < sw * 12; i++) bal -= (emi1 - bal * r1);
+
+    const n2   = nTot - sw * 12;
+    const emi2 = emiCalc(bal, r2, n2 / 12);
+    const diff = emi2 - emi1;
+    const col  = diff > 0 ? 'var(--red)' : 'var(--green)';
+    const sign = diff > 0 ? '+' : '';
+
+    el.innerHTML =
+      `Fixed EMI (first ${sw} yrs) → <strong>${fmt(emi1)}/mo</strong><br>
+       Balance at reset point &nbsp;&nbsp;&nbsp; → <strong>${fmt(bal)}</strong><br>
+       New EMI after rate reset &nbsp; → <strong style="color:${col}">${fmt(emi2)}/mo</strong><br>
+       Monthly change &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → <strong style="color:${col}">${sign}${fmt(diff)}/mo</strong>`;
+    el.classList.add('show');
+  }
+
+  /* ── Chips ── */
+  function chip(btn, text) {
+    btn.classList.toggle('on');
+    const ta = document.getElementById('ai-txt');
+    if (btn.classList.contains('on')) {
+      ta.value = ta.value ? ta.value.trimEnd() + ' ' + text : text;
+    } else {
+      ta.value = ta.value.replace(' ' + text, '').replace(text, '').trim();
+    }
+    updCount();
+  }
+
+  function updCount() {
+    document.getElementById('char-ct').textContent = document.getElementById('ai-txt').value.length + ' / 700';
+  }
+
+  /* ── Submit Remark ── */
+  const remarkLog = [];
+
+  function submitRemark() {
+    const text = document.getElementById('ai-txt').value.trim();
+    if (!text) { document.getElementById('ai-txt').focus(); return; }
+    const btn = document.getElementById('btn-rem');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    setTimeout(() => {
+      const ts = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      remarkLog.unshift({ text, ts });
+      renderLog();
+      document.getElementById('ai-txt').value = '';
+      updCount();
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      document.getElementById('ai-reply').classList.remove('show');
+      btn.disabled = false;
+      btn.textContent = 'Submit Remark ✦';
+    }, 600);
+  }
+
+  function renderLog() {
+    document.getElementById('remarks-log').innerHTML = remarkLog.map(r => `
+      <div class="rlog-item">
+        <span class="rlog-icon">✦</span>
+        <div style="flex:1">
+          <div class="rlog-text">${escHtml(r.text)}</div>
+          <div class="rlog-meta">Logged at ${r.ts} · Under review by team</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── Ask AI — real Claude API via artifact pattern ── */
+  async function askAI() {
+    const question = document.getElementById('ai-txt').value.trim();
+    if (!question) { document.getElementById('ai-txt').focus(); return; }
+
+    const P   = +document.getElementById('r-amt').value;
+    const ar  = +document.getElementById('r-rate').value;
+    const yr  = +document.getElementById('r-ten').value;
+    const n   = Math.round(yr * 12);
+    const emi = emiCalc(P, ar, yr);
+    const tot = emi * n;
+    const intr = tot - P;
+
+    const loanContext =
+      `Loan amount: ${fmt(P)} (${P})\n` +
+      `Annual interest rate: ${ar}%\n` +
+      `Tenure: ${yr} years (${n} months)\n` +
+      `Monthly EMI: ${fmt(emi)}\n` +
+      `Total interest payable: ${fmt(intr)}\n` +
+      `Total payment: ${fmt(tot)}`;
+
+    const systemPrompt =
+      `You are a focused financial assistant embedded inside an EMI loan calculator for Indian users. Amounts are in INR (₹).
+
+The user's current loan details are:
+${loanContext}
+
+YOUR BEHAVIOUR RULES:
+
+1. FINANCE & LOAN QUESTIONS (answer these fully):
+   Topics include: EMI calculations, prepayment, part-payment, loan tenure strategy, fixed vs floating interest rates, step-up or step-down EMIs, balloon payments, loan refinancing, comparing loan options, investing surplus EMI savings (e.g. stocks, mutual funds, SIP), short tenure vs long tenure trade-offs, opportunity cost of prepayment vs investing, tax deductions (Section 80C, 24b, 80E), home/car/personal/education loan specifics, CIBIL score, loan eligibility, and any related personal finance topic.
+   For these: give accurate, helpful answers. Reference the user's specific loan numbers where relevant. Show real calculations when they help.
+
+2. OFF-TOPIC QUESTIONS (anything unrelated to finance, loans, investing, or money):
+   Examples: recipes, sports, trivia, travel, technology, health/fitness unrelated to money, entertainment.
+   For these: respond warmly and briefly. Acknowledge their question, explain you are a loan and finance assistant, and suggest they visit claude.ai or a general search engine for help with that topic. Keep it friendly, not robotic. Do not attempt to answer the off-topic question.
+
+3. BORDERLINE QUESTIONS (loosely related to money but not loans):
+   Examples: general stock tips, crypto, real estate valuation, insurance products.
+   For these: provide a brief, helpful perspective but relate it back to their loan context where possible, or note that a financial advisor would be better placed to advise on their specific situation.
+
+FORMATTING:
+- Plain conversational text. No markdown bullet symbols (*, -, #).
+- Use paragraph breaks for readability.
+- Wrap key numbers or terms in <strong> tags.
+- Keep responses under 220 words unless a calculation genuinely requires more.
+- Always use ₹ for Indian rupee amounts.
+- Never fabricate numbers. If you calculate something, show the reasoning briefly.`;
+
+    // Show loading state
+    const replyEl = document.getElementById('ai-reply');
+    const bodyEl  = document.getElementById('air-body');
+    replyEl.classList.add('show');
+    bodyEl.innerHTML = '<span class="ldots"><span class="ldot"></span><span class="ldot"></span><span class="ldot"></span></span>';
+
+    const btn = document.getElementById('btn-ask');
+    btn.disabled = true;
+    btn.textContent = 'Thinking…';
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: question }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.content && data.content.length > 0) {
+        const raw = data.content
+          .filter(b => b.type === 'text')
+          .map(b => b.text)
+          .join('\n');
+
+        // Render: escape HTML first, then restore <strong> tags, then wrap paragraphs
+        const escaped = raw
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+
+        const withTags = escaped
+          .replace(/&lt;strong&gt;/g, '<strong>')
+          .replace(/&lt;\/strong&gt;/g, '</strong>');
+
+        const paragraphed = withTags
+          .split(/\n{2,}/)
+          .map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`)
+          .join('');
+
+        bodyEl.innerHTML = paragraphed;
+
+      } else if (data.error) {
+        bodyEl.innerHTML = `<p>The AI returned an error: <strong>${escHtml(data.error.message || 'Unknown error')}</strong>. Please try again in a moment.</p>`;
+      } else {
+        bodyEl.innerHTML = '<p>No response was returned. Please try again.</p>';
+      }
+
+    } catch (err) {
+      bodyEl.innerHTML = '<p>Unable to reach the AI. Please check your internet connection and try again.</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Ask AI →';
+  }
+
+  /* ── Init ── */
+  calculate();
+</script>
+</body>
+</html>
