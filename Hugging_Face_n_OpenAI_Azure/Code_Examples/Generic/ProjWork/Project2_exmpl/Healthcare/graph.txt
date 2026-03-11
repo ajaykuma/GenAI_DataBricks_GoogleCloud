@@ -1,0 +1,28 @@
+**Graph Flow Diagram:**
+```
+User Input
+    │
+    ▼
+[retrieve_context] ──► [planner] ──► [agent]
+                                        │
+                              ┌─────────┴──────────┐
+                              ▼                    ▼
+                           [tools]          [summarizer]
+                              │                    │
+                              └────► [agent]      END
+
+User Input:
+
+"My 70-year-old father has chronic kidney disease. I want to book a nephrologist for
+him. Also, can you summarize latest treatment methods?"
+
+Step        Node         Action
+1   retrieve_contextFAISS finds CKD guidelines + P001 summary
+2   plannerDecomposes into 3 sub-tasks
+3   agentGPT-4.1 decides: call get_patient_history
+4   toolsReturns P001 full EHR
+5   agentDecides: call book_appointment(nephrologist)
+6   toolsReturns confirmed slot with Dr. Mehta
+7   agentDecides: call search_medical_info(CKD treatment)
+8   toolsReturns Wikipedia/Medline summary
+9   summarizerGPT-4.1 writes final coherent response
