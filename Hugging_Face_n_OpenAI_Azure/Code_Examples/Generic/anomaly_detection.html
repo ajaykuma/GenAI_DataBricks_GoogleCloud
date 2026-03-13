@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anomaly Detection — Sketch Analyzer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Bebas+Neue&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1410;
+    --red: #d63c2a;
+    --amber: #e8a020;
+    --green: #2a8a4a;
+    --panel: #ede8de;
+    --border: #c8bfaa;
+    --scan: rgba(214,60,42,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+  }
+
+  /* grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 1.5rem 2.5rem;
+    border-bottom: 2px solid var(--ink);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+
+  header h1 span { color: var(--red); }
+
+  .badge {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+  }
+
+  .toolbar {
+    padding: 1rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .tool-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .tool-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 120px;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .val { font-size: 0.72rem; font-weight: 600; min-width: 2.2rem; }
+
+  select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .analyze-btn {
+    margin-left: auto;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1.8rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .analyze-btn:hover { background: var(--red); }
+  .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* scan line animation */
+  .analyze-btn .scan-line {
+    position: absolute;
+    left: 0; top: 0; width: 100%; height: 2px;
+    background: rgba(255,255,255,0.4);
+    transform: translateY(-100%);
+    animation: none;
+  }
+
+  .analyze-btn.scanning .scan-line {
+    animation: scanDown 1.2s linear infinite;
+  }
+
+  @keyframes scanDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(3000%); }
+  }
+
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pane {
+    padding: 1.5rem;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .pane:last-child { border-right: none; }
+
+  .pane-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .pane-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .dot-red { background: var(--red); }
+  .dot-amber { background: var(--amber); }
+  .dot-green { background: var(--green); }
+
+  .canvas-container {
+    position: relative;
+    border: 1px solid var(--border);
+    background: #fff;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+
+  canvas { display: block; width: 100%; }
+
+  .scan-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    transform: translateY(-100%);
+    pointer-events: none;
+  }
+
+  .scan-overlay.active {
+    animation: scanImage 1.5s ease-in-out forwards;
+  }
+
+  @keyframes scanImage {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(30000%); }
+  }
+
+  /* Anomaly list */
+  .anomaly-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .anomaly-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.8rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .anomaly-item:hover { border-color: var(--red); }
+  .anomaly-item.selected { border-color: var(--red); background: #fde8e5; }
+
+  .severity-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .anomaly-desc { font-size: 0.68rem; line-height: 1.4; }
+  .anomaly-score { font-size: 0.65rem; font-weight: 600; color: var(--red); }
+
+  /* Stats panel */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .stat-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 0.7rem;
+    border-radius: 2px;
+  }
+
+  .stat-name { font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 0.2rem; }
+  .stat-val { font-size: 1.1rem; font-weight: 600; }
+
+  /* Heatmap legend */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.62rem;
+  }
+
+  .legend-grad {
+    width: 80px; height: 8px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #2a8a4a, #e8a020, #d63c2a);
+  }
+
+  .placeholder-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #bbb;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+  }
+
+  .bottom-bar {
+    padding: 1rem 2.5rem;
+    display: flex;
+    gap: 3rem;
+    align-items: center;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .summary-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .summary-label { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; }
+  .summary-val { font-size: 1rem; font-weight: 600; }
+  .summary-val.red { color: var(--red); }
+  .summary-val.amber { color: var(--amber); }
+  .summary-val.green { color: var(--green); }
+
+  .status-msg {
+    margin-left: auto;
+    font-size: 0.68rem;
+    color: #888;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ANOMALY <span>DETECT</span></h1>
+  <span class="badge">pixel-level analysis</span>
+</header>
+
+<div class="toolbar">
+  <div class="tool-group">
+    <div class="tool-label">Sensitivity</div>
+    <div class="slider-row">
+      <input type="range" id="sensitivity" min="1" max="10" value="5">
+      <span class="val" id="sensVal">5</span>
+    </div>
+  </div>
+  <div class="tool-group">
+    <div class="tool-label">Patch Size</div>
+    <div class="slider-row">
+      <input type="range" id="patchSize" min="4" max="32" value="12" step="4">
+      <span class="val" id="patchVal">12px</span>
+    </div>
+  </div>
+  <div class="tool-group">
+    <div class="tool-label">Method</div>
+    <select id="method">
+      <option value="density">Ink Density Anomaly</option>
+      <option value="edge" selected>Edge Irregularity</option>
+      <option value="isolation">Isolated Marks</option>
+      <option value="contrast">Local Contrast</option>
+    </select>
+  </div>
+  <button class="analyze-btn" id="analyzeBtn">
+    <span class="scan-line"></span>
+    ANALYZE
+  </button>
+</div>
+
+<div class="workspace">
+  <!-- Original -->
+  <div class="pane">
+    <div class="pane-title"><span class="dot dot-green"></span>Original Sketch</div>
+    <div class="canvas-container">
+      <canvas id="originalCanvas"></canvas>
+      <div class="scan-overlay" id="scanOverlay"></div>
+    </div>
+    <div class="legend">
+      <span style="font-size:0.62rem;color:#888">scan region →</span>
+    </div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="pane">
+    <div class="pane-title"><span class="dot dot-amber"></span>Anomaly Heatmap</div>
+    <div class="canvas-container">
+      <canvas id="heatmapCanvas"></canvas>
+      <div class="placeholder-text" id="heatPlaceholder">run analysis to see heatmap</div>
+    </div>
+    <div class="legend">
+      <span style="color:#2a8a4a">normal</span>
+      <div class="legend-grad"></div>
+      <span style="color:var(--red)">anomaly</span>
+    </div>
+  </div>
+
+  <!-- Detections -->
+  <div class="pane">
+    <div class="pane-title"><span class="dot dot-red"></span>Detected Regions</div>
+    <div class="canvas-container">
+      <canvas id="detectionCanvas"></canvas>
+      <div class="placeholder-text" id="detPlaceholder">awaiting analysis</div>
+    </div>
+    <div style="font-size:0.62rem;color:#888">click a region below to highlight</div>
+    <div class="anomaly-list" id="anomalyList">
+      <div style="font-size:0.68rem;color:#aaa;padding:0.5rem">No anomalies detected yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="bottom-bar">
+  <div class="summary-item">
+    <div class="summary-label">Total Pixels</div>
+    <div class="summary-val" id="totalPixels">—</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">Anomalous Patches</div>
+    <div class="summary-val red" id="anomalyCount">—</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">Anomaly %</div>
+    <div class="summary-val amber" id="anomalyPct">—</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">Max Score</div>
+    <div class="summary-val red" id="maxScore">—</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">Ink Coverage</div>
+    <div class="summary-val green" id="inkCoverage">—</div>
+  </div>
+  <div class="status-msg" id="statusMsg">Load image and click Analyze</div>
+</div>
+
+<script>
+const IMG_SRC = '/mnt/user-data/uploads/testdata.jpg';
+
+let W, H;
+let originalData = null;
+let detectedAnomalies = [];
+
+const origCanvas = document.getElementById('originalCanvas');
+const heatCanvas = document.getElementById('heatmapCanvas');
+const detCanvas = document.getElementById('detectionCanvas');
+const ctxOrig = origCanvas.getContext('2d', {willReadFrequently: true});
+const ctxHeat = heatCanvas.getContext('2d');
+const ctxDet = detCanvas.getContext('2d');
+
+// Load image
+const img = new Image();
+img.crossOrigin = 'anonymous';
+img.onload = () => {
+  // Scale to fit nicely
+  const maxW = 340, maxH = 260;
+  const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+  W = Math.round(img.width * scale);
+  H = Math.round(img.height * scale);
+
+  [origCanvas, heatCanvas, detCanvas].forEach(c => {
+    c.width = W; c.height = H;
+  });
+
+  ctxOrig.drawImage(img, 0, 0, W, H);
+  originalData = ctxOrig.getImageData(0, 0, W, H);
+
+  // Gray placeholder for other canvases
+  ctxHeat.fillStyle = '#f0ede6';
+  ctxHeat.fillRect(0, 0, W, H);
+  ctxDet.fillStyle = '#f0ede6';
+  ctxDet.fillRect(0, 0, W, H);
+
+  document.getElementById('totalPixels').textContent = (W * H).toLocaleString();
+  document.getElementById('statusMsg').textContent = `Image loaded (${W}×${H}) — click Analyze`;
+};
+img.onerror = () => {
+  // Fallback: draw sketch manually
+  W = 340; H = 260;
+  [origCanvas, heatCanvas, detCanvas].forEach(c => { c.width=W; c.height=H; });
+  ctxOrig.fillStyle = '#fff';
+  ctxOrig.fillRect(0,0,W,H);
+
+  ctxOrig.strokeStyle = '#111'; ctxOrig.lineWidth = 2.5;
+  // Scribble blob (top-left cluster)
+  ctxOrig.beginPath();
+  for(let i=0;i<20;i++){
+    ctxOrig.lineTo(70 + Math.sin(i*0.7)*22+Math.random()*8, 45+Math.cos(i*0.9)*20+Math.random()*8);
+  }
+  ctxOrig.stroke();
+  // Arrow
+  ctxOrig.beginPath(); ctxOrig.moveTo(100,45); ctxOrig.lineTo(140,45); ctxOrig.stroke();
+  ctxOrig.beginPath(); ctxOrig.moveTo(133,39); ctxOrig.lineTo(142,45); ctxOrig.lineTo(133,51); ctxOrig.fill();
+  // Bracket
+  ctxOrig.beginPath(); ctxOrig.moveTo(155,30); ctxOrig.lineTo(160,30); ctxOrig.lineTo(160,75); ctxOrig.lineTo(155,75); ctxOrig.stroke();
+  // Hatched box
+  ctxOrig.strokeRect(28,75,40,35);
+  for(let i=0;i<5;i++){
+    ctxOrig.beginPath(); ctxOrig.moveTo(28+i*8,75); ctxOrig.lineTo(28,75+i*7); ctxOrig.stroke();
+    ctxOrig.beginPath(); ctxOrig.moveTo(40+i*5,75); ctxOrig.lineTo(68,75+i*7); ctxOrig.stroke();
+  }
+  // Small squiggle
+  ctxOrig.beginPath(); ctxOrig.moveTo(80,78);
+  for(let i=0;i<8;i++) ctxOrig.lineTo(80+i*6+Math.random()*4, 80+Math.sin(i)*12+Math.random()*4);
+  ctxOrig.stroke();
+  // Two empty boxes
+  ctxOrig.strokeRect(35,125,32,28); ctxOrig.strokeRect(78,125,32,28);
+  // Arrows pointing to bracket
+  ctxOrig.beginPath(); ctxOrig.moveTo(68,140); ctxOrig.lineTo(152,62); ctxOrig.stroke();
+  ctxOrig.beginPath(); ctxOrig.moveTo(112,140); ctxOrig.lineTo(155,70); ctxOrig.stroke();
+  // M letter
+  ctxOrig.font='bold 26px serif'; ctxOrig.fillStyle='#111';
+  ctxOrig.fillText('M', 195,120);
+  // Arrow from M
+  ctxOrig.beginPath(); ctxOrig.moveTo(220,105); ctxOrig.lineTo(248,75); ctxOrig.stroke();
+  ctxOrig.beginPath(); ctxOrig.moveTo(244,76); ctxOrig.lineTo(252,70); ctxOrig.lineTo(250,78); ctxOrig.fill();
+  // Final box
+  ctxOrig.strokeRect(250,55,36,32);
+
+  originalData = ctxOrig.getImageData(0,0,W,H);
+  ctxHeat.fillStyle='#f0ede6'; ctxHeat.fillRect(0,0,W,H);
+  ctxDet.fillStyle='#f0ede6'; ctxDet.fillRect(0,0,W,H);
+  document.getElementById('totalPixels').textContent=(W*H).toLocaleString();
+  document.getElementById('statusMsg').textContent=`Sketch drawn (${W}×${H}) — click Analyze`;
+};
+img.src = IMG_SRC;
+
+// Sliders
+document.getElementById('sensitivity').addEventListener('input', e => {
+  document.getElementById('sensVal').textContent = e.target.value;
+});
+document.getElementById('patchSize').addEventListener('input', e => {
+  document.getElementById('patchVal').textContent = e.target.value + 'px';
+});
+
+// ANALYZE
+document.getElementById('analyzeBtn').addEventListener('click', async () => {
+  if (!originalData) return;
+  const btn = document.getElementById('analyzeBtn');
+  btn.classList.add('scanning');
+  btn.disabled = true;
+  document.getElementById('statusMsg').textContent = 'Scanning...';
+
+  // Trigger scan overlay
+  const so = document.getElementById('scanOverlay');
+  so.classList.remove('active');
+  void so.offsetWidth;
+  so.classList.add('active');
+
+  await delay(200);
+  runAnalysis();
+
+  btn.classList.remove('scanning');
+  btn.disabled = false;
+});
+
+function runAnalysis() {
+  const sensitivity = parseInt(document.getElementById('sensitivity').value);
+  const patchSize = parseInt(document.getElementById('patchSize').value);
+  const method = document.getElementById('method').value;
+  const data = originalData.data;
+
+  const patchesX = Math.floor(W / patchSize);
+  const patchesY = Math.floor(H / patchSize);
+  const scores = [];
+
+  // Compute per-patch score
+  for (let py = 0; py < patchesY; py++) {
+    for (let px = 0; px < patchesX; px++) {
+      const score = computePatchScore(data, px*patchSize, py*patchSize, patchSize, method);
+      scores.push({ px, py, x: px*patchSize, y: py*patchSize, score });
+    }
+  }
+
+  // Normalize scores
+  const vals = scores.map(s => s.score);
+  const mean = vals.reduce((a,b)=>a+b,0) / vals.length;
+  const std = Math.sqrt(vals.map(v=>(v-mean)**2).reduce((a,b)=>a+b,0)/vals.length);
+  const maxVal = Math.max(...vals);
+
+  scores.forEach(s => {
+    s.normalized = maxVal > 0 ? s.score / maxVal : 0;
+    s.zscore = std > 0 ? (s.score - mean) / std : 0;
+  });
+
+  // Threshold based on sensitivity (z-score)
+  const zThresh = 3.5 - sensitivity * 0.25; // higher sensitivity = lower threshold
+  const anomalies = scores.filter(s => s.zscore > zThresh);
+
+  detectedAnomalies = anomalies;
+
+  // Draw heatmap
+  drawHeatmap(scores, patchSize, maxVal);
+
+  // Draw detection overlay
+  drawDetections(anomalies, patchSize);
+
+  // Populate list
+  populateList(anomalies, mean, std);
+
+  // Stats
+  const inkPx = Array.from({length: data.length/4}, (_,i) => {
+    const gray = (data[i*4]+data[i*4+1]+data[i*4+2])/3;
+    return gray < 200 ? 1 : 0;
+  }).reduce((a,b)=>a+b,0);
+
+  document.getElementById('anomalyCount').textContent = anomalies.length;
+  document.getElementById('anomalyPct').textContent = ((anomalies.length / scores.length)*100).toFixed(1) + '%';
+  document.getElementById('maxScore').textContent = maxVal.toFixed(2);
+  document.getElementById('inkCoverage').textContent = ((inkPx/(W*H))*100).toFixed(1) + '%';
+  document.getElementById('heatPlaceholder').style.display = 'none';
+  document.getElementById('detPlaceholder').style.display = 'none';
+  document.getElementById('statusMsg').textContent = `Analysis complete — ${anomalies.length} anomalous regions found`;
+}
+
+function computePatchScore(data, x0, y0, ps, method) {
+  const pixels = [];
+  for (let y = y0; y < Math.min(y0+ps, H); y++) {
+    for (let x = x0; x < Math.min(x0+ps, W); x++) {
+      const i = (y*W+x)*4;
+      const gray = (data[i]+data[i+1]+data[i+2])/3;
+      pixels.push(gray);
+    }
+  }
+  if (!pixels.length) return 0;
+
+  if (method === 'density') {
+    // Ink density: fraction of dark pixels
+    const dark = pixels.filter(p => p < 180).length / pixels.length;
+    // Anomaly = extreme density (either very dense or isolated single marks)
+    return dark > 0.6 ? dark * 2 : (dark > 0 && dark < 0.05 ? 1.5 : 0);
+  }
+
+  if (method === 'edge') {
+    // Edge irregularity: variance within patch
+    const mean = pixels.reduce((a,b)=>a+b,0)/pixels.length;
+    const variance = pixels.map(p=>(p-mean)**2).reduce((a,b)=>a+b,0)/pixels.length;
+    return Math.sqrt(variance);
+  }
+
+  if (method === 'isolation') {
+    // Isolated marks: dark pixel in mostly-white patch
+    const dark = pixels.filter(p => p < 180).length;
+    const pct = dark / pixels.length;
+    // Anomaly: very few dark pixels (isolated mark)
+    if (pct > 0 && pct < 0.08) return (1 - pct) * pct * 40;
+    return 0;
+  }
+
+  if (method === 'contrast') {
+    // Local contrast: max - min
+    return Math.max(...pixels) - Math.min(...pixels);
+  }
+
+  return 0;
+}
+
+function drawHeatmap(scores, patchSize, maxVal) {
+  ctxHeat.clearRect(0,0,W,H);
+  // Start from original image (dim it)
+  ctxHeat.drawImage(origCanvas, 0, 0);
+  ctxHeat.fillStyle = 'rgba(245,240,232,0.6)';
+  ctxHeat.fillRect(0,0,W,H);
+
+  scores.forEach(({ x, y, normalized }) => {
+    if (normalized < 0.05) return;
+    const r = Math.round(normalized * 214 + (1-normalized)*42);
+    const g = Math.round((1-normalized) * 138 + normalized*60);
+    const b = 42;
+    const a = normalized * 0.75;
+    ctxHeat.fillStyle = `rgba(${r},${g},${b},${a})`;
+    ctxHeat.fillRect(x, y, patchSize, patchSize);
+  });
+}
+
+function drawDetections(anomalies, patchSize) {
+  ctxDet.clearRect(0,0,W,H);
+  ctxDet.drawImage(origCanvas, 0, 0);
+
+  anomalies.forEach((a, idx) => {
+    const intensity = Math.min(1, (a.zscore - 1) / 5);
+    const color = intensity > 0.6 ? '#d63c2a' : intensity > 0.3 ? '#e8a020' : '#aaaaaa';
+    ctxDet.strokeStyle = color;
+    ctxDet.lineWidth = 1.5;
+    ctxDet.setLineDash([3,2]);
+    ctxDet.strokeRect(a.x+1, a.y+1, patchSize-2, patchSize-2);
+    ctxDet.setLineDash([]);
+
+    // Number label
+    ctxDet.fillStyle = color;
+    ctxDet.font = 'bold 7px IBM Plex Mono';
+    ctxDet.fillText(idx+1, a.x+2, a.y+8);
+  });
+}
+
+function populateList(anomalies, mean, std) {
+  const list = document.getElementById('anomalyList');
+  if (!anomalies.length) {
+    list.innerHTML = '<div style="font-size:0.68rem;color:#aaa;padding:0.5rem">No significant anomalies at this sensitivity.</div>';
+    return;
+  }
+
+  const sorted = [...anomalies].sort((a,b)=>b.zscore-a.zscore).slice(0,15);
+  list.innerHTML = sorted.map((a, i) => {
+    const sev = a.zscore > 4 ? '#d63c2a' : a.zscore > 2.5 ? '#e8a020' : '#888';
+    const label = a.zscore > 4 ? 'HIGH' : a.zscore > 2.5 ? 'MED' : 'LOW';
+    const method = document.getElementById('method').value;
+    const desc = describeAnomaly(a, method);
+    return `
+      <div class="anomaly-item" data-idx="${i}" onclick="highlightAnomaly(this, ${a.x}, ${a.y}, '${sev}')">
+        <div class="severity-dot" style="background:${sev}"></div>
+        <div class="anomaly-desc">
+          <strong style="color:${sev}">[${label}]</strong> ${desc}<br>
+          <span style="color:#888;font-size:0.6rem">pos (${a.x},${a.y}) · z=${a.zscore.toFixed(2)}</span>
+        </div>
+        <div class="anomaly-score">${a.score.toFixed(1)}</div>
+      </div>`;
+  }).join('');
+}
+
+function describeAnomaly(a, method) {
+  const descs = {
+    density: ['Dense ink cluster', 'Isolated dark mark', 'High-density region', 'Ink concentration'],
+    edge: ['High edge variance', 'Irregular stroke', 'Sharp transition', 'Noisy region'],
+    isolation: ['Isolated mark', 'Sparse ink', 'Stray pixel', 'Outlier stroke'],
+    contrast: ['High local contrast', 'Sharp boundary', 'Stark edge', 'Contrast peak']
+  };
+  const opts = descs[method] || descs.edge;
+  return opts[Math.floor(Math.random() * opts.length)];
+}
+
+function highlightAnomaly(el, x, y, color) {
+  document.querySelectorAll('.anomaly-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+
+  // Flash on detection canvas
+  const ps = parseInt(document.getElementById('patchSize').value);
+  ctxDet.clearRect(0,0,W,H);
+  ctxDet.drawImage(origCanvas,0,0);
+
+  // Redraw all detections dimmed
+  detectedAnomalies.forEach(a => {
+    ctxDet.strokeStyle = 'rgba(100,100,100,0.3)';
+    ctxDet.lineWidth = 1;
+    ctxDet.setLineDash([3,2]);
+    ctxDet.strokeRect(a.x+1, a.y+1, ps-2, ps-2);
+    ctxDet.setLineDash([]);
+  });
+
+  // Highlight selected
+  ctxDet.strokeStyle = color;
+  ctxDet.lineWidth = 2.5;
+  ctxDet.shadowColor = color;
+  ctxDet.shadowBlur = 8;
+  ctxDet.strokeRect(x-2, y-2, ps+4, ps+4);
+  ctxDet.shadowBlur = 0;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

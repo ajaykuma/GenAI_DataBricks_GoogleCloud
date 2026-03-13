@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoencoder Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --panel: #111118;
+    --border: #2a2a3a;
+    --accent: #00e5ff;
+    --accent2: #ff4d6d;
+    --accent3: #b4ff6e;
+    --text: #e8e8f0;
+    --muted: #555570;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    padding: 2rem 3rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  header span {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .controls {
+    padding: 1.5rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 160px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .val-badge {
+    font-size: 0.75rem;
+    color: var(--accent);
+    min-width: 2.5rem;
+    text-align: right;
+  }
+
+  select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  .run-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.6rem 1.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .run-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+    z-index: -1;
+  }
+
+  .run-btn:hover { color: var(--bg); }
+  .run-btn:hover::before { transform: translateX(0); }
+
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+    gap: 0;
+    padding: 2.5rem 3rem;
+    align-items: center;
+    min-height: 420px;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .stage-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stage-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .canvas-wrap canvas {
+    display: block;
+  }
+
+  .canvas-wrap .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,10,15,0.7);
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .canvas-wrap:hover .overlay { opacity: 1; }
+
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.5rem;
+  }
+
+  .arrow-line {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--muted), var(--accent));
+    position: relative;
+  }
+
+  .arrow-line::after {
+    content: '▶';
+    position: absolute;
+    right: -8px;
+    top: -7px;
+    font-size: 0.6rem;
+    color: var(--accent);
+  }
+
+  .arrow-label {
+    font-size: 0.55rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Latent space viz */
+  .latent-wrap {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 0.6rem;
+    width: 120px;
+  }
+
+  .latent-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+  }
+
+  .latent-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    transition: background 0.5s;
+  }
+
+  .metrics {
+    padding: 1rem 3rem 2rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .metric-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    min-width: 160px;
+  }
+
+  .metric-name {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+  }
+
+  .metric-value.cyan { color: var(--accent); }
+  .metric-value.red { color: var(--accent2); }
+  .metric-value.green { color: var(--accent3); }
+
+  .processing-bar {
+    height: 2px;
+    background: var(--border);
+    margin: 0 3rem;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .processing-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    width: 0%;
+    transition: width 0.8s ease;
+  }
+
+  .note {
+    margin: 0 3rem 2rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.7;
+    border-left: 2px solid var(--border);
+    padding-left: 1rem;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .processing .latent-cell {
+    animation: pulse 0.6s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Autoencoder Visualizer</h1>
+  <span>sketch compression &amp; reconstruction demo</span>
+</header>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Latent Dimensions</label>
+    <div class="slider-row">
+      <input type="range" id="latentDims" min="8" max="128" value="32" step="8">
+      <span class="val-badge" id="latentVal">32</span>
+    </div>
+  </div>
+  <div class="control-group">
+    <label>Noise Level</label>
+    <div class="slider-row">
+      <input type="range" id="noiseLevel" min="0" max="100" value="30" step="5">
+      <span class="val-badge" id="noiseVal">30%</span>
+    </div>
+  </div>
+  <div class="control-group">
+    <label>AE Type</label>
+    <select id="aeType">
+      <option value="standard">Standard AE</option>
+      <option value="denoising" selected>Denoising AE</option>
+      <option value="vae">Variational AE</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Smoothing</label>
+    <div class="slider-row">
+      <input type="range" id="smoothing" min="0" max="10" value="3" step="1">
+      <span class="val-badge" id="smoothVal">3</span>
+    </div>
+  </div>
+  <button class="run-btn" id="runBtn">▶ Run</button>
+</div>
+
+<div class="processing-bar">
+  <div class="processing-fill" id="progressBar"></div>
+</div>
+
+<div class="pipeline">
+  <!-- Input -->
+  <div class="stage">
+    <div class="stage-label">Input</div>
+    <div class="canvas-wrap">
+      <canvas id="inputCanvas" width="200" height="140"></canvas>
+      <div class="overlay">ORIGINAL</div>
+    </div>
+    <div class="stage-title" style="color: var(--text)">Raw Sketch</div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">encode</div>
+  </div>
+
+  <!-- Encoder output (noisy) -->
+  <div class="stage">
+    <div class="stage-label">Encoder Input</div>
+    <div class="canvas-wrap">
+      <canvas id="noisyCanvas" width="200" height="140"></canvas>
+      <div class="overlay">+NOISE ADDED</div>
+    </div>
+    <div class="stage-title" style="color: var(--accent2)">Noisy Input</div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">compress</div>
+  </div>
+
+  <!-- Latent space -->
+  <div class="stage">
+    <div class="stage-label">Bottleneck</div>
+    <div class="latent-wrap" id="latentWrap">
+      <div class="latent-grid" id="latentGrid"></div>
+    </div>
+    <div class="stage-title" style="color: var(--accent)">Latent Space<br><small style="font-size:0.65rem; font-weight:400; color: var(--muted)">compressed repr.</small></div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">decode</div>
+  </div>
+
+  <!-- Output -->
+  <div class="stage">
+    <div class="stage-label">Output</div>
+    <div class="canvas-wrap">
+      <canvas id="outputCanvas" width="200" height="140"></canvas>
+      <div class="overlay">RECONSTRUCTED</div>
+    </div>
+    <div class="stage-title" style="color: var(--accent3)">Cleaned Output</div>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric-card">
+    <div class="metric-name">Compression Ratio</div>
+    <div class="metric-value cyan" id="compressionRatio">—</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-name">Original Size</div>
+    <div class="metric-value" id="originalSize" style="color: var(--text)">—</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-name">Latent Size</div>
+    <div class="metric-value cyan" id="latentSize">—</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-name">Noise Removed</div>
+    <div class="metric-value green" id="noiseRemoved">—</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-name">Reconstruction Loss</div>
+    <div class="metric-value red" id="reconLoss">—</div>
+  </div>
+</div>
+
+<div class="note" id="noteText">
+  Adjust the sliders and press <strong style="color: var(--accent)">▶ Run</strong> to simulate how an autoencoder would compress and reconstruct your sketch.
+</div>
+
+<script>
+const IMG_SRC = '/mnt/user-data/uploads/testdata.jpg';
+const inputCanvas = document.getElementById('inputCanvas');
+const noisyCanvas = document.getElementById('noisyCanvas');
+const outputCanvas = document.getElementById('outputCanvas');
+const ctxIn = inputCanvas.getContext('2d');
+const ctxNoisy = noisyCanvas.getContext('2d');
+const ctxOut = outputCanvas.getContext('2d');
+
+let originalImageData = null;
+
+// Load sketch into input canvas
+const img = new Image();
+img.crossOrigin = 'anonymous';
+img.onload = () => {
+  ctxIn.drawImage(img, 0, 0, 200, 140);
+  originalImageData = ctxIn.getImageData(0, 0, 200, 140);
+  // Show placeholder in noisy/output
+  ctxNoisy.fillStyle = '#f8f8f8';
+  ctxNoisy.fillRect(0, 0, 200, 140);
+  ctxOut.fillStyle = '#f8f8f8';
+  ctxOut.fillRect(0, 0, 200, 140);
+  drawDashedText(ctxNoisy, 'press Run');
+  drawDashedText(ctxOut, 'press Run');
+};
+img.onerror = () => {
+  // Fallback: draw a representation of the sketch
+  ctxIn.fillStyle = '#fff';
+  ctxIn.fillRect(0,0,200,140);
+  drawSketchFallback(ctxIn);
+  originalImageData = ctxIn.getImageData(0, 0, 200, 140);
+  drawDashedText(ctxNoisy, 'press Run');
+  drawDashedText(ctxOut, 'press Run');
+};
+img.src = IMG_SRC;
+
+function drawSketchFallback(ctx) {
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2;
+  // Scribble circle
+  ctx.beginPath(); ctx.arc(55, 30, 14, 0, Math.PI*2); ctx.stroke();
+  // Arrow
+  ctx.beginPath(); ctx.moveTo(70,28); ctx.lineTo(95,28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(91,24); ctx.lineTo(98,28); ctx.lineTo(91,32); ctx.fill();
+  // Bracket
+  ctx.beginPath(); ctx.moveTo(105,18); ctx.lineTo(108,18); ctx.lineTo(108,48); ctx.lineTo(105,48); ctx.stroke();
+  // Boxes
+  ctx.strokeRect(30, 55, 22, 18);
+  ctx.strokeRect(55, 55, 22, 18);
+  // M letter area
+  ctx.font = 'bold 18px serif';
+  ctx.fillStyle = '#111';
+  ctx.fillText('M', 135, 65);
+  // Small box
+  ctx.strokeRect(152, 48, 20, 18);
+}
+
+function drawDashedText(ctx, text) {
+  ctx.fillStyle = '#ddd';
+  ctx.fillRect(0,0,200,140);
+  ctx.fillStyle = '#bbb';
+  ctx.font = '11px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 100, 75);
+  ctx.textAlign = 'left';
+}
+
+// Latent grid
+function buildLatentGrid(dims) {
+  const grid = document.getElementById('latentGrid');
+  grid.innerHTML = '';
+  const cols = Math.min(8, dims);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  for (let i = 0; i < dims; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'latent-cell';
+    cell.style.background = '#1a1a2e';
+    grid.appendChild(cell);
+  }
+}
+
+buildLatentGrid(32);
+
+// Slider updates
+document.getElementById('latentDims').addEventListener('input', e => {
+  document.getElementById('latentVal').textContent = e.target.value;
+  buildLatentGrid(parseInt(e.target.value));
+});
+document.getElementById('noiseLevel').addEventListener('input', e => {
+  document.getElementById('noiseVal').textContent = e.target.value + '%';
+});
+document.getElementById('smoothing').addEventListener('input', e => {
+  document.getElementById('smoothVal').textContent = e.target.value;
+});
+
+// Main simulation
+document.getElementById('runBtn').addEventListener('click', runSimulation);
+
+async function runSimulation() {
+  if (!originalImageData) return;
+  const btn = document.getElementById('runBtn');
+  btn.textContent = '⏳ Processing...';
+  btn.disabled = true;
+
+  const noiseLevel = parseInt(document.getElementById('noiseLevel').value) / 100;
+  const latentDims = parseInt(document.getElementById('latentDims').value);
+  const smoothing = parseInt(document.getElementById('smoothing').value);
+  const aeType = document.getElementById('aeType').value;
+
+  const progress = document.getElementById('progressBar');
+
+  // Step 1: show noisy input
+  progress.style.width = '20%';
+  await delay(300);
+  applyNoise(originalImageData, noiseLevel);
+
+  // Step 2: animate latent space
+  progress.style.width = '50%';
+  await delay(300);
+  animateLatent(latentDims);
+
+  // Step 3: reconstruct
+  progress.style.width = '80%';
+  await delay(600);
+  reconstruct(originalImageData, smoothing, aeType, latentDims);
+
+  progress.style.width = '100%';
+  await delay(400);
+
+  updateMetrics(latentDims, noiseLevel, aeType);
+  updateNote(aeType, latentDims, smoothing);
+
+  btn.textContent = '▶ Run';
+  btn.disabled = false;
+
+  setTimeout(() => { progress.style.width = '0%'; }, 1000);
+}
+
+function applyNoise(imageData, level) {
+  ctxNoisy.putImageData(imageData, 0, 0);
+  const noisy = ctxNoisy.getImageData(0, 0, 200, 140);
+  const d = noisy.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * level * 255 * 2;
+    d[i] = Math.max(0, Math.min(255, d[i] + n));
+    d[i+1] = Math.max(0, Math.min(255, d[i+1] + n));
+    d[i+2] = Math.max(0, Math.min(255, d[i+2] + n));
+    // Randomly drop pixels
+    if (Math.random() < level * 0.2) {
+      d[i] = d[i+1] = d[i+2] = Math.random() > 0.5 ? 0 : 255;
+    }
+  }
+  ctxNoisy.putImageData(noisy, 0, 0);
+}
+
+function animateLatent(dims) {
+  const cells = document.querySelectorAll('.latent-cell');
+  cells.forEach(cell => {
+    const v = Math.random();
+    const h = Math.round(v * 200 + 160) % 360;
+    const l = Math.round(20 + v * 50);
+    cell.style.background = `hsl(${h}, 80%, ${l}%)`;
+  });
+}
+
+function reconstruct(imageData, smoothing, aeType, latentDims) {
+  // Start from original data
+  ctxOut.putImageData(imageData, 0, 0);
+
+  // Apply smoothing (gaussian-like box blur)
+  for (let s = 0; s < smoothing; s++) {
+    boxBlur(ctxOut, 200, 140);
+  }
+
+  // Threshold for sketch cleanup (white bg, dark lines)
+  const out = ctxOut.getImageData(0, 0, 200, 140);
+  const d = out.data;
+
+  // Compression artifact: reduce detail based on latent dims
+  const detailLoss = Math.max(0, 1 - latentDims / 128);
+
+  for (let i = 0; i < d.length; i += 4) {
+    const gray = (d[i] + d[i+1] + d[i+2]) / 3;
+
+    let threshold = aeType === 'vae' ? 160 : (aeType === 'denoising' ? 140 : 150);
+
+    // Clean up light noise
+    let cleaned = gray > threshold ? 255 : gray;
+
+    // Add slight quantization based on compression
+    if (detailLoss > 0) {
+      const steps = Math.round(4 + (1 - detailLoss) * 12);
+      cleaned = Math.round(cleaned / (256 / steps)) * (256 / steps);
+    }
+
+    d[i] = d[i+1] = d[i+2] = Math.min(255, cleaned);
+  }
+
+  ctxOut.putImageData(out, 0, 0);
+
+  // For VAE add slight softness
+  if (aeType === 'vae') {
+    boxBlur(ctxOut, 200, 140);
+  }
+}
+
+function boxBlur(ctx, w, h) {
+  const src = ctx.getImageData(0, 0, w, h);
+  const dst = ctx.createImageData(w, h);
+  const s = src.data, d = dst.data;
+  for (let y = 1; y < h-1; y++) {
+    for (let x = 1; x < w-1; x++) {
+      for (let c = 0; c < 3; c++) {
+        let sum = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            sum += s[((y+dy)*w+(x+dx))*4+c];
+          }
+        }
+        d[(y*w+x)*4+c] = sum / 9;
+      }
+      d[(y*w+x)*4+3] = 255;
+    }
+  }
+  // copy edges
+  for (let i = 0; i < w*h*4; i++) {
+    if (d[i] === 0 && s[i] > 0) d[i] = s[i];
+  }
+  ctx.putImageData(dst, 0, 0);
+}
+
+function updateMetrics(latentDims, noiseLevel, aeType) {
+  const W = 200, H = 140;
+  const origBytes = W * H * 3;
+  const latentBytes = latentDims * 4;
+  const ratio = (origBytes / latentBytes).toFixed(0);
+
+  document.getElementById('compressionRatio').textContent = ratio + '×';
+  document.getElementById('originalSize').textContent = (origBytes / 1024).toFixed(1) + ' KB';
+  document.getElementById('latentSize').textContent = latentBytes + ' B';
+  document.getElementById('noiseRemoved').textContent = Math.round(noiseLevel * 100) + '%';
+
+  const loss = aeType === 'vae' ? (0.05 + (1 - latentDims/128) * 0.15).toFixed(3)
+             : aeType === 'denoising' ? (0.03 + (1 - latentDims/128) * 0.1).toFixed(3)
+             : (0.02 + (1 - latentDims/128) * 0.08).toFixed(3);
+  document.getElementById('reconLoss').textContent = loss;
+}
+
+function updateNote(aeType, latentDims, smoothing) {
+  const notes = {
+    standard: `Standard AE encodes the sketch to ${latentDims} dimensions — capturing the essential shapes (boxes, arrows, "M") while discarding fine stroke details. Lower latent dims = more compression but blurrier output.`,
+    denoising: `Denoising AE is ideal for your sketch: it was trained to strip noise and reconstruct clean lines. With ${latentDims} dims and smoothing=${smoothing}, the scribbled shapes get averaged into cleaner forms, but the scribble-heavy areas (hatched box, tangled circle) may simplify significantly.`,
+    vae: `Variational AE maps the sketch to a probability distribution in ${latentDims}-dim latent space. Output is slightly softer/blurrier but generalizes better. The squiggly marks will smooth out more aggressively than with standard or denoising AE.`
+  };
+  document.getElementById('noteText').innerHTML = notes[aeType];
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
