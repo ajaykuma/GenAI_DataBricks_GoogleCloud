@@ -188,6 +188,117 @@ DOCTOR_SCHEDULES = {
     "general":         ["Dr. Singh", "Dr. Das"]
 }
 
+DOCTOR_DB = {
+    "Dr. Mehta": {
+        "full_name": "Dr. Rajesh Mehta",
+        "specialty": "Nephrologist",
+        "clinic": "City Nephrology Center",
+        "phone": "+1-555-0101",
+        "email": "r.mehta@citynephrology.com",
+        "hours": "Mon-Fri 9AM-5PM",
+        "room": "Room 201, Block A"
+    },
+    "Dr. Patel": {
+        "full_name": "Dr. Sneha Patel",
+        "specialty": "Nephrologist",
+        "clinic": "City Nephrology Center",
+        "phone": "+1-555-0102",
+        "email": "s.patel@citynephrology.com",
+        "hours": "Mon-Wed-Fri 10AM-6PM",
+        "room": "Room 202, Block A"
+    },
+    "Dr. Nair": {
+        "full_name": "Dr. Suresh Nair",
+        "specialty": "Cardiologist",
+        "clinic": "Heart Care Clinic",
+        "phone": "+1-555-0201",
+        "email": "s.nair@heartcareclinic.com",
+        "hours": "Mon-Fri 8AM-4PM",
+        "room": "Room 301, Block B"
+    },
+    "Dr. Sharma": {
+        "full_name": "Dr. Priya Sharma",
+        "specialty": "Cardiologist",
+        "clinic": "Heart Care Clinic",
+        "phone": "+1-555-0202",
+        "email": "p.sharma@heartcareclinic.com",
+        "hours": "Tue-Thu-Sat 9AM-5PM",
+        "room": "Room 302, Block B"
+    },
+    "Dr. Kumar": {
+        "full_name": "Dr. Anil Kumar",
+        "specialty": "Pulmonologist",
+        "clinic": "Lung & Respiratory Center",
+        "phone": "+1-555-0301",
+        "email": "a.kumar@lungcenter.com",
+        "hours": "Mon-Fri 9AM-5PM",
+        "room": "Room 401, Block C"
+    },
+    "Dr. Joshi": {
+        "full_name": "Dr. Meera Joshi",
+        "specialty": "Pulmonologist",
+        "clinic": "Lung & Respiratory Center",
+        "phone": "+1-555-0302",
+        "email": "m.joshi@lungcenter.com",
+        "hours": "Mon-Wed-Fri 8AM-4PM",
+        "room": "Room 402, Block C"
+    },
+    "Dr. Rao": {
+        "full_name": "Dr. Venkat Rao",
+        "specialty": "Neurologist",
+        "clinic": "NeuroHealth Institute",
+        "phone": "+1-555-0401",
+        "email": "v.rao@neurohealth.com",
+        "hours": "Mon-Fri 10AM-6PM",
+        "room": "Room 501, Block D"
+    },
+    "Dr. Iyer": {
+        "full_name": "Dr. Lakshmi Iyer",
+        "specialty": "Neurologist",
+        "clinic": "NeuroHealth Institute",
+        "phone": "+1-555-0402",
+        "email": "l.iyer@neurohealth.com",
+        "hours": "Tue-Thu 9AM-5PM",
+        "room": "Room 502, Block D"
+    },
+    "Dr. Gupta": {
+        "full_name": "Dr. Ramesh Gupta",
+        "specialty": "Endocrinologist",
+        "clinic": "Diabetes & Hormone Clinic",
+        "phone": "+1-555-0501",
+        "email": "r.gupta@diabetesclinic.com",
+        "hours": "Mon-Fri 9AM-5PM",
+        "room": "Room 601, Block E"
+    },
+    "Dr. Verma": {
+        "full_name": "Dr. Anjali Verma",
+        "specialty": "Endocrinologist",
+        "clinic": "Diabetes & Hormone Clinic",
+        "phone": "+1-555-0502",
+        "email": "a.verma@diabetesclinic.com",
+        "hours": "Mon-Wed-Fri 10AM-6PM",
+        "room": "Room 602, Block E"
+    },
+    "Dr. Singh": {
+        "full_name": "Dr. Harpreet Singh",
+        "specialty": "General Practitioner",
+        "clinic": "City Medical Center",
+        "phone": "+1-555-0601",
+        "email": "h.singh@citymedical.com",
+        "hours": "Mon-Sat 8AM-6PM",
+        "room": "Room 101, Block A"
+    },
+    "Dr. Das": {
+        "full_name": "Dr. Monika Das",
+        "specialty": "General Practitioner",
+        "clinic": "City Medical Center",
+        "phone": "+1-555-0602",
+        "email": "m.das@citymedical.com",
+        "hours": "Mon-Fri 9AM-5PM",
+        "room": "Room 102, Block A"
+    }
+}
+
 # ─────────────────────────────────────────────────────────────────
 # TOOLS
 # ─────────────────────────────────────────────────────────────────
@@ -268,6 +379,59 @@ def list_all_patients() -> str:
         })
     return json.dumps(summary, indent=2)
 
+
+@tool
+def get_doctor_info(doctor_name: str) -> str:
+    """Get contact details, clinic, phone, email and working hours
+    for a doctor by name. Use when patient asks about a doctor's
+    contact information or availability.
+    Examples: 'Dr. Mehta', 'Dr. Nair', 'Sharma'
+    """
+    name_lower = doctor_name.lower()
+    matches = []
+    for key, info in DOCTOR_DB.items():
+        if name_lower in key.lower() or name_lower in info["full_name"].lower():
+            matches.append(info)
+    if not matches:
+        available = list(DOCTOR_DB.keys())
+        return (f"No doctor found matching '{doctor_name}'. "
+                f"Available: {available}")
+    results = []
+    for doc in matches:
+        results.append(
+            f"Name     : {doc['full_name']}\n"
+            f"Specialty: {doc['specialty']}\n"
+            f"Clinic   : {doc['clinic']}\n"
+            f"Phone    : {doc['phone']}\n"
+            f"Email    : {doc['email']}\n"
+            f"Hours    : {doc['hours']}\n"
+            f"Location : {doc['room']}"
+        )
+    return "\n\n".join(results)
+
+
+@tool
+def add_patient_note(patient_id: str, note: str) -> str:
+    """Add a clinical note to a patient's record permanently.
+    Use for updates like new symptoms, phone calls, pregnancy,
+    medication changes, or any important observation.
+    """
+    if patient_id not in PATIENT_DB:
+        return f"Patient {patient_id} not found."
+    if "notes" not in PATIENT_DB[patient_id]:
+        PATIENT_DB[patient_id]["notes"] = []
+    new_note = {
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "time": datetime.now().strftime("%H:%M"),
+        "note": note
+    }
+    PATIENT_DB[patient_id]["notes"].append(new_note)
+    _save_patient_db()
+    return (
+        f"Note saved for patient {patient_id}:\n"
+        f"  Date: {new_note['date']} {new_note['time']}\n"
+        f"  Note: {note}"
+    )
 
 @tool
 def search_medical_info(query: str) -> str:

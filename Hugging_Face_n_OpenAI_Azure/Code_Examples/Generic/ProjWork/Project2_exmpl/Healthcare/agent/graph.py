@@ -12,20 +12,23 @@ from .tools import (
     book_appointment,
     update_patient_record,
     list_all_patients,
-    search_medical_info
+    search_medical_info,
+    get_doctor_info,
+    add_patient_note
 )
+
 from .memory import retrieve_context
 from .prompts import SYSTEM_PROMPT, PLANNER_PROMPT
 
 from dotenv import load_dotenv
-load_dotenv()  # ← fixed: removed hardcoded path
+load_dotenv()
 
 # ── LLM Setup ─────────────────────────────────────────────────────
 llm = AzureChatOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_key=os.getenv("API_KEY"),
-    api_version=os.getenv("AZURE_API_VERSION"),           # ← from .env
-    azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME"),  # ← from .env
+    api_version=os.getenv("AZURE_API_VERSION"),
+    azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME"),
     temperature=0,
 )
 
@@ -35,8 +38,11 @@ tools = [
     book_appointment,
     update_patient_record,
     list_all_patients,
-    search_medical_info
+    search_medical_info,
+    get_doctor_info,
+    add_patient_note
 ]
+
 llm_with_tools = llm.bind_tools(tools)
 
 # ── Node 1: Retrieve Context from Memory ─────────────────────────
@@ -69,17 +75,44 @@ tool_node = ToolNode(tools)
 def summarizer_node(state: AgentState) -> AgentState:
     messages = state["messages"]
 
-    # ← fixed: ToolMessage is the correct type to check, not m.role == 'tool'
     tool_outputs = [
         f"Tool: {m.name}\nResult: {m.content}"
         for m in messages
         if isinstance(m, ToolMessage)
     ]
 
-    tool_summary = "\n\n".join(tool_outputs) if tool_outputs else "No tools were called."
+    # ── No tools called = general health question ─────────────────
+    if not tool_outputs:
+        # Find last AI response
+        ai_messages = [
+            m for m in messages
+            if hasattr(m, "content")
+            and not isinstance(m, ToolMessage)
+            and not isinstance(m, HumanMessage)
+            and not isinstance(m, SystemMessage)
+        ]
+        if ai_messages and len(ai_messages[-1].content.strip()) > 20:
+            # AI already answered — return directly without re-wrapping
+            return {"final_response": ai_messages[-1].content}
 
-    summary_prompt = f"""Based on the conversation and tool results below,
-provide a clear, empathetic summary for the patient or attendant.
+        # AI gave no useful answer — ask directly
+        original_query = state["messages"][0].content
+        direct = llm.invoke([
+            SystemMessage(content=(
+                "You are a helpful medical assistant. "
+                "Answer the question clearly in plain language. "
+                "Do NOT frame your answer as a clinical summary or patient report. "
+                "Do NOT mention patient records, appointments, or next steps "
+                "unless directly asked."
+            )),
+            HumanMessage(content=original_query)
+        ])
+        return {"final_response": direct.content}
+
+    # ── Tools were called = patient or search query ───────────────
+    tool_summary = "\n\n".join(tool_outputs)
+    summary_prompt = f"""Based on the tool results below, provide a clear and 
+empathetic summary for the patient or attendant.
 Include: what was found, what was done, and any important next steps.
 Do not repeat raw JSON — summarize in plain language.
 
