@@ -379,59 +379,7 @@ def list_all_patients() -> str:
         })
     return json.dumps(summary, indent=2)
 
-
-@tool
-def get_doctor_info(doctor_name: str) -> str:
-    """Get contact details, clinic, phone, email and working hours
-    for a doctor by name. Use when patient asks about a doctor's
-    contact information or availability.
-    Examples: 'Dr. Mehta', 'Dr. Nair', 'Sharma'
-    """
-    name_lower = doctor_name.lower()
-    matches = []
-    for key, info in DOCTOR_DB.items():
-        if name_lower in key.lower() or name_lower in info["full_name"].lower():
-            matches.append(info)
-    if not matches:
-        available = list(DOCTOR_DB.keys())
-        return (f"No doctor found matching '{doctor_name}'. "
-                f"Available: {available}")
-    results = []
-    for doc in matches:
-        results.append(
-            f"Name     : {doc['full_name']}\n"
-            f"Specialty: {doc['specialty']}\n"
-            f"Clinic   : {doc['clinic']}\n"
-            f"Phone    : {doc['phone']}\n"
-            f"Email    : {doc['email']}\n"
-            f"Hours    : {doc['hours']}\n"
-            f"Location : {doc['room']}"
-        )
-    return "\n\n".join(results)
-
-
-@tool
-def add_patient_note(patient_id: str, note: str) -> str:
-    """Add a clinical note to a patient's record permanently.
-    Use for updates like new symptoms, phone calls, pregnancy,
-    medication changes, or any important observation.
-    """
-    if patient_id not in PATIENT_DB:
-        return f"Patient {patient_id} not found."
-    if "notes" not in PATIENT_DB[patient_id]:
-        PATIENT_DB[patient_id]["notes"] = []
-    new_note = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "time": datetime.now().strftime("%H:%M"),
-        "note": note
-    }
-    PATIENT_DB[patient_id]["notes"].append(new_note)
-    _save_patient_db()
-    return (
-        f"Note saved for patient {patient_id}:\n"
-        f"  Date: {new_note['date']} {new_note['time']}\n"
-        f"  Note: {note}"
-    )
+##code for some tools hidden until authorized
 
 @tool
 def search_medical_info(query: str) -> str:
