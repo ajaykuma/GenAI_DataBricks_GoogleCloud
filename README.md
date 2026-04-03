@@ -1,9 +1,10 @@
 # GenAI_DataBricks_GoogleCloud
 > 🚧 This repository is constantly being refined and improved. Stay tuned!
 
-> 🚧 In the Process of re-arranging code examples and notes for clear seggregation, 
-      -  so as of now some additional clicks :) [7-Feb-2026]
-    
+> Documentation-Books: Contains notes/books 
+  GCP: Code examples/notes on Google Cloud & Vertex AI
+  Databricks: To be updated
+  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)
 
 My exploratory work on AI/GenAI 
 - Google AI/APIs
