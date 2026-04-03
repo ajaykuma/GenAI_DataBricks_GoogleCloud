@@ -1,10 +1,10 @@
 # GenAI_DataBricks_GoogleCloud
 > 🚧 This repository is constantly being refined and improved. Stay tuned!
 
-> Documentation-Books: Contains notes/books 
-  GCP: Code examples/notes on Google Cloud & Vertex AI
-  Databricks: To be updated
-  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)
+> Documentation-Books: Contains notes/books |  
+  GCP: Code examples/notes on Google Cloud & Vertex AI |
+  Databricks: To be updated |
+  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)|
 
 My exploratory work on AI/GenAI 
 - Google AI/APIs
@@ -14,17 +14,14 @@ My exploratory work on AI/GenAI
 
 and integration with distributed search platforms such as ELK, OpenSearch, Vector stores(DBs)
 
-> 🚧 When looking in folders, look in Notes/*.txt files for instructions or explainations and then use *.py/*.ipynb files from Sample_Codes.
+> 🚧 When looking in folders, look for *.txt files for instructions or explainations and use *.py/*.ipynb files from Sample_Codes.
 > Remember to install packages(in main env or virtual env) to test codes examples or use Colab-notebooks from Google Cloud 
 
 Models explored & Used:
 - OpenAI/gpt-3.5-turbo
 - mistralai/Mistral-7B-Instruct-v0.1
 - tiiuae/falcon-7b-instruct
-- google/flan-t5-base
-- google/flan-t5-large
-- google/flan-t5-xl
-- google/flan-t5-xxl
+- google/flan-t5-base (or -large, -XL, -XXL)
 - sentence-transformers/all-MiniLM-L6-v2
 - tiiuae/falcon-7b-instruct
 - runwayml/stable-diffusion-v1-5
