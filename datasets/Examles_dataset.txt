@@ -1,0 +1,24 @@
+example-1: I absolutely love this new feature, it makes everything so much easier.
+sentiment: Positive
+Reasoning: Strong expression of satisfaction and enthusiasm.
+Indicating word(s): absolutely love, easier
+
+example-2: This is the worst experience I’ve ever had with any service.
+sentiment: Negative
+Reasoning: Extreme dissatisfaction is clearly expressed.
+Indicating word(s): worst, ever
+
+example-3: The meeting is scheduled for 3 PM tomorrow.
+sentiment: Neutral
+Reasoning: Purely informational with no emotional tone.
+Indicating word(s): scheduled
+
+example-4: The design looks great, but the performance is quite slow.
+sentiment: Mixed
+Reasoning: Contains both positive (design) and negative (performance) aspects.
+Indicating word(s): great, but, slow
+
+example-5: It’s fine, I guess it works well enough for now.
+sentiment: Slightly Positive / Mild Neutral
+Reasoning: Shows mild acceptance without strong enthusiasm.
+Indicating word(s): fine, guess, well enough
