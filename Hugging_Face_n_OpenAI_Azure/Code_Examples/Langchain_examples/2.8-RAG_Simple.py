@@ -1,3 +1,4 @@
+#To be modified as per version of langchain
 import os
 import pandas as pd
 import streamlit as st
@@ -8,8 +9,12 @@ import torch
 from transformers import pipeline, AutoModelForSeq2SeqLM, AutoTokenizer
 from langchain_huggingface import HuggingFacePipeline
 from langchain.vectorstores import FAISS
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.schema import Document
+from langchain_text_splitters import (
+    CharacterTextSplitter,
+    RecursiveCharacterTextSplitter,
+    TokenTextSplitter,SentenceTransformersTokenTextSplitter
+)
+from langchain_core.documents import Document
 from langchain.chains import RetrievalQA
 
 
