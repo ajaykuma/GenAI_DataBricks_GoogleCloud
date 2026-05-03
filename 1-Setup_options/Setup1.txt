@@ -1,0 +1,196 @@
+##If python not installed
+https://www.python.org/downloads/windows/
+or follow instructions from here
+https://www.digitalocean.com/community/tutorials/install-python-windows-10
+
+To check python path
+> where python
+
+shows
+C:\Users\Ajay kumar\AppData\Local\Microsoft\WindowsApps\python.exe
+
+#Make sure python path is set in environment, system variables.
+
+or start python by typing in python in CMD
+>>> import os,sys
+>>> os.path.dirname(sys.executable)
+
+##Working with python virtual environment.
+Reference link: https://docs.python.org/3/library/venv.html
+
+#Virtual environment - A self-contained location that enables you to maintain separate and isolated environments for python projects.
+--manage dependencies
+--versions
+--packages
+Thus helping to avoid conflicts between projects.
+
+#Windows
+
+--Open a directory where you want to create a virtual environment.
+Note** VENV are directories which contain your project.
+
+#Steps
+Start cmd prompt as administrator
+
+C:\Windows\System32> cd ..
+
+C:\Windows>cd ..
+
+C:\>mkdir PythonWork
+
+C:\>cd PythonWork
+
+--using venv command (other options can be used too: condo, virtualenv, pipenv etc)
+
+C:\PythonWork>python -m venv myenv
+
+C:\PythonWork> dir/p
+ Volume in drive C has no label.
+ Volume Serial Number is 1C18-400C
+
+ Directory of C:\PythonWork
+
+10/27/202x  09:33 AM    <DIR>          .
+10/27/202x  09:33 AM    <DIR>          myenv
+               0 File(s)              0 bytes
+               2 Dir(s)  327,282,192,384 bytes free
+
+--activate virtual environment
+C:\PythonWork>myenv\Scripts\activate
+
+--shows name of environment as prefix
+(myenv) C:\PythonWork>
+
+[Note** on linux/mac command vary
+python3 -m venv myenv
+ls
+<path>source myenv/bin/activate]
+
+--to deactivate
+(myenv) C:\PythonWork>deactivate
+C:\PythonWork>
+
+#Install pip
+https://pip.pypa.io/en/stable/installation/
+
+--to install packages, pip program ie 'preferred installer program'
+--to list packages installed
+(myenv) C:\PythonWork>pip list
+Package    Version
+---------- -------
+pip        19.2.3
+setuptools 41.2.0
+
+--deactivate and check packages installed in global environment
+(myenv) C:\PythonWork>deactivate
+C:\PythonWork>pip list
+Package             Version
+------------------- ------------
+contourpy           1.1.1
+cycler              0.12.1
+fonttools           4.47.0
+importlib-resources 6.1.1
+keras               2.15.0
+kiwisolver          1.4.5
+matplotlib          3.7.4
+numpy               1.24.4
+packaging           23.2
+pandas              2.0.3
+patsy               0.5.4
+pillow              10.2.0
+pip                 19.2.3
+pyparsing           3.1.1
+python-dateutil     2.8.2
+pytz                2023.3.post1
+scipy               1.10.1
+setuptools          41.2.0
+six                 1.16.0
+statsmodels         0.14.0
+tzdata              2023.3
+zipp                3.17.0
+
+--back in virtual environment and installing packages
+(myenv) C:\PythonWork>pip install requests
+Collecting requests
+  Downloading https://files.pythonhosted.org/packages/f9/9b/335f9764261e915ed497fcdeb11df5dfd6f7bf257d4a6a2a686d80da4d54/requests-2.32.3-py3-none-any.whl (64kB)
+     |████████████████████████████████| 71kB 1.1MB/s
+Collecting idna<4,>=2.5 (from requests)
+  Downloading https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl (70kB)
+     |████████████████████████████████| 71kB 1.5MB/s
+Collecting certifi>=2017.4.17 (from requests)
+  Downloading https://files.pythonhosted.org/packages/12/90/3c9ff0512038035f59d279fddeb79f5f1eccd8859f06d6163c58798b9487/certifi-2024.8.30-py3-none-any.whl (167kB)
+     |████████████████████████████████| 174kB 1.3MB/s
+Collecting urllib3<3,>=1.21.1 (from requests)
+  Downloading https://files.pythonhosted.org/packages/ce/d9/5f4c13cecde62396b0d3fe530a50ccea91e7dfc1ccf0e09c228841bb5ba8/urllib3-2.2.3-py3-none-any.whl (126kB)
+     |████████████████████████████████| 133kB 1.6MB/s
+Collecting charset-normalizer<4,>=2 (from requests)
+  Downloading https://files.pythonhosted.org/packages/09/c8/0e17270496a05839f8b500c1166e3261d1226e39b698a735805ec206967b/charset_normalizer-3.4.0-cp38-cp38-win_amd64.whl (101kB)
+     |████████████████████████████████| 102kB 819kB/s
+Installing collected packages: idna, certifi, urllib3, charset-normalizer, requests
+Successfully installed certifi-2024.8.30 charset-normalizer-3.4.0 idna-3.10 requests-2.32.3 urllib3-2.2.3
+
+(myenv) C:\PythonWork>pip list
+Package            Version
+------------------ ---------
+certifi            2024.8.30
+charset-normalizer 3.4.0
+idna               3.10
+pip                19.2.3
+requests           2.32.3
+setuptools         41.2.0
+urllib3            2.2.3
+
+--saving all dependencies which we use (for someone else who wants to use similar environment)
+--we can save a list of all dependencies in a requirements.txt files
+
+(myenv) C:\PythonWork>pip freeze > requirements.txt
+
+(myenv) C:\PythonWork>notepad requirements.txt
+
+--Using requirements.txt to install packages (as someone else)
+(myenv) C:\PythonWork> deactivate
+C:\PythonWork>cd ..
+
+C:\>mkdir PythonWork_as_se
+
+C:\>cd PythonWork_as_se
+
+C:\PythonWork_as_se>python -m venv myenv_se
+
+C:\PythonWork_as_se>myenv_se\Scripts\activate
+
+--being in environment 'myenv_se'
+
+(myenv_se) C:\PythonWork_as_se>pip install -r ..\PythonWork\requirements.txt
+Collecting certifi==2024.8.30 (from -r ..\PythonWork\requirements.txt (line 1))
+  Using cached https://files.pythonhosted.org/packages/12/90/3c9ff0512038035f59d279fddeb79f5f1eccd8859f06d6163c58798b9487/certifi-2024.8.30-py3-none-any.whl
+Collecting charset-normalizer==3.4.0 (from -r ..\PythonWork\requirements.txt (line 2))
+  Using cached https://files.pythonhosted.org/packages/09/c8/0e17270496a05839f8b500c1166e3261d1226e39b698a735805ec206967b/charset_normalizer-3.4.0-cp38-cp38-win_amd64.whl
+Collecting idna==3.10 (from -r ..\PythonWork\requirements.txt (line 3))
+  Using cached https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl
+Collecting requests==2.32.3 (from -r ..\PythonWork\requirements.txt (line 4))
+  Using cached https://files.pythonhosted.org/packages/f9/9b/335f9764261e915ed497fcdeb11df5dfd6f7bf257d4a6a2a686d80da4d54/requests-2.32.3-py3-none-any.whl
+Collecting urllib3==2.2.3 (from -r ..\PythonWork\requirements.txt (line 5))
+  Using cached https://files.pythonhosted.org/packages/ce/d9/5f4c13cecde62396b0d3fe530a50ccea91e7dfc1ccf0e09c228841bb5ba8/urllib3-2.2.3-py3-none-any.whl
+Installing collected packages: certifi, charset-normalizer, idna, urllib3, requests
+Successfully installed certifi-2024.8.30 charset-normalizer-3.4.0 idna-3.10 requests-2.32.3 urllib3-2.2.3
+
+(myenv_se) C:\PythonWork_as_se>pip list
+Package            Version
+------------------ ---------
+certifi            2024.8.30
+charset-normalizer 3.4.0
+idna               3.10
+pip                19.2.3
+requests           2.32.3
+setuptools         41.2.0
+urllib3            2.2.3
+
+Tips:
+--create virtual env in a specific directory
+--dont put any custom code inside venv directory instead keep it side by side
+
+
+
+
+
