@@ -1,0 +1,86 @@
+##Setup > mcsp_setup.py 
+# - sets up mcp server
+# - sets up your tools
+##Setup a client > mcptest.py 
+# - this will run its instance of MCP server and access tool as requested
+##Setup another client > mcptest2.py
+# - this will run its own instance of MCP server and access tools as requested
+
+#Run mcptest.py and mcptest2.py in parallel
+
+Each client:
+
+> Spawns its own independent server process
+> Has its own isolated session
+> Gets the same tools registered (since same server script)
+> Runs concurrently with no interference
+
+When would this matter in production? If your tools had shared state (like a database counter or cache), 
+each client would have its own copy and they wouldn't sync. That's when you'd move to the SSE/HTTP 
+transport — one persistent server, all clients share the same state.
+For stateless tools like yours (search, calc, weather) — stdio is perfectly fine and simpler to manage.
+
+------------------------------------------------
+
+#At server end
+--Make changes in mcsp_setup.py --this section
+if __name__ == "__main__":
+    mcp.run()
+to
+
+if __name__ == "__main__":
+    #mcp.run()
+    mcp.run(transport="sse")
+
+and at the top
+#mcp = FastMCP()
+mcp = FastMCP(host="0.0.0.0", port=8080)
+
+--Then Start it once and leave it running.
+---output---
+(venv) PS E:\Lesson_2_demos> & e:\Lesson_2_demos\venv\Scripts\python.exe e:/Lesson_2_demos/MCP/mcsp_setup.py
+INFO:     Started server process [16280]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+
+----output ends----
+#At client end
+--change the top section
+mcptest.py (client1)
+# mcp_client_1.py
+import asyncio
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
+async def main():
+    async with sse_client("http://localhost:8080/sse") as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+
+            tools = await session.list_tools()
+
+#mcptest2.py (client2)
+import asyncio
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
+async def main():
+    async with sse_client("http://localhost:8080/sse") as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+
+refer: mcptest-client1-test.py (as example )
+--if server running test this client with server.
+
+--Summary:
+Terminal 1:  python mcsp_setup.py        ← start server FIRST, keep it running
+Terminal 2:  python mcptest.py           ← connects to the server
+Terminal 3:  python mcptest2.py          ← also connects to the same server
+
+--The server is now a proper persistent service
+  — clients connect and disconnect freely without restarting it.
+STDIO (before):                      SSE (now):
+Client 1 → spawns Server A           Client 1 ──┐
+Client 2 → spawns Server B           Client 2 ──┼──→ ONE Server (port 8080)
+(2 isolated processes)               Client 3 ──┘    (shared, persistent)

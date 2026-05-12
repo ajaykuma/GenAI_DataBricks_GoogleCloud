@@ -32,16 +32,43 @@ async def main():
             # Optional: list available tools to confirm registration
             tools = await session.list_tools()
             print("Registered tools:", [t.name for t in tools.tools])
+            print("-" * 40)
 
             # Call your tool
+            print("TEST: Google Search")
             result = await session.call_tool(
                 "google_search",
-                arguments={"query": "About Dubai"}
+                arguments={"query": "About Paris"}
             )
 
             print("\nResult:")
             for block in result.content:
                 print(block.text)
+            print("-" * 40)
+            
+            # Call calculator
+            print("TEST: Calculator")
+            result = await session.call_tool("calculate", arguments={"operation": "300/5*2"})
+            print("\nResult:")
+            for block in result.content:
+                print(block.text)
+            print("-" * 40)
+
+            # Call word counter
+            print("TEST: Word Counter")
+            result = await session.call_tool("word_counter", arguments={"text": "Hello world. How are you."})
+            print("\nResult:")
+            for block in result.content:
+                print(block.text)
+            print("-" * 40)
+            
+            #weather check
+            print("TEST: Weather")
+            result = await session.call_tool("get_weather", arguments={"city": "Berlin"})
+            print("\nResult:")
+            for block in result.content:
+                print(block.text)   
+            print("-" * 40)         
 
 if __name__ == "__main__":
     asyncio.run(main())
