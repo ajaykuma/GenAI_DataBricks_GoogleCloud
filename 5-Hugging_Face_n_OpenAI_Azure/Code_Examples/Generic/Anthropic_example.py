@@ -108,7 +108,7 @@ def main():
             print("Please enter a story idea.")
             continue
 
-        print("\n⏳ Generating your story...\n")
+        print("\n Generating your story...\n")
 
         try:
             story = generate_story(user_input, PARAMETERS)
@@ -116,12 +116,12 @@ def main():
             print(story)
             print("─" * 50)
         except anthropic.AuthenticationError:
-            print("❌ Error: Invalid API key. Please check your ANTHROPIC_API_KEY.")
+            print(" Error: Invalid API key. Please check your ANTHROPIC_API_KEY.")
             break
         except anthropic.RateLimitError:
-            print("❌ Error: Rate limit reached. Please wait and try again.")
+            print(" Error: Rate limit reached. Please wait and try again.")
         except Exception as e:
-            print(f"❌ Unexpected error: {e}")
+            print(f" Unexpected error: {e}")
 
 # ─────────────────────────────────────────────
 # ENTRY POINT

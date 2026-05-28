@@ -1,3 +1,11 @@
+'''
+Note** All other dependencies should already be installed
+
+!pip install streamlit
+--Then run code 
+streamlit run RAG_Simple.py
+
+'''
 import streamlit as st
 import pandas as pd
 
