@@ -9,9 +9,9 @@ api_key = os.getenv("API_KEY")
 from langchain_openai import AzureOpenAI
 
 llm = AzureOpenAI(
-    azure_endpoint="MyEndPoint"
-    api_key=api_key,
-    api_version="2024-12-01-preview",
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key=os.getenv("API_KEY"),
+    api_version=os.getenv("AZURE_API_VERSION"),
     deployment_name="gpt-4.1",  # same deployment name
 )
 

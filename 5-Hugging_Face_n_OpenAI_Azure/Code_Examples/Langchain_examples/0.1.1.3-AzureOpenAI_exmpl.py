@@ -1,17 +1,18 @@
+#!pip install dotenv
+#!pip install openai
 import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
 # Load variables from .env
 load_dotenv()
+#load_dotenv("E:\\Lesson_2_demos")
 
 api_key = os.getenv("API_KEY")
-
-endpoint = "MyEndPoint"
-model_name = "gpt-4.1"
+endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+model_name = os.getenv("AZURE_DEPLOYMENT_NAME")
 deployment = "gpt-4.1"
-
-api_version = "2024-12-01-preview"
+api_version = os.getenv("AZURE_API_VERSION")
 
 client = AzureOpenAI(
     api_version=api_version,
