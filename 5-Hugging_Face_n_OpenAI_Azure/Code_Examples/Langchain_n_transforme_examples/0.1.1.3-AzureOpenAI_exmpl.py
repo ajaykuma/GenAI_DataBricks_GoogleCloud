@@ -11,7 +11,7 @@ load_dotenv()
 api_key = os.getenv("API_KEY")
 endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 model_name = os.getenv("AZURE_DEPLOYMENT_NAME")
-deployment = "gpt-4.1"
+deployment = model_name
 api_version = os.getenv("AZURE_API_VERSION")
 
 client = AzureOpenAI(
