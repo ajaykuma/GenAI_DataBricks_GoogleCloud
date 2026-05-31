@@ -1,0 +1,68 @@
+Difference between 
+models--sentence-transformers--all-MiniLM-L6-v2 
+and 
+models--sentence-transformers--all-mpnet-base-v2
+
+Both are general-purpose embedding models from Sentence Transformers, but they optimize for different tradeoffs.
+| Feature                | all-MiniLM-L6-v2                                   | all-mpnet-base-v2                                                 |
+| ---------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
+| Base architecture      | MiniLM                                             | MPNet                                                             |
+| Transformer layers     | 6                                                  | 12                                                                |
+| Parameters             | ~22M                                               | ~109M                                                             |
+| Embedding size         | 384                                                | 768                                                               |
+| Speed                  | Much faster                                        | Slower                                                            |
+| Memory usage           | Lower                                              | Higher                                                            |
+| Retrieval quality      | Good                                               | Better                                                            |
+| Best use case          | High-throughput search, edge devices, low-cost RAG | Production search, semantic retrieval, highest quality embeddings |
+| Typical CPU throughput | ~14k sentences/sec                                 | ~2.8k sentences/sec ([MDPI][1])                                   |
+
+[1]: https://www.mdpi.com/2078-2489/15/2/68?utm_source=chatgpt.com "Performance of 4 Pre-Trained Sentence Transformer ..."
+
+What this means in practice
+#all-MiniLM-L6-v2
+Small and efficient.
+Generates 384-dimensional vectors.
+About 4–5× faster than MPNet-based models.
+Lower RAM and storage requirements.
+Often the default choice for prototypes, local apps, and large-scale indexing.
+
+Example:
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer(
+    "sentence-transformers/all-MiniLM-L6-v2"
+)
+
+#all-mpnet-base-v2
+Larger model with richer semantic representations.
+Generates 768-dimensional vectors.
+Usually achieves higher retrieval and semantic similarity scores.
+Better at capturing nuanced meaning and context.
+Requires roughly 2× the vector storage and significantly more compute.
+
+Example:
+
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer(
+    "sentence-transformers/all-mpnet-base-v2"
+)
+
+#Accuracy vs. speed
+
+The Sentence Transformers documentation summarizes the tradeoff directly:
+
+all-mpnet-base-v2 provides the best quality, while all-MiniLM-L6-v2 is about 5× faster.
+
+On semantic similarity benchmarks, MPNet typically scores a few points higher than MiniLM (roughly 87–88% vs. 84–85% on STS-style tasks).
+
+For RAG and vector search
+A practical rule:
+
+Use MiniLM if you have millions of documents, need low latency, run on CPU, or want lower infrastructure costs.
+Use MPNet if retrieval quality is more important than latency and storage.
+For modern production RAG systems in 2026, both are still solid baselines, but newer embedding models (e.g., BGE, E5, EmbeddingGemma, Llama-Embed variants) often outperform both.
+If you're choosing today
+Personal projects, local vector DBs, quick prototypes → all-MiniLM-L6-v2
+Serious semantic search, document retrieval, knowledge bases → all-mpnet-base-v2
+Large-scale production RAG → benchmark a newer embedding model against both before committing.
