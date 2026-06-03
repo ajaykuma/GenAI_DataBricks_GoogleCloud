@@ -5,7 +5,8 @@
   GCP: Code examples/notes on Google Cloud & Vertex AI |
   Databricks: To be updated |
   Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)| Real-world-project-xmlples: To be updated after ensuring no NDA conflicts | 
-  For ChatGPT_Interactions > refer sample raw documents > refined & updated on demand (email me)
+  
+> 🚧 For ChatGPT_Interactions > refer sample raw documents > for the refined+updated+added information: (email me) [avai on demand]
 
 My exploratory work on AI/GenAI 
 - Google AI/APIs
