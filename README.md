@@ -4,7 +4,8 @@
 > Documentation-Books: Contains notes/books |  
   GCP: Code examples/notes on Google Cloud & Vertex AI |
   Databricks: To be updated |
-  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)|
+  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)| Real-world-project-xmlples: To be updated after ensuring no NDA conflicts | 
+  For ChatGPT_Interactions > refer sample raw documents > refined & updated on demand (email me)
 
 My exploratory work on AI/GenAI 
 - Google AI/APIs
