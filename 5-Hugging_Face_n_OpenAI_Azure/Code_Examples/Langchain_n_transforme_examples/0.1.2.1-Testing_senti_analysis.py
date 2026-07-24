@@ -3,7 +3,8 @@
 
 from transformers import pipeline
 
-# # Step 1: Load a pre-trained sentiment-analysis pipeline
+#Option 1
+# # Step 1: Load a pre-trained sentiment-analysis pipeline (default model)
 # sentiment_analyzer = pipeline("sentiment-analysis")
 
 # # Step 2: Input sentence
@@ -23,6 +24,7 @@ from transformers import pipeline
 # # Step 4: Show the result
 # print(result)
 
+#Option 2
 # Install dependencies if not already installed
 # pip install transformers torch
 
@@ -30,7 +32,7 @@ from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import torch.nn.functional as F
 
-# Step 1: Load pre-trained BERT model fine-tuned for sentiment analysis
+# Step 1: Load pre-trained BERT model fine-tuned for sentiment analysis 
 model_name = "nlptown/bert-base-multilingual-uncased-sentiment"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name)

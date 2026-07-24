@@ -14,11 +14,11 @@ api_version = os.getenv("AZURE_API_VERSION")
 from langchain_openai import AzureOpenAI
 
 llm = AzureOpenAI(
-    #azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     azure_endpoint=endpoint,
     api_key=os.getenv("API_KEY"),
     api_version=os.getenv("AZURE_API_VERSION"),
-    deployment_name="gpt-5.1"  # same deployment name
+    #deployment_name="gpt-4.1"  # same deployment name
+    deployment_name=model_name  # same deployment name
 )
 
 response = llm.invoke("well this time, i am going to budapest, suggest what can i see and what can i eat")

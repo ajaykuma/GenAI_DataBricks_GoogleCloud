@@ -15,7 +15,7 @@ llm = AzureChatOpenAI(
     azure_endpoint=azure_endpoint,
     api_key=api_key,
     api_version="2025-04-01-preview",
-    deployment_name="gpt-5.1"
+    deployment_name="gpt-4.1"
 )
 
 #QnA

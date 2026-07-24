@@ -41,19 +41,15 @@ response = client.chat.completions.create(
 
 print(response.choices[0].message.content)
 
-#Working with newer version of GPT (5.1) & OpenAI
-#deploy a base model: gpt-5.1
-#update .env file to point to your endpoints,api-key and api-version
-api_key = os.getenv("API_KEY")
-endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-model_name = os.getenv("AZURE_DEPLOYMENT_NAME")
-deployment = model_name
-api_version = os.getenv("AZURE_API_VERSION")
+#Working with newer version of GPT & OpenAI directly
+
+# import os
+# import openai
 # from openai import OpenAI
 
-# endpoint = endpoint
-# deployment_name = deployment
-# api_key = api_key
+# openai_base_url = os.getenv("OPENAI_BASE_URL")
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+# model = "gpt-3.5-turbo"
 
 # client = OpenAI(
 #     base_url=endpoint,
@@ -61,7 +57,7 @@ api_version = os.getenv("AZURE_API_VERSION")
 # )
 
 # response = client.responses.create(
-#     model=deployment_name,
+#     model=model,
 #     input="What is the capital of France?",
 # )
 
