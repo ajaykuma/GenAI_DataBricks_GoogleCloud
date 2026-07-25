@@ -4,10 +4,14 @@ Note** All other dependencies should already be installed
 !pip install streamlit
 --Then run code 
 streamlit run RAG_Simple.py
+--Then upload file from
+> GenAI_DataBricks_GoogleCloud\GenAI_DataBricks_GoogleCloud\3-Datasets > Scenario.xlsx
 
 '''
+#Standard LangChain LCEL RAG
 import streamlit as st
 import pandas as pd
+import os
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -26,8 +30,15 @@ import torch
 # -----------------------------
 # Build Retriever (cached)
 # -----------------------------
+
 @st.cache_resource
 def build_retriever(file):
+    '''
+    Recommended LangChain approach
+    Works naturally with LCEL
+    Easy to swap retrieval methods later (MMR, threshold search, etc.)
+    but doesn't expose similarity scores.
+    '''
     df = pd.read_excel(file)
 
     docs = [Document(page_content=str(row[0])) for row in df.values]
@@ -45,30 +56,76 @@ def build_retriever(file):
     vectorstore = FAISS.from_documents(split_docs, embeddings)
 
     return vectorstore.as_retriever(search_kwargs={"k": 5})
-
+    #Internally, FAISSRetriever simply calls vectorstore.similarity_search(query, k=5)
 
 # -----------------------------
 # Load LLM (cached)
 # -----------------------------
-@st.cache_resource
+#@st.cache_resource
+#when using HF models
+# def load_llm():
+#     #Online Mode
+#     # model_name = "google/flan-t5-large"
+#     # tokenizer = AutoTokenizer.from_pretrained(model_name)
+#     # model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+#     # pipe = pipeline(
+#     #     "text2text-generation",
+#     #     model=model,
+#     #     tokenizer=tokenizer,
+#     #     torch_dtype=torch.float16,
+#     #     device=0 if torch.cuda.is_available() else -1,
+#     #     max_new_tokens=256
+#     # )
+
+#     # return HuggingFacePipeline(pipeline=pipe)
+
+#     #Offline Mode
+#     model_name = "google/flan-t5-large"
+
+#     model = AutoModelForSeq2SeqLM.from_pretrained(
+#     model_name,
+#     local_files_only=True
+#     )
+#     tokenizer = AutoTokenizer.from_pretrained(
+#     model_name,
+#     local_files_only=True
+#     )
+
+#     pipe = pipeline(
+#         "text2text-generation",
+#         model=model,
+#         tokenizer=tokenizer,
+#         torch_dtype=torch.float16,
+#         device=0 if torch.cuda.is_available() else -1,
+#         max_new_tokens=256
+#     )
+
+#     return HuggingFacePipeline(pipeline=pipe)
+
+#when using azure and bigger llms
+
+
+# Load variables from .env
+from dotenv import load_dotenv
+load_dotenv()
+
+api_key = os.getenv("API_KEY")
+azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+api_version = os.getenv("AZURE_API_VERSION")
+deployment = os.getenv("AZURE_DEPLOYMENT_NAME")
+
+from langchain_openai import AzureChatOpenAI
+
 def load_llm():
-    model_name = "google/flan-t5-large"
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-
-    pipe = pipeline(
-        "text2text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        torch_dtype=torch.float16,
-        device=0 if torch.cuda.is_available() else -1,
-        max_new_tokens=256
+    llm = AzureChatOpenAI(
+        azure_endpoint=azure_endpoint,
+        api_key=api_key,
+        api_version=api_version,
+        deployment_name=deployment
     )
 
-    return HuggingFacePipeline(pipeline=pipe)
-
-
+    return llm
 # -----------------------------
 # Prompt Template
 # -----------------------------
@@ -134,6 +191,8 @@ if uploaded_file:
         # Show Sources (optional)
         # -----------------------------
         docs = retriever.invoke(user_query)
+        #equivalent to vectorstore.similarity_search(question, k=5)
+
 
         st.subheader("Sources")
         for doc in docs:
