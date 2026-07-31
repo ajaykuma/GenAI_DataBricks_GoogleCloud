@@ -1,12 +1,12 @@
 --create Virtual environment & then activate it..
 
-E:\Lesson_2_demos\venv\Scripts>activate
+E:\Auotgen_exmpls\venv\Scripts>activate
 
-(venv) E:\Lesson_2_demos\venv\Scripts>
+(venv) E:\Auotgen_exmpls\venv\Scripts>
 
-(venv) E:\Lesson_2_demos\venv\Scripts>cd ..\\..\\
+(venv) E:\Auotgen_exmpls\venv\Scripts>cd ..\\..\\
 
-(venv) E:\Lesson_2_demos>notepad requirements.txt
+(venv) E:\Auotgen_exmpls>notepad requirements.txt
 
 > 'requirements.txt' contains
 
@@ -24,10 +24,10 @@ langgraph==0.3.0
 or with newer versions of langchain, langraph etc
 
 --list packages
-(venv) E:\Lesson_2_demos\venv>pip list
+(venv) E:\Auotgen_exmpls\venv>pip list
 
 --within Virtual environment run : pip install -r requirements.txt
-(venv) E:\Lesson_2_demos\venv>pip install -r requirements.txt
+(venv) E:\Auotgen_exmpls\venv>pip install -r requirements.txt
 
 >>>>>>>>>>>>>>Edit *.py & D5/*.py to map to endpoint that contains deployed models.
 
@@ -53,11 +53,11 @@ response = client.chat.completions.create(model="gpt-4.1",
                                           temperature=0.3)
 
 --Now we can run our applications and deploy using streamlit
-(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D1.py
-(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D2.py
-(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D3.py
-(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D4.py
-(venv) E:\Lesson_2_demos\venv>streamlit run ..\\D5\\main.py
+(venv) E:\Auotgen_exmpls\venv>streamlit run ..\\D1.py
+(venv) E:\Auotgen_exmpls\venv>streamlit run ..\\D2.py
+(venv) E:\Auotgen_exmpls\venv>streamlit run ..\\D3.py
+(venv) E:\Auotgen_exmpls\venv>streamlit run ..\\D4.py
+(venv) E:\Auotgen_exmpls\venv>streamlit run ..\\D5\\main.py
 
 ----------------------------------------------------------
 
@@ -69,7 +69,7 @@ from langchain_openai import AzureOpenAI
 client = AzureOpenAI(
     #api_key=os.getenv("AZURE_OPENAI_API_KEY"),  # Store securely in .env
     api_key="myapikey",
-    azure_endpoint="https://info-mdub1hyj-eastus2.cognitiveservices.azure.com/",
+    azure_endpoint="https://myendpoint",
     api_version="2023-12-01-preview",
     deployment_name="gpt-4o-mini"
 )

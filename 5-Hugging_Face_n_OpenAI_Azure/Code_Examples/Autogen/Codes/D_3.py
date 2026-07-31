@@ -1,3 +1,21 @@
+
+'''
+> Azure OpenAI
+Handles:
+Prompt processing
+Reasoning
+Response generation
+> AutoGen (in our code)
+NOT doing:
+Agent orchestration
+Multi-agent communication
+Tool usage
+Memory handling
+
+So, It's basically just acting as a wrapper class / label, not as a framework.
+
+'''
+
 import autogen
 from openai import AzureOpenAI
 import streamlit as st
@@ -63,22 +81,6 @@ class MultiStepITSupportBot(autogen.AssistantAgent):
 
         return response.choices[0].message.content.strip()
 
-'''
-> Azure OpenAI
-Handles:
-Prompt processing
-Reasoning
-Response generation
-> AutoGen (in our code)
-NOT doing:
-Agent orchestration
-Multi-agent communication
-Tool usage
-Memory handling
-
-So, It’s basically just acting as a wrapper class / label, not as a framework.
-
-'''
 # Step 3: Streamlit Web App for Multi-Step IT Support Bot
 st.title("Multi-Step IT Support Chatbot")
 st.write("Describe your IT issue, and our assistant will provide a step-by-step troubleshooting guide.")

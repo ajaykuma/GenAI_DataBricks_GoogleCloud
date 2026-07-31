@@ -1,3 +1,25 @@
+'''
+AutoGen normally:
+
+> manages conversations between agents
+> handles message passing
+> calls LLM internally via llm_config
+
+But in our code:
+We are NOT using:
+
+-- llm_config
+-- agent-to-agent chat
+-- AutoGen orchestration
+-- AutoGen memory system
+
+Summary:
+We are using AutoGen > But only as a base class — not as a framework
+Our chatbot is essentially:
+
+Streamlit + Azure OpenAI + custom Python lo
+'''
+
 import autogen
 from openai import AzureOpenAI
 import streamlit as st
@@ -53,7 +75,7 @@ class ITSupportBot(autogen.AssistantAgent):
         return response.choices[0].message.content.strip()
 
 # Step 5: Streamlit UI for real-time chatbot interaction
-st.title(" IT Support Chatbot")
+st.title("IT Support Chatbot")
 st.write("Ask me about your IT issues, and I'll provide troubleshooting steps!")
 
 # Initialize chatbot
@@ -73,25 +95,4 @@ if st.button("Send"):
 #        del st.session_state[key]
 #    st.experimental_rerun()
 
-#Notes
-'''
-AutoGen normally:
 
-> manages conversations between agents
-> handles message passing
-> calls LLM internally via llm_config
-
-But in our code:
-We are NOT using:
-
--- llm_config
--- agent-to-agent chat
--- AutoGen orchestration
--- AutoGen memory system
-
-Summary:
-We are using AutoGen > But only as a base class — not as a framework
-Our chatbot is essentially:
-
-Streamlit + Azure OpenAI + custom Python lo
-'''

@@ -1,20 +1,20 @@
 import openai
-from typing_extensions import TypedDict
-from langgraph.graph import StateGraph, START, END
-from dotenv import load_dotenv
 import os
-from dataclasses import asdict, dataclass
 import matplotlib.pyplot as plt
 import networkx as nx
 import streamlit as st
+from openai import AzureOpenAI
+from dataclasses import asdict, dataclass
+from typing_extensions import TypedDict
+from langgraph.graph import StateGraph, START, END
 
-# OpenAI API setup (ensure you have your OpenAI API key set)
-#load_dotenv()
-#api_key = os.getenv("OPENAI_API_KEY")
-#client = openai.OpenAI()
+from dotenv import load_dotenv
+load_dotenv("E:\\Lesson_2_demos\\.env")
 
-client = openai.AzureOpenAI(
-   section..
+client = AzureOpenAI(
+    api_key=os.getenv("API_KEY"),
+    api_version=os.getenv("AZURE_API_VERSION"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
 )
 
 # Graph state definition
@@ -29,8 +29,9 @@ class State(TypedDict):
 # Step 3: Generate a basic product description
 def generate_basic_description(state):
     """Generate a basic description for the product."""
+
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[
             {"role": "system", "content": "You are a helpful assistant that generates brief product descriptions."},
             {"role": "user", "content": f"Write a brief description of a product named '{state['product_name']}'."}
@@ -43,17 +44,20 @@ def generate_basic_description(state):
 def add_features_benefits(state: State):
     """Add features and benefits to the product description."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[{"role": "user", "content": f"List key features and benefits of the product: {state['basic_description']}"}]
     )
     features_benefits = response.choices[0].message.content
     return {"features_benefits": features_benefits}
 
+#classify the output from previous step..static /dynamic request/real time..
+#give a list of tools which can be used, + rag +memory : and then send it to llm
 # Step 5: Create a compelling marketing message based on the product's features
+
 def create_marketing_message(state: State):
     """Create a marketing message for the product."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[{"role": "user", "content": f"Create a compelling marketing message for the product: {state['features_benefits']}"}]
     )
     marketing_message = response.choices[0].message.content
@@ -63,7 +67,7 @@ def create_marketing_message(state: State):
 def polish_final_description(state: State):
     """Polish and finalize the product description."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[{"role": "user", "content": f"Polish and finalize the product description, incorporating the marketing message: {state['marketing_message']}"}]
     )
     final_description = response.choices[0].message.content
@@ -81,7 +85,6 @@ def build_workflow():
     workflow.add_node("add_features_benefits", add_features_benefits)  # Step 2: Features and Benefits
     workflow.add_node("create_marketing_message", create_marketing_message)  # Step 3: Marketing Message
     workflow.add_node("polish_final_description", polish_final_description)  # Step 4: Final Description
-
     
 
     # Add edges to connect the nodes (steps in order)

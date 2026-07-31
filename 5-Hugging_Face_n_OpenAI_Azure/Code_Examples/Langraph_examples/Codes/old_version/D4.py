@@ -1,14 +1,22 @@
+import os
+import openai 
 import streamlit as st
 from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
-import openai 
 from dotenv import load_dotenv
-import os
+from openai import AzureOpenAI
+import matplotlib.pyplot as plt
+import networkx as nx
 
-client = openai.AzureOpenAI(
-    section...
+
+load_dotenv("E:\\Lesson_2_demos\\.env")
+
+client = AzureOpenAI(
+    api_key=os.getenv("API_KEY"),
+    api_version=os.getenv("AZURE_API_VERSION"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
 )
 
 # Step 2: Define state structure to track input, decision, and output
@@ -23,7 +31,7 @@ class Route(BaseModel):
 # Step 3: Function to determine the story genre using AI
 def get_router_response(input_text: str) -> str:
     """Uses AI model to categorize input into a specific genre."""
-    response = client.chat.completions.create(model="gpt-4o-mini",
+    response = client.chat.completions.create(model="gpt-4.1",
     messages=[
         {"role": "system", "content": "Route the input to 'fantasy', 'sci-fi', or 'mystery' based on its theme. If unsure, default to 'mystery'."},
         {"role": "user", "content": input_text},
@@ -34,7 +42,7 @@ def get_router_response(input_text: str) -> str:
 # Step 4: Define story generation functions for each genre
 def generate_fantasy_story(state: State):
     """Creates a fantasy story."""
-    response = client.chat.completions.create(model="gpt-4o-mini",
+    response = client.chat.completions.create(model="gpt-4.1",
                     messages=[
                     {"role": "system", "content": "Write a fantasy story based on the input."},
                     {"role": "user", "content": state['input']}],
@@ -44,7 +52,7 @@ def generate_fantasy_story(state: State):
 def generate_sci_fi_story(state: State):
     """Creates a sci-fi story."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[
             {"role": "system", "content": "Write a sci-fi story based on the input."},
             {"role": "user", "content": state['input']}
@@ -56,7 +64,7 @@ def generate_sci_fi_story(state: State):
 def generate_mystery_story(state: State):
     """Creates a mystery story."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[
             {"role": "system", "content": "Write a mystery story based on the input."},
             {"role": "user", "content": state['input']}
@@ -105,20 +113,84 @@ def build_workflow():
 
     return workflow.compile()
 
+# Step 7: Function to visualize the routing workflow
+def visualize_workflow():
+    """Visualize and save the routing workflow."""
+
+    graph = nx.DiGraph()
+
+    edges = [
+        ("START", "route_request"),
+
+        ("route_request", "generate_fantasy_story"),
+        ("route_request", "generate_sci_fi_story"),
+        ("route_request", "generate_mystery_story"),
+
+        ("generate_fantasy_story", "END"),
+        ("generate_sci_fi_story", "END"),
+        ("generate_mystery_story", "END")
+    ]
+
+    graph.add_edges_from(edges)
+
+    plt.figure(figsize=(11,6))
+
+    pos = {
+        "START": (0,2),
+        "route_request": (2,2),
+
+        "generate_fantasy_story": (5,4),
+        "generate_sci_fi_story": (5,2),
+        "generate_mystery_story": (5,0),
+
+        "END": (8,2)
+    }
+
+    nx.draw(
+        graph,
+        pos,
+        with_labels=True,
+        node_color="lightblue",
+        node_size=3200,
+        edge_color="gray",
+        font_size=9,
+        font_weight="bold",
+        arrows=True
+    )
+
+    plt.title("Conditional Routing Workflow")
+    plt.savefig("routing_workflow.png")
+    plt.close()
+
 # Step 7: Implement the Streamlit UI
 def run_streamlit_app():
     """Creates an interactive UI for story generation."""
+
     st.title("Genre-Based Story Generator")
+
     user_input = st.text_input("Enter your story idea", "")
 
     if st.button("Generate Story"):
+
         if user_input:
+
             workflow = build_workflow()
+
             state = workflow.invoke({"input": user_input})
+
             st.subheader("Detected Genre:")
             st.write(state["decision"].capitalize())
+
             st.subheader("Generated Story:")
             st.write(state["output"])
+
+            # Display workflow
+            visualize_workflow()
+
+            st.image(
+                "routing_workflow.png",
+                caption="Conditional Routing LangGraph"
+            )
 
 if __name__ == "__main__":
     run_streamlit_app()
