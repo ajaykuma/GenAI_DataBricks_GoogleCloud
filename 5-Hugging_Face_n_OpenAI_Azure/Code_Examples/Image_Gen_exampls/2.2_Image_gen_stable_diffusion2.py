@@ -3,7 +3,20 @@ from diffusers import StableDiffusionPipeline
 
 #model_id = "dreamlike-art/dreamlike-photoreal-2.0"
 model_id = "runwayml/stable-diffusion-v1-5"
-pipeline = StableDiffusionPipeline.from_pretrained(model_id)
+
+#Online and if GPU
+#pipeline = StableDiffusionPipeline.from_pretrained(model_id)
+
+#Offline and with CPU
+# Load model completely offline
+pipeline = StableDiffusionPipeline.from_pretrained(
+    model_id,
+    local_files_only=True,
+    dtype=torch.float32
+)
+
+# Use CPU
+pipeline = pipeline.to("cpu")
 
 positive_prompts = [
     "A serene sunset over a calm lake",
@@ -20,10 +33,22 @@ negative_prompts = [
 generated_images = []
 
 for i, (prompt, neg_prompt) in enumerate(zip(positive_prompts, negative_prompts)):
-    image = pipeline(prompt=prompt, negative_prompt=neg_prompt).images[0]
+    #when GPU
+    #image = pipeline(prompt=prompt, negative_prompt=neg_prompt).images[0]
+
+    #when cpu
+    image = pipeline(
+        prompt=prompt,
+        negative_prompt=neg_prompt,
+        num_inference_steps=15,
+        guidance_scale=7.5,
+        height=512,
+        width=512
+    ).images[0]
+
     image.save(f'image_{i}.jpg')
     generated_images.append(image)
 
-len(generated_images)
+print("Generated images:", len(generated_images))
 
 
