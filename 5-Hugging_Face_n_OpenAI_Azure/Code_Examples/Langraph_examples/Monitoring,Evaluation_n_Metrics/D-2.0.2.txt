@@ -1,0 +1,36 @@
+streamlit run D-2.0.2.py
+shows >
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.178.21:8501
+
+From browser>
+Enter product name: sun glasses > Generate
+
+Shows:
+First time generating 'sun glasses'
+'sun glasses' requested 1 time(s) this session
+
+Output:
+Node Outputs
+Memory / History
+
+<shows repetition of messages from Human/AI>
+
+Token Usage Summary
+Prompt tokens: 0
+Completion tokens: 0
+Total tokens: 0
+
+<finally shows visual graph>
+
+--Try again with same product & Generate
+Again same output as before, so 
+-   No proper tracking
+-   No proper count of tokens
+-   repetition
+
+For improvement: Refer next : 2.0.3-0.py (originally 2.0.3.py)
+
+
