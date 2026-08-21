@@ -1,25 +1,22 @@
 # GenAI_DataBricks_GoogleCloud
+
+My exploratory work on AI/GenAI — Google AI/APIs, Databricks Platform, HuggingFace/Transformers, OpenAI/Azure AI, and integration with distributed search platforms such as ELK, OpenSearch, and vector stores (DBs).
+
 > 🚧 This repository is constantly being refined and improved. Stay tuned!
 
-> Documentation-Books: Contains notes/books |  
-  GCP: Code examples/notes on Google Cloud & Vertex AI |
-  Databricks: To be updated |
-  Hugging_Face_n_AzureOpenAI: HF & models on Azure examples (Frameworks: Langchain, Langraph, Autogen, CrewAI)| Real-world-project-xmlples: To be updated after ensuring no NDA conflicts | 
-  
-> 🚧 For ChatGPT_Interactions > refer sample raw documents > for the refined+updated+added information: (email me) [avai on demand]
+## What's Inside
+- **Documentation-Books:** Notes/books
+- **GCP:** Code examples/notes on Google Cloud & Vertex AI
+- **Databricks:** To be updated
+- **Hugging_Face_n_AzureOpenAI:** HF & models on Azure examples (Frameworks: LangChain, LangGraph, AutoGen, CrewAI)
+- **Real-world-project-examples:** To be updated after ensuring no NDA conflicts
 
-My exploratory work on AI/GenAI 
-- Google AI/APIs
-- Databricks Platform
-- HuggingFace/Transformers
-- OpenAI/Azure AI
+> 🚧 For ChatGPT_Interactions → refer to sample raw documents. For refined/updated/added information, email me — available on demand.
 
-and integration with distributed search platforms such as ELK, OpenSearch, Vector stores(DBs)
+> 🚧 When browsing folders, look for `*.txt` files for instructions/explanations, and use `*.py`/`*.ipynb` files from `Sample_Codes`.
+> Remember to install packages (in your main or a virtual env) to test code examples, or use Colab notebooks from Google Cloud.
 
-> 🚧 When looking in folders, look for *.txt files for instructions or explainations and use *.py/*.ipynb files from Sample_Codes.
-> Remember to install packages(in main env or virtual env) to test codes examples or use Colab-notebooks from Google Cloud 
-
-Models explored & Used:
+## Models Explored & Used
 - sentence-transformers/all-MiniLM-L6-v2
 - sentence-transformers/all-mpnet-base-v2
 - OpenAI/gpt-3.5-turbo
@@ -41,6 +38,10 @@ Models explored & Used:
 - text-embedding-ada-002   # most common, older
 - text-embedding-3-small   # newer, cheaper
 - text-embedding-3-large   # newest, most accurate
--- <more to be added>
+- *more to be added*
 
+## License & Commercial Use
 
+This repository is licensed under the [MIT License](./LICENSE) — free to use, fork, and build on.
+
+📩 Extended, production-grade versions of these projects (additional pipelines, monitoring, scaling, and integration work) are maintained separately and available for commercial licensing or collaboration. Reach out via GitHub if interested.
