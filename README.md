@@ -5,13 +5,20 @@ My exploratory work on AI/GenAI — Google AI/APIs, Databricks Platform, Hugging
 > 🚧 This repository is constantly being refined and improved. Stay tuned!
 
 ## What's Inside
-- **Documentation-Books:** Notes/books
-- **GCP:** Code examples/notes on Google Cloud & Vertex AI
-- **Databricks:** To be updated
-- **Hugging_Face_n_AzureOpenAI:** HF & models on Azure examples (Frameworks: LangChain, LangGraph, AutoGen, CrewAI)
-- **Real-world-project-examples:** To be updated after ensuring no NDA conflicts
 
-> 🚧 For ChatGPT_Interactions → refer to sample raw documents. For refined/updated/added information, email me — available on demand.
+| # | Folder | Contents |
+|---|--------|----------|
+| 0 | [Documentation-Books](./0-Documentation-Books) | Notes / books / reference material |
+| 1 | [Setup_options](./1-Setup_options) | Environment & setup options for the examples below |
+| 2 | [General](./2-General) | General-purpose Notes |
+| 3 | [Datasets](./3-Datasets) | Sample/reference datasets used/synthesized across the projects here |
+| 4 | [ChatGpt_Interactions](./4-ChatGpt_Interactions) | Raw GPT/LLM interaction samples — see note below |
+| 5 | [Hugging_Face_n_OpenAI_Azure](./5-Hugging_Face_n_OpenAI_Azure) | HuggingFace / OpenAI / Other LLMs /locally deployed or on Azure/GCP (Frameworks explored: LangChain, LangGraph, AutoGen, CrewAI) |
+| 6 | [GCP](./6-GCP) | Code examples/notes on Google Cloud & Vertex AI |
+| 7 | [Databricks](./7-Databricks) | GenAI work on the Databricks platform |
+| 8 | [Real-world-projects-xmpls](./8-Real-world-projects-xmpls) | Real-world project examples (shared where no NDA conflicts)
+
+> 📌 **Note on `4-ChatGpt_Interactions`:** This folder contains raw sample interaction logs only. Refined, structured guides are maintained separately and available on request — email **ajaykuma24@gmail.com**.
 
 > 🚧 When browsing folders, look for `*.txt` files for instructions/explanations, and use `*.py`/`*.ipynb` files from `Sample_Codes`.
 > Remember to install packages (in your main or a virtual env) to test code examples, or use Colab notebooks from Google Cloud.
@@ -44,4 +51,4 @@ My exploratory work on AI/GenAI — Google AI/APIs, Databricks Platform, Hugging
 
 This repository is licensed under the [MIT License](./LICENSE) — free to use, fork, and build on.
 
-📩 Extended, production-grade versions of these projects (additional pipelines, monitoring, scaling, and integration work) are maintained separately and available for commercial licensing or collaboration. Reach out via GitHub if interested.
+📩 Extended, production-grade versions of these projects (additional pipelines, monitoring, scaling, and integration work) are maintained separately and available for commercial licensing or collaboration. Reach out via GitHub if interested, or email **ajaykuma24@gmail.com**.
