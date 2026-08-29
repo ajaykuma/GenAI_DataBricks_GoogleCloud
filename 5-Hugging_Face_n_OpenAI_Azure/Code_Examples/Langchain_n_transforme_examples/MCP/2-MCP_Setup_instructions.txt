@@ -8,13 +8,24 @@ E:\MCP>cd venv
 
 E:\MCP\venv>cd Scripts
 
+#if in windows --to activate
 E:\MCP\venv\Scripts>activate
+
+#if in linux: --to activate
+source venv/bin/activate
 
 (venv) E:\MCP\venv\Scripts>pip install mcp 
 			   pip install dotenv
 			   pip install serpapi==0.1.5
 			   pip install google-search-results
 
-copy MCP folder into this directory
+copy MCP folder into this directory & use it..
+
+If any other framework needed, get respective requirements.txt file &
+
+(venv) E:\MCP\venv\Scripts>pip install -r requirements.txt 
+
+
+
 
 
