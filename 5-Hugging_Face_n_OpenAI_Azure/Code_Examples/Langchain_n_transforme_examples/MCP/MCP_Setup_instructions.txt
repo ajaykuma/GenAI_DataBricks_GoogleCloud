@@ -1,0 +1,20 @@
+E:\>mkdir MCP
+
+E:\>cd MCP
+
+E:\MCP>python -m venv venv
+
+E:\MCP>cd venv
+
+E:\MCP\venv>cd Scripts
+
+E:\MCP\venv\Scripts>activate
+
+(venv) E:\MCP\venv\Scripts>pip install mcp 
+			   pip install dotenv
+			   pip install serpapi==0.1.5
+			   pip install google-search-results
+
+copy MCP folder into this directory
+
+
